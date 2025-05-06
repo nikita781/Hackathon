@@ -16,8 +16,7 @@ return new class extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->smallInteger('role');
-            $table->timestamps();
+            $table->string('name');
         });
 
         Schema::create('role_user', function (Blueprint $table) {
@@ -26,12 +25,12 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
         });
 
-        DB::table('roles')->insert([
-            ['role' => 1],
-            ['role' => 2],
-            ['role' => 3],
-            ['role' => 4],
-            ['role' => 5],
+        Role::insert([
+            ['id' => Role::SUPER_ADMIN, 'name' => 'Супер админ'],
+            ['id' => Role::ADMIN, 'name' => 'Админ'],
+            ['id' => Role::ORGANIZER, 'name' => 'Организатор'],
+            ['id' => Role::GSK, 'name' => 'ГСК'],
+            ['id' => Role::MEMBER, 'name' => 'Участник'],
         ]);
     }
 

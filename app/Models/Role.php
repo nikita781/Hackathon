@@ -16,7 +16,7 @@ class Role extends Model
     const MEMBER = 5;
 
     protected $fillable = [
-        'role',
+        'name',
     ];
 
     public function users(): BelongsToMany
