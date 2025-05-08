@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -52,5 +53,22 @@ class User extends Authenticatable
     public function hasRole(int $role_id): bool
     {
         return $this->roles->contains('id', $role_id);
+    }
+
+    public function assignedRole(int $role_id): void
+    {
+        $this->roles()->attach($role_id);
+    }
+
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class)
+            ->using(ProjectUser::class)
+            ->withPivot('position_id');
+    }
+
+    public function projectsAsCapitan(): HasMany
+    {
+        return $this->hasMany(Project::class);
     }
 }
