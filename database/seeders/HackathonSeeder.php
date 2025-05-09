@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Project;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -17,6 +18,9 @@ class HackathonSeeder extends Seeder
 
         foreach ($hackathons as $h) {
             $h->projects()->saveMany(Project::factory()->count(3)->make());
+            for ($i = 0; $i < rand(1, 5); $i++) {
+                $h->tags()->attach(Tag::inRandomOrder()->first()->id);
+            }
         }
         $projects = Project::all();
 
