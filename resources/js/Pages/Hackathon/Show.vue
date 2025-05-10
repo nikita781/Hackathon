@@ -29,9 +29,17 @@ console.log(props.canEdit)
                         <p>end: {{ hackathon.event_end }}</p>
                         <p>tags: {{ hackathon.tags.map(tag => tag.title).join(', ') }}</p>
                         <br>
+                        <div v-for="tab in hackathon.tabs">
+                            <p>Tab title: {{ tab.title }}</p>
+                            <p>description: {{ tab.content }}</p>
+                            <p>count images: {{ tab.images.length }}</p>
+                            <br>
+                        </div>
+                        <br>
                         <div v-for="project in hackathon.projects">
                             <p>Project title: {{ project.title }}</p>
                             <p>description: {{ project.description }}</p>
+                            <p>Count images: {{ project.images.length }}</p>
                             <p>capitan: {{ project.capitan.name }}</p>
                             <div v-for="member in project.members">
                                 <p>member: {{ member.name}}</p>

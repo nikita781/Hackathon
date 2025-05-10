@@ -12,6 +12,9 @@ class Image extends Model
         'imageable_id', 'imageable_type', 'path', 'title', 'mime', 'order',
     ];
 
+    /**
+     * @return MorphTo
+     */
     public function imageable(): MorphTo
     {
         return $this->morphTo();

@@ -12,6 +12,9 @@ class Tag extends Model
         'title',
     ];
 
+    /**
+     * @return BelongsToMany
+     */
     public function hackathons(): BelongsToMany
     {
         return $this->belongsToMany(Hackathon::class);

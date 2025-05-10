@@ -45,6 +45,9 @@ class HackathonController extends Controller
                 $query->with([
                     'members', 'capitan', 'images'
                 ]);
+            },
+            'tabs' => function ($query) {
+                $query->with('images');
             }
         ]);
 

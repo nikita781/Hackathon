@@ -45,30 +45,39 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    /**
+     * @return BelongsToMany
+     */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
     }
 
+    /**
+     * @return BelongsToMany
+     */
     public function hackathons(): BelongsToMany
     {
         return $this->belongsToMany(Hackathon::class)
             ->withPivot('role_id');
     }
 
+    /**
+     * @param  int  $role_id
+     * @return bool
+     */
     public function hasRole(int $role_id): bool
     {
         return $this->roles->contains('id', $role_id);
     }
 
+    /**
+     * @param  int  $role_id
+     * @return void
+     */
     public function assignedRole(int $role_id): void
     {
         $this->roles()->attach($role_id);
-    }
-
-    public function hasHackathon(int $hackathon_id): bool
-    {
-        return $this->hackathons->whereHas('role_id', Role::ORGANIZER)->contains('id', $hackathon_id);
     }
 
     public function projects(): BelongsToMany

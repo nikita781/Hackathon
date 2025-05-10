@@ -14,6 +14,9 @@ class Position extends Model
     ];
 
 
+    /**
+     * @return HasMany
+     */
     public function projectUsers(): HasMany
     {
         return $this->hasMany(ProjectUser::class);

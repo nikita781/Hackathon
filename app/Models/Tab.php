@@ -14,14 +14,29 @@ class Tab extends Model
     protected $fillable = [
         'hackathon_id', 'title', 'content',
     ];
+    const TAB_TITLES = ['Обзор', 'Ресурсы', 'Правила', 'Контакты'];
 
+    /**
+     * @return BelongsTo
+     */
     public function hackathon(): BelongsTo
     {
         return $this->belongsTo(Hackathon::class);
     }
 
+    /**
+     * @return MorphMany
+     */
     public function images(): MorphMany
     {
         return $this->morphMany(Image::class, 'imageable');
+    }
+
+    /**
+     * @return MorphMany
+     */
+    public function files(): MorphMany
+    {
+        return $this->morphMany(File::class, 'fileable');
     }
 }
