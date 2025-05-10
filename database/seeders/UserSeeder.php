@@ -40,7 +40,13 @@ class UserSeeder extends Seeder
         $org->assignedRole(Role::ORGANIZER);
         $gsk->assignedRole(Role::GSK);
         $member->assignedRole(Role::MEMBER);
+        $roles = Role::where('id', '>', Role::ADMIN)->get();
 
         User::factory(30)->create();
+        User::all()->each(function ($user) use ($roles) {
+            $user->roles()->syncWithoutDetaching(
+                $roles->random(rand(1, 2))->pluck('id')->toArray()
+            );
+        });
     }
 }

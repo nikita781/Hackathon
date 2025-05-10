@@ -26,8 +26,8 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(! $this->app->isProduction());
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
 
-        Gate::before(function (User $user, $ability) {
-            return $user->hasRole(Role::SUPER_ADMIN) ? true : null;
-        });
+//        Gate::before(function (User $user, $ability) {
+//            return $user->hasRole(Role::SUPER_ADMIN) ? true : null;
+//        });
     }
 }

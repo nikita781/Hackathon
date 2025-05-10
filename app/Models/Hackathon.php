@@ -19,6 +19,14 @@ class Hackathon extends Model
     ];
 
     /**
+     * @return string
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /**
      * @return HasMany
      */
     public function projects(): HasMany
@@ -32,6 +40,12 @@ class Hackathon extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->withPivot('role_id');
     }
 
     /**

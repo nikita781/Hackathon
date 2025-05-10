@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Hackathon;
+use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,9 +17,10 @@ class HackathonController extends Controller
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('Hackathon', [
+        return Inertia::render('Hackathon/Index', [
 //            'hackathons' => Hackathon::filter($request)->paginate($request->per_page ?? 6),
             'hackathons' => Hackathon::filter($request)->with('tags')->get(),
+
         ]);
     }
 
@@ -29,9 +32,32 @@ class HackathonController extends Controller
     {
     }
 
-    public function show(Hackathon $hackathon)
+    /**
+     * @param  Hackathon  $hackathon
+     * @return Response
+     */
+    public function show(Hackathon $hackathon): Response
     {
 
+        $hackathon->load([
+            'tags',
+            'projects' => function ($query) {
+                $query->with([
+                    'members', 'capitan', 'images'
+                ]);
+            }
+        ]);
+
+        $hackathon->projects->each(function ($project) {
+            $project->members->each(function ($member) {
+                $member->pivot->load('position');
+            });
+        });
+
+        return Inertia::render('Hackathon/Show', [
+            'hackathon' => $hackathon,
+            'canEdit' => Gate::check('update', $hackathon),
+        ]);
     }
 
     public function edit(Hackathon $hackathon)

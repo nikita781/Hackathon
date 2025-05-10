@@ -5,6 +5,8 @@ namespace Database\Factories;
 use App\Models\Hackathon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class HackathonFactory extends Factory
 {
@@ -12,8 +14,9 @@ class HackathonFactory extends Factory
 
     public function definition(): array
     {
+        $title = $this->faker->sentence(3);
         return [
-            'title' => $this->faker->word(),
+            'title' => $title,
             'image_path' => 'test/image.jpg',
             'format' => $this->faker->randomElement(['online', 'offline', 'hybrid']),
             'type' => $this->faker->randomElement(['team', 'individual']),
@@ -24,7 +27,7 @@ class HackathonFactory extends Factory
             'event_start' => Carbon::now()->addMonth(),
             'event_end' => Carbon::now()->addMonths(2),
             'prize_pool' => $this->faker->randomFloat('2', 10000, 1000000),
-            'slug' => $this->faker->slug(),
+            'slug' => Str::slug($title),
             'is_published' => $this->faker->boolean(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),

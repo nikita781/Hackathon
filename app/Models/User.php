@@ -50,6 +50,12 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class);
     }
 
+    public function hackathons(): BelongsToMany
+    {
+        return $this->belongsToMany(Hackathon::class)
+            ->withPivot('role_id');
+    }
+
     public function hasRole(int $role_id): bool
     {
         return $this->roles->contains('id', $role_id);
@@ -58,6 +64,11 @@ class User extends Authenticatable
     public function assignedRole(int $role_id): void
     {
         $this->roles()->attach($role_id);
+    }
+
+    public function hasHackathon(int $hackathon_id): bool
+    {
+        return $this->hackathons->whereHas('role_id', Role::ORGANIZER)->contains('id', $hackathon_id);
     }
 
     public function projects(): BelongsToMany

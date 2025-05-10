@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Hackathon;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -28,6 +31,13 @@ return new class extends Migration
             $table->boolean('is_published')->default(false);
             $table->timestamps();
         });
+
+        Schema::create('hackathon_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignIdFor(Hackathon::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignIdFor(Role::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+        });
     }
 
     /**
@@ -36,5 +46,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('hackathons');
+        Schema::dropIfExists('hackathon_user');
     }
 };
