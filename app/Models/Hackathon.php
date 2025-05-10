@@ -34,6 +34,11 @@ class Hackathon extends Model
         return $this->hasMany(Project::class);
     }
 
+    public function tabs(): HasMany
+    {
+        return $this->hasMany(Tab::class);
+    }
+
     /**
      * @return BelongsToMany
      */
