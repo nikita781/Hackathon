@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\HackathonRequest;
+use App\Http\Resources\HackathonResource;
+use App\Http\Resources\TagResource;
 use App\Models\Hackathon;
 use App\Models\Role;
+use App\Models\Tab;
+use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,10 +23,23 @@ class HackathonController extends Controller
      */
     public function index(Request $request): Response
     {
+        $hackathons = Hackathon::filter($request)
+            ->with('tags')
+            ->where('is_published', true)
+            ->latest()
+            ->get();
+
+        $hackathons->each(function ($hackathon) {
+            $hackathon->can_update = Gate::check('update', $hackathon);
+        });
+
         return Inertia::render('Hackathon/Index', [
 //            'hackathons' => Hackathon::filter($request)->paginate($request->per_page ?? 6),
-            'hackathons' => Hackathon::filter($request)->with('tags')->get(),
-
+            'hackathons' => HackathonResource::collection($hackathons),
+            'tags' => HackathonResource::collection(Tag::orderBy('title')->get()),
+            'can' => [
+                'create' => Gate::check('create', Hackathon::class),
+            ],
         ]);
     }
 
@@ -28,8 +47,25 @@ class HackathonController extends Controller
     {
     }
 
-    public function store(Request $request)
+    public function store(HackathonRequest $request)
     {
+        $data = Arr::except($request->validated(), 'tags');
+        if ($request->hasFile('image_path')) {
+            $data['image_path'] = $request->file('image_path')->store('hackathons', 'public');
+        }
+        $data['slug'] = Hackathon::generateUniqueSlug($data['title']);
+        $hackathon = Hackathon::create($data);
+        $hackathon->users()->syncWithoutDetaching([
+            auth()->id() => ['role_id' => Role::ORGANIZER],
+        ]);
+        $hackathon->tags()->sync($request->tags);
+        foreach (Tab::TAB_TITLES as $tab) {
+            $hackathon->tabs()->create([
+                'title' => $tab
+            ]);
+        }
+
+        return redirect()->route('hackathons.show', $hackathon);
     }
 
     /**
@@ -38,7 +74,9 @@ class HackathonController extends Controller
      */
     public function show(Hackathon $hackathon): Response
     {
-
+        if (!Gate::check('view', $hackathon)) {
+            abort(404);
+        }
         $hackathon->load([
             'tags',
             'projects' => function ($query) {
@@ -58,8 +96,10 @@ class HackathonController extends Controller
         });
 
         return Inertia::render('Hackathon/Show', [
-            'hackathon' => $hackathon,
-            'canEdit' => Gate::check('update', $hackathon),
+            'hackathon' => new HackathonResource($hackathon),
+            'can' => [
+                'update' => Gate::check('update', $hackathon),
+            ],
         ]);
     }
 
@@ -69,6 +109,7 @@ class HackathonController extends Controller
 
     public function update(Request $request, Hackathon $hackathon)
     {
+
     }
 
     public function destroy(Hackathon $hackathon)

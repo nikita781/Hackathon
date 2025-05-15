@@ -18,7 +18,11 @@ class HackathonPolicy
 
     public function view(User $user, Hackathon $hackathon): bool
     {
-        return true;
+        return $hackathon->is_published || $user->whereHas('hackathons', function ($query) use ($hackathon, $user) {
+            $query->where('hackathon_id', $hackathon->id)
+                ->where('role_id', Role::ORGANIZER)
+                ->where('user_id', $user->id);
+            })->exists();
     }
 
     public function create(User $user): bool
@@ -28,11 +32,17 @@ class HackathonPolicy
 
     public function update(User $user, Hackathon $hackathon): bool
     {
+        if ($hackathon->is_published) {
+            return false;
+        }
         return $user->hackathons()->where('hackathon_id', $hackathon->id)->where('role_id', Role::ORGANIZER)->exists();
     }
 
     public function delete(User $user, Hackathon $hackathon): bool
     {
+        if ($hackathon->is_published) {
+            return false;
+        }
         return $user->hackathons()->where('hackathon_id', $hackathon->id)->where('role_id', Role::ORGANIZER)->exists();
     }
 }

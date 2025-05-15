@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class Hackathon extends Model
 {
@@ -114,5 +115,18 @@ class Hackathon extends Model
         });
 
         return $query;
+    }
+
+    public static function generateUniqueSlug(string $title): string
+    {
+        $slug = Str::slug($title);
+        $original = $slug;
+        $i = 1;
+
+        while (Hackathon::where('slug', $slug)->exists()) {
+            $slug = $original . '-' . $i++;
+        }
+
+        return $slug;
     }
 }
