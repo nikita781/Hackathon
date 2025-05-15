@@ -3,6 +3,7 @@
 use App\Http\Controllers\HackathonController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TabController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -35,7 +36,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::prefix('hackathons')->name('hackathons.')->group(function () {
         Route::get('/', [HackathonController::class, 'index'])->name('index');
-        Route::get('/{hackathon}', [HackathonController::class, 'show'])->name('show');
+        Route::post('/', [HackathonController::class, 'store'])->name('store');
+        Route::prefix('/{hackathon}')->group(function () {
+            Route::get('/', [HackathonController::class, 'show'])->name('show');
+                Route::prefix('/tabs')->name('tabs.')->group(function () {
+                    Route::put('/', [TabController::class, 'update'])->name('update');
+//                    Route::post('/upload-image', [TabsController::class, 'uploadImage'])->name('uploadImage');
+//                    Route::post('/upload-file', [TabsController::class, 'uploadFile'])->name('uploadFile');
+            });
+        });
     });
 });
 

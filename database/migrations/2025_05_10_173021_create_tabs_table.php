@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Hackathon;
+use App\Models\Tab;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,8 +16,8 @@ return new class extends Migration
         Schema::create('tabs', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Hackathon::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->enum('title', ['Обзор', 'Ресурсы', 'Правила', 'Контакты']);
-            $table->mediumText('content');
+            $table->enum('title', Tab::TAB_TITLES)->index();
+            $table->mediumText('content')->nullable();
             $table->timestamps();
         });
     }
