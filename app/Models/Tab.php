@@ -14,7 +14,7 @@ class Tab extends Model
     protected $fillable = [
         'hackathon_id', 'title', 'content',
     ];
-    const TAB_TITLES = ['Обзор', 'Ресурсы', 'Правила', 'Контакты'];
+    const TAB_TITLES = ['Обзор', 'Ресурсы', 'Правила', 'Контакты', 'Оценка'];
 
     /**
      * @return BelongsTo

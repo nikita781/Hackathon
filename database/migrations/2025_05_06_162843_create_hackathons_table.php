@@ -16,6 +16,7 @@ return new class extends Migration
     {
         Schema::create('hackathons', function (Blueprint $table) {
             $table->id();
+            $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('title');
             $table->string('image_path');
             $table->enum('format', ['online', 'offline', 'hybrid']);
@@ -26,7 +27,8 @@ return new class extends Migration
             $table->date('registration_end');
             $table->date('event_start');
             $table->date('event_end');
-            $table->decimal('prize_pool', 12, 2);
+            $table->string('prize_type');
+            $table->integer('prize_pool');
             $table->string('slug')->unique();
             $table->boolean('is_published')->default(false);
             $table->timestamps();

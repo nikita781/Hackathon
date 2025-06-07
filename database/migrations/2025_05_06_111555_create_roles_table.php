@@ -16,7 +16,7 @@ return new class extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('title');
         });
 
         Schema::create('role_user', function (Blueprint $table) {
@@ -26,11 +26,12 @@ return new class extends Migration
         });
 
         Role::insert([
-            ['id' => Role::SUPER_ADMIN, 'name' => 'Супер админ'],
-            ['id' => Role::ADMIN, 'name' => 'Админ'],
-            ['id' => Role::ORGANIZER, 'name' => 'Организатор'],
-            ['id' => Role::GSK, 'name' => 'ГСК'],
-            ['id' => Role::MEMBER, 'name' => 'Участник'],
+            ['id' => Role::SUPER_ADMIN, 'title' => 'Главный админ'],
+            ['id' => Role::ADMIN, 'title' => 'Админ'],
+            ['id' => Role::ORGANIZER, 'title' => 'Организатор'],
+            ['id' => Role::JUDGE, 'title' => 'Судья'],
+            ['id' => Role::MENTOR, 'title' => 'Ментор'],
+            ['id' => Role::MEMBER, 'title' => 'Участник'],
         ]);
     }
 

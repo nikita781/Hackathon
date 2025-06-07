@@ -53,6 +53,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class);
     }
 
+    public function hackathonsAsOrganizer(): HasMany
+    {
+        return $this->hasMany(Hackathon::class);
+    }
+
     /**
      * @return BelongsToMany
      */
@@ -77,7 +82,7 @@ class User extends Authenticatable
      */
     public function assignedRole(int $role_id): void
     {
-        $this->roles()->attach($role_id);
+        $this->roles()->syncWithoutDetaching([$role_id]);
     }
 
     public function projects(): BelongsToMany

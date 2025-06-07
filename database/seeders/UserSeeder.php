@@ -24,9 +24,15 @@ class UserSeeder extends Seeder
             'password' => Hash::make('1'),
         ]);
 
-        $gsk = User::create([
-            'name' => 'GSK',
-            'email' => 'gsk@gsk.com',
+        $judge = User::create([
+            'name' => 'JUDGE',
+            'email' => 'judge@judge.com',
+            'password' => Hash::make('1'),
+        ]);
+
+        $mentor = User::create([
+            'name' => 'MENTOR',
+            'email' => 'mentor@mentor.com',
             'password' => Hash::make('1'),
         ]);
 
@@ -38,15 +44,8 @@ class UserSeeder extends Seeder
 
         $admin->assignedRole(Role::SUPER_ADMIN);
         $org->assignedRole(Role::ORGANIZER);
-        $gsk->assignedRole(Role::GSK);
+        $judge->assignedRole(Role::JUDGE);
+        $mentor->assignedRole(Role::MENTOR);
         $member->assignedRole(Role::MEMBER);
-        $roles = Role::where('id', '>', Role::ADMIN)->get();
-
-        User::factory(30)->create();
-        User::all()->each(function ($user) use ($roles) {
-            $user->roles()->syncWithoutDetaching(
-                $roles->random(rand(1, 2))->pluck('id')->toArray()
-            );
-        });
     }
 }

@@ -24,13 +24,13 @@ class HackathonResource extends JsonResource
             'registration_end' => $this->registration_end,
             'event_start' => $this->event_start,
             'event_end' => $this->event_end,
+            'prize_type' => $this->prize_type,
             'prize_pool' => $this->prize_pool,
             'slug' => $this->slug,
             'is_published' => $this->is_published,
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'projects' => ProjectResource::collection($this->whenLoaded('projects')),
             'tabs' => TabResource::collection($this->whenLoaded('tabs')),
-            'can_update' => $this->can_update ?? false,
         ];
     }
 }

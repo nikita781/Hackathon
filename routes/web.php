@@ -1,10 +1,7 @@
 <?php
 
 use App\Http\Controllers\HackathonController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TabController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -19,33 +16,29 @@ use Inertia\Inertia;
 |
 */
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+Route::get('/', [HackathonController::class, 'index'])->name('index');
+
+Route::prefix('hackathons')->name('hackathons.')->group(function () {
+    Route::prefix('/{hackathon}')->group(function () {
+        Route::get('/', [HackathonController::class, 'show'])->name('show');
+    });
 });
 
-Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/users/{user}', [UserController::class, 'show'])->middleware(['auth'])->name('user.show');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::prefix('hackathons')->name('hackathons.')->group(function () {
-        Route::get('/', [HackathonController::class, 'index'])->name('index');
-        Route::post('/', [HackathonController::class, 'store'])->name('store');
-        Route::prefix('/{hackathon}')->group(function () {
-            Route::get('/', [HackathonController::class, 'show'])->name('show');
-                Route::prefix('/tabs')->name('tabs.')->group(function () {
-                    Route::put('/', [TabController::class, 'update'])->name('update');
-//                    Route::post('/upload-image', [TabsController::class, 'uploadImage'])->name('uploadImage');
-//                    Route::post('/upload-file', [TabsController::class, 'uploadFile'])->name('uploadFile');
-            });
-        });
-    });
+    Route::get('/my-hackathons', [HackathonController::class, 'myHackathons'])->name('my-hackathons');
+//    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+//    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+//    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+//    Route::prefix('hackathons')->name('hackathons.')->group(function () {
+//        Route::post('/', [HackathonController::class, 'store'])->name('store');
+//        Route::prefix('/{hackathon}')->group(function () {
+//                Route::prefix('/tabs')->name('tabs.')->group(function () {
+//                    Route::put('/', [TabController::class, 'update'])->name('update');
+//            });
+//        });
+//    });
 });
 
 require __DIR__.'/auth.php';

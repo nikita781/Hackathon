@@ -14,15 +14,15 @@ return new class extends Migration
     {
         Schema::create('positions', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('title');
         });
 
         Position::insert([
-            ['name' => 'Backend'],
-            ['name' => 'Frontend'],
-            ['name' => 'Дизайнер'],
-            ['name' => 'Fullstack'],
-            ['name' => 'DevOps'],
+            ['title' => 'Backend'],
+            ['title' => 'Frontend'],
+            ['title' => 'Дизайнер'],
+            ['title' => 'Fullstack'],
+            ['title' => 'DevOps'],
         ]);
     }
 

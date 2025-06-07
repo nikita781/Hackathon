@@ -18,11 +18,7 @@ class HackathonPolicy
 
     public function view(User $user, Hackathon $hackathon): bool
     {
-        return $hackathon->is_published || $user->whereHas('hackathons', function ($query) use ($hackathon, $user) {
-            $query->where('hackathon_id', $hackathon->id)
-                ->where('role_id', Role::ORGANIZER)
-                ->where('user_id', $user->id);
-            })->exists();
+        return $hackathon->is_published || $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 
     public function create(User $user): bool

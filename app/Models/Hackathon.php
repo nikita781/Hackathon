@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -16,7 +17,7 @@ class Hackathon extends Model
     use HasFactory;
     protected $fillable = [
         'title', 'image_path', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
-        'registration_end', 'event_start', 'event_end', 'prize_pool', 'slug', 'is_published',
+        'registration_end', 'event_start', 'event_end', 'prize_pool', 'slug', 'is_published', 'prize_type',
     ];
 
     /**
@@ -25,6 +26,11 @@ class Hackathon extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**
@@ -65,7 +71,7 @@ class Hackathon extends Model
     public function scopeFilter(Builder $query, $request): Builder
     {
         $query->when($request->q, function ($q, $search) {
-            $q->where('title', 'like', '%' . $search . '%');
+            $q->where('title', 'ILIKE', '%' . $search . '%');
         });
 
         $query->when($request->format, function ($q, $format) {
@@ -123,7 +129,7 @@ class Hackathon extends Model
         $original = $slug;
         $i = 1;
 
-        while (Hackathon::where('slug', $slug)->exists()) {
+        while (self::where('slug', $slug)->exists()) {
             $slug = $original . '-' . $i++;
         }
 

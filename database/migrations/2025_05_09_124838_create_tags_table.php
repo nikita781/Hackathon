@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('slug')->unique();
         });
 
         Schema::create('hackathon_tag', function (Blueprint $table) {
@@ -26,11 +27,17 @@ return new class extends Migration
         });
 
         Tag::insert([
-           ['title' => 'UX/UI'],
-           ['title' => 'Тестировщики'],
-           ['title' => 'Веб-дизайнеры'],
-           ['title' => 'Product-менеджеры'],
-           ['title' => 'Веб-разработчики'],
+           ['title' => 'UX/UI', 'slug' => 'ux-ui'],
+           ['title' => 'Тестировщики', 'slug' => 'testers'],
+           ['title' => 'Веб-дизайнеры', 'slug' => 'web-designers'],
+           ['title' => 'Product-менеджеры', 'slug' => 'product-managers'],
+           ['title' => 'Веб-разработчики', 'slug' => 'web-developers'],
+           ['title' => 'Android-разработчики', 'slug' => 'android-developers'],
+           ['title' => 'iOS-разработчики', 'slug' => 'ios-developers'],
+           ['title' => 'Frontend-разработчики', 'slug' => 'frontend-developers'],
+           ['title' => 'Backend-разработчики', 'slug' => 'backend-developers'],
+           ['title' => 'QA-инженеры', 'slug' => 'qa-engineers'],
+           ['title' => 'DevOps', 'slug' => 'devops'],
         ]);
     }
 

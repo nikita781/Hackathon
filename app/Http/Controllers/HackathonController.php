@@ -29,16 +29,29 @@ class HackathonController extends Controller
             ->latest()
             ->get();
 
-        $hackathons->each(function ($hackathon) {
-            $hackathon->can_update = Gate::check('update', $hackathon);
-        });
-
         return Inertia::render('Hackathon/Index', [
 //            'hackathons' => Hackathon::filter($request)->paginate($request->per_page ?? 6),
             'hackathons' => HackathonResource::collection($hackathons),
             'tags' => HackathonResource::collection(Tag::orderBy('title')->get()),
             'can' => [
                 'create' => Gate::check('create', Hackathon::class),
+            ],
+        ]);
+    }
+
+    public function myHackathons(Request $request): Response
+    {
+        $hackathons = auth()->user()
+            ->hackathons()
+            ->filter($request)
+            ->with('tags')
+            ->get();
+
+        return Inertia::render('Dashboard', [
+            'user' => auth()->user()->load('roles'),
+            'hackathons' => HackathonResource::collection($hackathons),
+            'can' => [
+                'create' => auth()->user()->can('create', Hackathon::class),
             ],
         ]);
     }
@@ -51,7 +64,7 @@ class HackathonController extends Controller
     {
         $data = Arr::except($request->validated(), 'tags');
         if ($request->hasFile('image_path')) {
-            $data['image_path'] = $request->file('image_path')->store('hackathons', 'public');
+            $data['image_path'] = $request->file('image_path')?->store('hackathons', 'public');
         }
         $data['slug'] = Hackathon::generateUniqueSlug($data['title']);
         $hackathon = Hackathon::create($data);
