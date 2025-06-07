@@ -1,3 +1,25 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import './header.scss';
+@import './index.scss';
+@import './footer.scss';
+
+/*@tailwind base;*/
+/*@tailwind components;*/
+/*@tailwind utilities;*/
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Cera Pro';
+}
+main {
+    background-color: #fff;
+}
+
+@font-face {
+    font-family: 'Cera Pro';
+    src: url('/public/fonts/CeraPro-Regular.ttf');
+}
+@font-face {
+    font-family: 'Cera';
+    src: url('/public/fonts/CeraPro-Medium.ttf');
+}
