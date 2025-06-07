@@ -27,10 +27,9 @@ class HackathonController extends Controller
             ->with('tags')
             ->where('is_published', true)
             ->latest()
-            ->get();
+            ->paginate($request->per_page ?? 6);
 
         return Inertia::render('Hackathon/Index', [
-//            'hackathons' => Hackathon::filter($request)->paginate($request->per_page ?? 6),
             'hackathons' => HackathonResource::collection($hackathons),
             'tags' => HackathonResource::collection(Tag::orderBy('title')->get()),
             'can' => [
@@ -41,17 +40,40 @@ class HackathonController extends Controller
 
     public function myHackathons(Request $request): Response
     {
-        $hackathons = auth()->user()
-            ->hackathons()
+
+        $user = auth()->user();
+        $perPage = $request->per_page ?? 6;
+
+        $hackathonIds = $user->hackathons()->select('hackathons.id');
+
+        if ($user->hasRole(Role::ORGANIZER)) {
+            $hackathonIds->union(
+                $user->hackathonsAsOrganizer()->select('hackathons.id')
+            );
+        }
+
+        $upcoming = Hackathon::query()
+            ->whereIn('id', $hackathonIds)
             ->filter($request)
+            ->where('event_start', '>', now())
             ->with('tags')
-            ->get();
+            ->orderBy('event_start')
+            ->paginate($perPage);
+
+        $past = Hackathon::query()
+            ->whereIn('id', $hackathonIds)
+            ->filter($request)
+            ->where('event_start', '<=', now())
+            ->with('tags')
+            ->orderByDesc('event_start')
+            ->paginate($perPage);
 
         return Inertia::render('Dashboard', [
-            'user' => auth()->user()->load('roles'),
-            'hackathons' => HackathonResource::collection($hackathons),
+            'user' => $user->load('roles'),
+            'upcomingHackathons' => $upcoming,
+            'pastHackathons' => $past,
             'can' => [
-                'create' => auth()->user()->can('create', Hackathon::class),
+                'create' => $user->can('create', Hackathon::class),
             ],
         ]);
     }
