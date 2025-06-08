@@ -101,11 +101,11 @@ class Hackathon extends Model
             });
         });
 
-        $query->when($request->tag, function ($q, $tag) {
+        $query->when($request->tags, function ($q, $tag) {
             $tags = is_array($tag) ? $tag : explode(',', $tag);
             foreach ($tags as $tagName) {
                 $q->whereHas('tags', function ($q2) use ($tagName) {
-                    $q2->where('tags.title', $tagName);
+                    $q2->where('tags.slug', $tagName);
                 });
             }
         });
