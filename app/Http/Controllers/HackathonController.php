@@ -74,8 +74,8 @@ class HackathonController extends Controller
 
         return Inertia::render('Dashboard', [
             'user' => $user->load('roles'),
-            'upcomingHackathons' => $upcoming,
-            'pastHackathons' => $past,
+            'upcomingHackathons' => HackathonResource::collection($upcoming),
+            'pastHackathons' => HackathonResource::collection($past),
             'can' => [
                 'create' => $user->can('create', Hackathon::class),
             ],

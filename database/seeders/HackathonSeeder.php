@@ -17,11 +17,12 @@ class HackathonSeeder extends Seeder
     {
         Hackathon::factory()->count(60)->create();
         $hackathons = Hackathon::all();
-
+        $user = User::find(2);
         foreach ($hackathons as $h) {
             for ($i = 0; $i < random_int(1, 5); $i++) {
                 $h->tags()->syncWithoutDetaching(Tag::inRandomOrder()->first()->id);
             }
+            $h->users()->syncWithoutDetaching([$user->id => ['role_id' => Role::MEMBER]]);
 //            foreach (Tab::TAB_TITLES as $title) {
 //                $tab = Tab::factory()->create(['title' => $title, 'hackathon_id' => $h->id]);
 //                for ($i = 0; $i < rand(1, 5); $i++) {
