@@ -15,7 +15,7 @@ class HackathonSeeder extends Seeder
 {
     public function run(): void
     {
-        Hackathon::factory()->count(3)->create();
+        Hackathon::factory()->count(60)->create();
         $hackathons = Hackathon::all();
 
         foreach ($hackathons as $h) {
