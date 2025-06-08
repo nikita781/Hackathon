@@ -27,7 +27,8 @@ class HackathonController extends Controller
             ->with('tags')
             ->where('is_published', true)
             ->latest()
-            ->paginate($request->per_page ?? 6);
+            ->paginate($request->per_page ?? 6)
+            ->withQueryString();
 
         return Inertia::render('Hackathon/Index', [
             'hackathons' => HackathonResource::collection($hackathons),
@@ -35,6 +36,9 @@ class HackathonController extends Controller
             'can' => [
                 'create' => Gate::check('create', Hackathon::class),
             ],
+            'filters'    => $request->only(
+                        'q', 'format', 'type', 'status', 'tags', 'order'
+            ),
         ]);
     }
 

@@ -11,6 +11,7 @@ const props = defineProps({
     hackathons: Object,
     can: Object,
     tags: Object,
+    filters: Object,
 })
 const { data, links, current_page, last_page } = props.hackathons
 
@@ -19,13 +20,14 @@ function go(pageUrl) {
     router.get(pageUrl, {}, { preserveState:true, preserveScroll:true, replace:true })
 }
 
-const search   = ref('')
-const sort     = ref('dateA')
+const search = ref(props.filters.q     ?? '')
+const sort   = ref(props.filters.order ?? 'dateA')
+
 const selected = reactive({
-    format1      : [],
-    status       : [],
-    participation: [],
-    direction    : []
+    format1      : props.filters.format ?  props.filters.format.split(',') : [],
+    status       : props.filters.status ?  props.filters.status.split(',') : [],
+    participation: props.filters.type   ?  props.filters.type  .split(',') : [],
+    direction    : props.filters.tags   ?  props.filters.tags  .split(',') : [],
 })
 
 function toggle(group, value){
