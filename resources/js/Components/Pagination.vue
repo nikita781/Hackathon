@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
 
-/* --- входные данные от Laravel --- */
 const props = defineProps({
     links: {
         type: Array,
@@ -10,14 +9,11 @@ const props = defineProps({
     },
 })
 
-/* --- помощники, чтобы узнать prev/next --- */
 const isPrev = (l) => l.label.includes('&laquo;') || l.label === '‹'
 const isNext = (l) => l.label.includes('&raquo;') || l.label === '›'
 
-/* --- сколько номеров вокруг активной показывать --- */
 const W = 4
 
-/* --- готовим «умный» массив для вывода --- */
 const paginated = computed(() => {
     const prev = props.links.find(isPrev)
     const next = props.links.find(isNext)
@@ -25,13 +21,11 @@ const paginated = computed(() => {
 
     const curIdx = pages.findIndex((p) => p.active)
 
-    /* какие индексы сохранить → Set */
     const keep = new Set([0, pages.length - 1])
     for (let i = curIdx - W; i <= curIdx + W; i++) {
         if (i >= 0 && i < pages.length) keep.add(i)
     }
 
-    /* собираем, вставляя «gap» где надо */
     const out = []
     pages.forEach((p, i) => {
         if (keep.has(i)) {
@@ -41,7 +35,6 @@ const paginated = computed(() => {
         }
     })
 
-    /* превратим «gap» в псевдо-линки */
     const final = out.map((x) =>
         x === 'gap'
             ? { url: null, label: '…', active: false }
@@ -54,7 +47,6 @@ const paginated = computed(() => {
 
 <template>
     <nav class="main__pagination">
-        <!-- ⟨ prev -->
         <Link
             v-if="paginated.prev"
             :href="paginated.prev.url ?? ''"
@@ -75,7 +67,6 @@ const paginated = computed(() => {
             </svg>
         </Link>
 
-        <!-- цифры + … -->
         <Link
             v-for="page in paginated.pages"
             :key="page.label + page.url"
@@ -87,7 +78,6 @@ const paginated = computed(() => {
             <span v-html="page.label" />
         </Link>
 
-        <!-- next ⟩ -->
         <Link
             v-if="paginated.next"
             :href="paginated.next.url ?? ''"
