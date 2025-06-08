@@ -149,6 +149,7 @@ $x-big: 1829.98px;
                 justify-content: space-between;
                 flex-wrap: wrap;
                 gap: 20px;
+                padding-right: 20px;
                 @media screen and (max-width: $large){
                     gap: 14px;
                 }

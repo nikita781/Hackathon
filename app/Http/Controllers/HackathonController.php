@@ -62,7 +62,8 @@ class HackathonController extends Controller
             ->where('event_start', '>', now())
             ->with('tags')
             ->orderBy('event_start')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
 
         $past = Hackathon::query()
             ->whereIn('id', $hackathonIds)
@@ -70,15 +71,19 @@ class HackathonController extends Controller
             ->where('event_start', '<=', now())
             ->with('tags')
             ->orderByDesc('event_start')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
 
-        return Inertia::render('Dashboard', [
+        return Inertia::render('MyHackathon/Index', [
             'user' => $user->load('roles'),
             'upcomingHackathons' => HackathonResource::collection($upcoming),
             'pastHackathons' => HackathonResource::collection($past),
             'can' => [
                 'create' => $user->can('create', Hackathon::class),
             ],
+            'query'    => $request->only(
+                'q', 'order', 'tab'
+            ),
         ]);
     }
 

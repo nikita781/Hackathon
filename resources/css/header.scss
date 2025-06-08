@@ -90,6 +90,9 @@ $x-big: 1829.98px;
             color: #cfcfcf;
             transition: 0.3s;
         }
+        &.active {
+            color: #E80024;
+        }
     }
     &__profile {
         &_img {

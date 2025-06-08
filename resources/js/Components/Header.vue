@@ -1,13 +1,20 @@
 <script setup>
+import { usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
+const isActiveMyHackathons = computed(() => {
+    return usePage().url.startsWith('/my-hackathons')
+})
 </script>
 
 <template>
     <header class="header">
         <div class="header__container">
-            <img src="/logo.png" alt="Logo" class="header__logo" />
+            <a href="/">
+                <img src="/logo.png" alt="Logo" class="header__logo" />
+            </a>
             <div class="header__content">
-                <a href="#" class="header__link">Мои хакатоны</a>
+                <a href="/my-hackathons" class="header__link" :class="{ active: isActiveMyHackathons }">Мои хакатоны</a>
                 <!--                    <div class="header__btns">-->
                 <!--                        <a href="#" class="main__btn">Войти</a>-->
                 <!--                        <a href="#" class="main__btn main__btn_white">Регистрация</a>-->
