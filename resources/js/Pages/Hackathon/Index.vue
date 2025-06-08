@@ -1,8 +1,9 @@
 <script setup>
 
-import {Head, useForm, usePage} from "@inertiajs/vue3";
+import {Head, router, useForm, usePage} from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import {nextTick, reactive, ref} from "vue";
+import {nextTick, reactive, ref, watch} from "vue";
+import debounce from 'lodash.debounce'
 
 const page = usePage()
 const props = defineProps({
@@ -11,26 +12,61 @@ const props = defineProps({
     tags: Object,
 })
 
-const form = useForm({
-    title: '',
-    format: '',
-    type: '',
-    // registration_start: '',
-    registration_end: '',
-    event_start: '',
-    event_end: '',
-    prize_pool: '',
-    min_team_size: '',
-    max_team_size: '',
-    image_path: null,
-    tags: [],
+const search   = ref('')
+const sort     = ref('dateA')
+const selected = reactive({
+    format1      : [],
+    status       : [],
+    participation: [],
+    direction    : []
 })
 
-function submit() {
-    form.post(route('hackathons.store'))
+function toggle(group, value){
+    const idx = selected[group].indexOf(value)
+    idx > -1 ? selected[group].splice(idx,1) : selected[group].push(value)
 }
 
-console.log(props.hackathons);
+function fDate(str){
+    const d=new Date(str); return `${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`
+}
+
+function buildQuery(){
+    return {
+        q      : search.value || undefined,
+        format : selected.format1.join(',')      || undefined,
+        type   : selected.participation.join(',')|| undefined,
+        status : selected.status.join(',')       || undefined,
+        tags   : selected.direction.join(',')    || undefined,
+        order  : sort.value                      || undefined
+    }
+}
+const fetchHackathons = debounce(() => {
+    router.get(
+        route('index'),
+        buildQuery(),
+        { preserveState:true, replace:true, preserveScroll: true }
+    )
+}, 400)
+
+watch(
+    () => [ search.value, sort.value, selected.format1, selected.status,
+        selected.participation, selected.direction ],
+    fetchHackathons ,
+    { deep:true }
+)
+
+const menuVisible = ref(false)
+const openMenu = async ()=>{
+    menuVisible.value = true
+    await nextTick(); setTimeout(()=>document
+        .querySelector('.slide-out-menu')?.classList.add('visible'),10)
+}
+const closeMenu = ()=>{
+    const m=document.querySelector('.slide-out-menu')
+    if(!m) return
+    m.classList.remove('visible')
+    setTimeout(()=>menuVisible.value=false,300)
+}
 
 const filterGroups = [
     {
@@ -39,7 +75,7 @@ const filterGroups = [
         options: [
             { label: 'Онлайн', value: 'online' },
             { label: 'Офлайн', value: 'offline' },
-            { label: 'Смешанный', value: 'mixed' },
+            { label: 'Смешанный', value: 'hybrid' },
         ],
     },
     {
@@ -47,8 +83,8 @@ const filterGroups = [
         label: 'Статус',
         options: [
             { label: 'Предстоящий', value: 'upcoming' },
-            { label: 'Идет сейчас', value: 'active' },
-            { label: 'Прошедший', value: 'past' },
+            { label: 'Идет сейчас', value: 'ongoing' },
+            { label: 'Прошедший', value: 'completed' },
         ],
     },
     {
@@ -60,67 +96,15 @@ const filterGroups = [
         ],
     },
     {
-        name: 'format2',
-        label: 'Формат',
-        options: [
-            { label: 'Открытый', value: 'open' },
-            { label: 'Закрытый', value: 'closed' },
-        ],
-    },
-    {
         name: 'direction',
         label: 'Направление',
-        options: [
-            { label: 'UX/UI', value: 'uxui' },
-            { label: 'Тестировщики', value: 'qa' },
-            { label: 'Веб-дизайнеры', value: 'web-design' },
-            { label: 'Product-менеджеры', value: 'product' },
-            { label: 'Графич. дизайнеры', value: 'graphic-design' },
-            { label: 'Веб-разработчики', value: 'web-dev' },
-        ],
+        options: props.tags.map(tag => ({
+            label: tag.title,
+            value: tag.slug ?? tag.id,
+        })),
     },
 ]
 
-const selected = reactive({})
-filterGroups.forEach(group => {
-    selected[group.name] = group.options.map(option => option.value)
-})
-
-function selectOption(groupName, value) {
-    const group = selected[groupName]
-    const index = group.indexOf(value)
-
-    if (index > -1) {
-        group.splice(index, 1)
-    } else {
-        group.push(value)
-    }
-}
-
-const menuVisible = ref(false);
-
-const openMenu = async () => {
-    menuVisible.value = true;
-    await nextTick();
-
-    setTimeout(() => {
-        const menu = document.querySelector(".slide-out-menu");
-        if (menu) {
-            menu.classList.add("visible");
-        }
-    }, 10);
-};
-
-const closeMenu = () => {
-    const menu = document.querySelector(".slide-out-menu");
-    if (menu) {
-        menu.classList.remove("visible");
-
-        setTimeout(() => {
-            menuVisible.value = false;
-        }, 300);
-    }
-};
 function formatDate(dateStr) {
     const date = new Date(dateStr)
     const day = String(date.getDate()).padStart(2, '0')
@@ -134,42 +118,18 @@ function formatDate(dateStr) {
     <Head title="Dashboard" />
 
     <AuthenticatedLayout>
-        <header class="header">
-            <div class="header__container">
-                <img src="/logo.png" alt="Logo" class="header__logo" />
-                <div class="header__content">
-                          <a href="#" class="header__link">Мои хакатоны</a>
-<!--                    <div class="header__btns">-->
-<!--                        <a href="#" class="main__btn">Войти</a>-->
-<!--                        <a href="#" class="main__btn main__btn_white">Регистрация</a>-->
-<!--                    </div>-->
-                          <div class="header__btns_phone">
-                            <a href="#" class="header__notification">
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18 13.18V10C17.9986 8.58312 17.4958 7.21247 16.5806 6.13077C15.6655 5.04908 14.3971 4.32615 13 4.09V3C13 2.73478 12.8946 2.48043 12.7071 2.29289C12.5196 2.10536 12.2652 2 12 2C11.7348 2 11.4804 2.10536 11.2929 2.29289C11.1054 2.48043 11 2.73478 11 3V4.09C9.60294 4.32615 8.33452 5.04908 7.41939 6.13077C6.50425 7.21247 6.00144 8.58312 6 10V13.18C5.41645 13.3863 4.911 13.7681 4.55294 14.2729C4.19488 14.7778 4.00174 15.3811 4 16V18C4 18.2652 4.10536 18.5196 4.29289 18.7071C4.48043 18.8946 4.73478 19 5 19H8.14C8.37028 19.8474 8.873 20.5954 9.5706 21.1287C10.2682 21.6621 11.1219 21.951 12 21.951C12.8781 21.951 13.7318 21.6621 14.4294 21.1287C15.127 20.5954 15.6297 19.8474 15.86 19H19C19.2652 19 19.5196 18.8946 19.7071 18.7071C19.8946 18.5196 20 18.2652 20 18V16C19.9983 15.3811 19.8051 14.7778 19.4471 14.2729C19.089 13.7681 18.5835 13.3863 18 13.18ZM8 10C8 8.93913 8.42143 7.92172 9.17157 7.17157C9.92172 6.42143 10.9391 6 12 6C13.0609 6 14.0783 6.42143 14.8284 7.17157C15.5786 7.92172 16 8.93913 16 10V13H8V10ZM12 20C11.651 19.9979 11.3086 19.9045 11.0068 19.7291C10.7051 19.5536 10.4545 19.3023 10.28 19H13.72C13.5455 19.3023 13.2949 19.5536 12.9932 19.7291C12.6914 19.9045 12.349 19.9979 12 20ZM18 17H6V16C6 15.7348 6.10536 15.4804 6.29289 15.2929C6.48043 15.1054 6.73478 15 7 15H17C17.2652 15 17.5196 15.1054 17.7071 15.2929C17.8946 15.4804 18 15.7348 18 16V17Z" fill="white"/>
-                              </svg>
-                              <span class="header__notification_active"></span>
-                            </a>
-                            <a href="#" class="header__profile">
-                              <img src="/profile.jpg" alt="Profile" class="header__profile_img" />
-                            </a>
-                          </div>
-                </div>
-            </div>
-        </header>
-
         <div class="head">
             <img src="/head.svg" alt="Head" class="head__img" />
         </div>
 
         <div class="main__search">
             <div class="main__search_container">
-                <input class="main__search_input" type="text" placeholder="ИСКАТЬ">
+                <input v-model="search" class="main__search_input" placeholder="ИСКАТЬ" />
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M21.07 16.8299L19 14.7099C18.5547 14.2867 17.9931 14.0063 17.3872 13.9047C16.7813 13.8031 16.1589 13.885 15.6 14.1399L14.7 13.2399C15.7606 11.8229 16.2449 10.0566 16.0555 8.29678C15.8662 6.53694 15.0172 4.91417 13.6794 3.75514C12.3417 2.59612 10.6145 1.9869 8.84566 2.05013C7.07679 2.11335 5.39755 2.84433 4.14597 4.09591C2.89439 5.34749 2.16341 7.02674 2.10018 8.79561C2.03695 10.5645 2.64617 12.2916 3.8052 13.6294C4.96422 14.9671 6.58699 15.8161 8.34683 16.0055C10.1067 16.1948 11.8729 15.7105 13.29 14.6499L14.18 15.5399C13.8951 16.0996 13.793 16.7345 13.8881 17.3553C13.9831 17.976 14.2706 18.5513 14.71 18.9999L16.83 21.1199C17.3925 21.6817 18.155 21.9973 18.95 21.9973C19.745 21.9973 20.5075 21.6817 21.07 21.1199C21.3557 20.8405 21.5828 20.5069 21.7378 20.1385C21.8928 19.7702 21.9726 19.3746 21.9726 18.9749C21.9726 18.5753 21.8928 18.1797 21.7378 17.8114C21.5828 17.443 21.3557 17.1093 21.07 16.8299ZM12.59 12.5899C11.8902 13.2879 10.9993 13.7629 10.0297 13.9548C9.06018 14.1467 8.05549 14.0469 7.1426 13.6681C6.22971 13.2893 5.44956 12.6485 4.90071 11.8265C4.35186 11.0045 4.05894 10.0383 4.05894 9.04994C4.05894 8.06157 4.35186 7.09538 4.90071 6.2734C5.44956 5.45143 6.22971 4.81056 7.1426 4.43175C8.05549 4.05294 9.06018 3.95319 10.0297 4.14509C10.9993 4.33699 11.8902 4.81194 12.59 5.50994C13.0556 5.9744 13.4251 6.52615 13.6771 7.13361C13.9292 7.74106 14.0589 8.39227 14.0589 9.04994C14.0589 9.70761 13.9292 10.3588 13.6771 10.9663C13.4251 11.5737 13.0556 12.1255 12.59 12.5899ZM19.66 19.6599C19.567 19.7537 19.4564 19.8281 19.3346 19.8788C19.2127 19.9296 19.082 19.9557 18.95 19.9557C18.818 19.9557 18.6873 19.9296 18.5654 19.8788C18.4436 19.8281 18.333 19.7537 18.24 19.6599L16.12 17.5399C16.0263 17.447 15.9519 17.3364 15.9011 17.2145C15.8503 17.0927 15.8242 16.962 15.8242 16.8299C15.8242 16.6979 15.8503 16.5672 15.9011 16.4454C15.9519 16.3235 16.0263 16.2129 16.12 16.1199C16.213 16.0262 16.3236 15.9518 16.4454 15.9011C16.5673 15.8503 16.698 15.8241 16.83 15.8241C16.962 15.8241 17.0927 15.8503 17.2146 15.9011C17.3364 15.9518 17.447 16.0262 17.54 16.1199L19.66 18.2399C19.7537 18.3329 19.8281 18.4435 19.8789 18.5654C19.9297 18.6872 19.9558 18.8179 19.9558 18.9499C19.9558 19.082 19.9297 19.2127 19.8789 19.3345C19.8281 19.4564 19.7537 19.567 19.66 19.6599Z" fill="#999999"/>
                 </svg>
             </div>
-            <a href="#" class="main__btn_main">Искать</a>
+            <button type="button" class="main__btn_main" @click="fetchHackathons">Искать</button>
         </div>
 
         <div class="main__container">
@@ -186,7 +146,7 @@ function formatDate(dateStr) {
                         :key="option.value"
                         class="main__filter_input"
                         :class="{ active: selected[group.name].includes(option.value) }"
-                        @click="selectOption(group.name, option.value)"
+                        @click="toggle(group.name, option.value)"
                     >
                         <div class="custom-checkbox"></div>
                         <p>{{ option.label }}</p>
@@ -217,7 +177,7 @@ function formatDate(dateStr) {
                                         :key="option.value"
                                         class="main__filter_input"
                                         :class="{ active: selected[group.name].includes(option.value) }"
-                                        @click="selectOption(group.name, option.value)"
+                                        @click="toggle(group.name, option.value)"
                                     >
                                         <div class="custom-checkbox"></div>
                                         <p>{{ option.label }}</p>
@@ -228,16 +188,17 @@ function formatDate(dateStr) {
                     </div>
                     <div class="main__cards_filter">
                         <p>сортировка:</p>
-                        <select class="main__cards_select">
-                            <option>По дате</option>
-                            <option>По популярности</option>
-                            <option>По новизне</option>
+                        <select v-model="sort" class="main__cards_select">
+                            <option value="dateA">По дате ↑</option>
+                            <option value="dateD">По дате ↓</option>
+                            <option value="titleA">По названию A-Я</option>
+                            <option value="titleD">По названию Я-A</option>
                         </select>
                     </div>
                 </div>
-                <div v-for="hackathon in hackathons" :key="hackathon.id" class="main__card">
+                <div v-for="hackathon in hackathons.data" :key="hackathon.id" class="main__card">
                     <div class="main__card_photo">
-                        <img src="/test1.jpg" alt="Photo">
+                        <img :src="hackathon.image_path" alt="Photo">
                     </div>
                     <div class="main__card_content">
                         <p class="main__card_title">{{ hackathon.title }}</p>
@@ -249,7 +210,9 @@ function formatDate(dateStr) {
                                             <path d="M21.41 8.64C21.41 8.64 21.41 8.64 21.41 8.59C20.7054 6.66623 19.4269 5.00529 17.7475 3.83187C16.0681 2.65845 14.0688 2.02917 12.02 2.02917C9.97126 2.02917 7.97195 2.65845 6.29252 3.83187C4.6131 5.00529 3.33461 6.66623 2.63001 8.59C2.63001 8.59 2.63001 8.59 2.63001 8.64C1.84314 10.8109 1.84314 13.1891 2.63001 15.36C2.63001 15.36 2.63001 15.36 2.63001 15.41C3.33461 17.3338 4.6131 18.9947 6.29252 20.1681C7.97195 21.3416 9.97126 21.9708 12.02 21.9708C14.0688 21.9708 16.0681 21.3416 17.7475 20.1681C19.4269 18.9947 20.7054 17.3338 21.41 15.41C21.41 15.41 21.41 15.41 21.41 15.36C22.1969 13.1891 22.1969 10.8109 21.41 8.64ZM4.26001 14C3.91324 12.6892 3.91324 11.3108 4.26001 10H6.12001C5.96004 11.3285 5.96004 12.6715 6.12001 14H4.26001ZM5.08001 16H6.48001C6.71473 16.8918 7.05022 17.7541 7.48001 18.57C6.49931 17.9019 5.67951 17.0241 5.08001 16ZM6.48001 8H5.08001C5.67088 6.97909 6.4802 6.10147 7.45001 5.43C7.03057 6.24725 6.70515 7.10942 6.48001 8ZM11 19.7C9.77178 18.7987 8.90916 17.4852 8.57001 16H11V19.7ZM11 14H8.14001C7.9534 12.6732 7.9534 11.3268 8.14001 10H11V14ZM11 8H8.57001C8.90916 6.51477 9.77178 5.20132 11 4.3V8ZM18.92 8H17.52C17.2853 7.10816 16.9498 6.24594 16.52 5.43C17.5007 6.09807 18.3205 6.97594 18.92 8ZM13 4.3C14.2282 5.20132 15.0909 6.51477 15.43 8H13V4.3ZM13 19.7V16H15.43C15.0909 17.4852 14.2282 18.7987 13 19.7ZM15.86 14H13V10H15.86C16.0466 11.3268 16.0466 12.6732 15.86 14ZM16.55 18.57C16.9798 17.7541 17.3153 16.8918 17.55 16H18.95C18.3505 17.0241 17.5307 17.9019 16.55 18.57ZM19.74 14H17.88C17.9613 13.3365 18.0014 12.6685 18 12C18.0011 11.3315 17.961 10.6636 17.88 10H19.74C20.0868 11.3108 20.0868 12.6892 19.74 14Z" fill="#121212"/>
                                         </svg>
                                     </div>
-                                    <p>{{ hackathon.format === 'online' ? 'Онлайн' : (hackathon.format === 'offline' ? 'Оффлайн' : 'Смешанный') }}</p>
+                                    <p>
+                                        {{ hackathon.format === 'online' ? 'Онлайн' : (hackathon.format === 'offline' ? 'Оффлайн' : 'Смешанный') }}
+                                    </p>
                                 </div>
                                 <div class="main__card_item">
                                     <div style="width: 24px; height: 24px">
@@ -257,7 +220,11 @@ function formatDate(dateStr) {
                                             <path d="M12.3 12.22C12.8336 11.7581 13.2616 11.1869 13.5549 10.545C13.8482 9.90316 14 9.20571 14 8.5C14 7.17392 13.4732 5.90215 12.5355 4.96447C11.5979 4.02678 10.3261 3.5 9 3.5C7.67392 3.5 6.40215 4.02678 5.46447 4.96447C4.52678 5.90215 4 7.17392 4 8.5C3.99999 9.20571 4.1518 9.90316 4.44513 10.545C4.73845 11.1869 5.16642 11.7581 5.7 12.22C4.30014 12.8539 3.11247 13.8775 2.27898 15.1685C1.4455 16.4596 1.00147 17.9633 1 19.5C1 19.7652 1.10536 20.0196 1.29289 20.2071C1.48043 20.3946 1.73478 20.5 2 20.5C2.26522 20.5 2.51957 20.3946 2.70711 20.2071C2.89464 20.0196 3 19.7652 3 19.5C3 17.9087 3.63214 16.3826 4.75736 15.2574C5.88258 14.1321 7.4087 13.5 9 13.5C10.5913 13.5 12.1174 14.1321 13.2426 15.2574C14.3679 16.3826 15 17.9087 15 19.5C15 19.7652 15.1054 20.0196 15.2929 20.2071C15.4804 20.3946 15.7348 20.5 16 20.5C16.2652 20.5 16.5196 20.3946 16.7071 20.2071C16.8946 20.0196 17 19.7652 17 19.5C16.9985 17.9633 16.5545 16.4596 15.721 15.1685C14.8875 13.8775 13.6999 12.8539 12.3 12.22ZM9 11.5C8.40666 11.5 7.82664 11.3241 7.33329 10.9944C6.83994 10.6648 6.45542 10.1962 6.22836 9.64805C6.0013 9.09987 5.94189 8.49667 6.05764 7.91473C6.1734 7.33279 6.45912 6.79824 6.87868 6.37868C7.29824 5.95912 7.83279 5.6734 8.41473 5.55764C8.99667 5.44189 9.59987 5.5013 10.1481 5.72836C10.6962 5.95542 11.1648 6.33994 11.4944 6.83329C11.8241 7.32664 12 7.90666 12 8.5C12 9.29565 11.6839 10.0587 11.1213 10.6213C10.5587 11.1839 9.79565 11.5 9 11.5ZM18.74 11.82C19.38 11.0993 19.798 10.2091 19.9438 9.25634C20.0896 8.30362 19.9569 7.32907 19.5618 6.45C19.1666 5.57093 18.5258 4.8248 17.7165 4.30142C16.9071 3.77805 15.9638 3.49974 15 3.5C14.7348 3.5 14.4804 3.60536 14.2929 3.79289C14.1054 3.98043 14 4.23478 14 4.5C14 4.76522 14.1054 5.01957 14.2929 5.20711C14.4804 5.39464 14.7348 5.5 15 5.5C15.7956 5.5 16.5587 5.81607 17.1213 6.37868C17.6839 6.94129 18 7.70435 18 8.5C17.9986 9.02524 17.8593 9.5409 17.5961 9.99542C17.3328 10.4499 16.9549 10.8274 16.5 11.09C16.3517 11.1755 16.2279 11.2977 16.1404 11.4447C16.0528 11.5918 16.0045 11.7589 16 11.93C15.9958 12.0998 16.0349 12.2678 16.1137 12.4183C16.1924 12.5687 16.3081 12.6967 16.45 12.79L16.84 13.05L16.97 13.12C18.1754 13.6917 19.1923 14.596 19.901 15.7263C20.6096 16.8566 20.9805 18.1659 20.97 19.5C20.97 19.7652 21.0754 20.0196 21.2629 20.2071C21.4504 20.3946 21.7048 20.5 21.97 20.5C22.2352 20.5 22.4896 20.3946 22.6771 20.2071C22.8646 20.0196 22.97 19.7652 22.97 19.5C22.9782 17.9654 22.5938 16.4543 21.8535 15.1101C21.1131 13.7659 20.0413 12.6333 18.74 11.82Z" fill="#121212"/>
                                         </svg>
                                     </div>
-                                    <p>{{ hackathon.type === 'team' ? `Команды от ${hackathon.min_team_size} до ${hackathon.max_team_size} человек` : 'Индивидуальный' }}</p>
+                                    <p>
+                                        {{ hackathon.type === 'team'
+                                        ? `Команды от ${hackathon.min_team_size} до ${hackathon.max_team_size} человек`
+                                        : 'Индивидуальный' }}
+                                    </p>
                                 </div>
                             </div>
                             <div class="main__card_item">
@@ -292,7 +259,9 @@ function formatDate(dateStr) {
                                         <path d="M18 7.00004H17.65C17.8782 6.5328 17.9979 6.02002 18 5.50004C18.003 4.80336 17.7975 4.12173 17.4098 3.54287C17.0221 2.96401 16.4701 2.51442 15.8247 2.25198C15.1794 1.98953 14.4703 1.92624 13.7886 2.07025C13.107 2.21426 12.4841 2.55898 12 3.06004C11.5159 2.55898 10.893 2.21426 10.2114 2.07025C9.52975 1.92624 8.82061 1.98953 8.17525 2.25198C7.5299 2.51442 6.97786 2.96401 6.59019 3.54287C6.20252 4.12173 5.99697 4.80336 6 5.50004C6.00213 6.02002 6.12178 6.5328 6.35 7.00004H6C5.20435 7.00004 4.44129 7.31611 3.87868 7.87872C3.31607 8.44133 3 9.20439 3 10V12C3 12.2653 3.10536 12.5196 3.29289 12.7071C3.48043 12.8947 3.73478 13 4 13H5V19C5 19.7957 5.31607 20.5588 5.87868 21.1214C6.44129 21.684 7.20435 22 8 22H16C16.7956 22 17.5587 21.684 18.1213 21.1214C18.6839 20.5588 19 19.7957 19 19V13H20C20.2652 13 20.5196 12.8947 20.7071 12.7071C20.8946 12.5196 21 12.2653 21 12V10C21 9.20439 20.6839 8.44133 20.1213 7.87872C19.5587 7.31611 18.7956 7.00004 18 7.00004ZM11 20H8C7.73478 20 7.48043 19.8947 7.29289 19.7071C7.10536 19.5196 7 19.2653 7 19V13H11V20ZM11 11H5V10C5 9.73482 5.10536 9.48047 5.29289 9.29293C5.48043 9.10539 5.73478 9.00004 6 9.00004H11V11ZM11 7.00004H9.5C9.20333 7.00004 8.91332 6.91206 8.66665 6.74724C8.41997 6.58242 8.22771 6.34815 8.11418 6.07406C8.00065 5.79997 7.97094 5.49837 8.02882 5.2074C8.0867 4.91643 8.22956 4.64916 8.43934 4.43938C8.64912 4.2296 8.91639 4.08674 9.20736 4.02886C9.49834 3.97098 9.79994 4.00069 10.074 4.11422C10.3481 4.22775 10.5824 4.42001 10.7472 4.66668C10.912 4.91336 11 5.20337 11 5.50004V7.00004ZM13 5.50004C13 5.20337 13.088 4.91336 13.2528 4.66668C13.4176 4.42001 13.6519 4.22775 13.926 4.11422C14.2001 4.00069 14.5017 3.97098 14.7926 4.02886C15.0836 4.08674 15.3509 4.2296 15.5607 4.43938C15.7704 4.64916 15.9133 4.91643 15.9712 5.2074C16.0291 5.49837 15.9994 5.79997 15.8858 6.07406C15.7723 6.34815 15.58 6.58242 15.3334 6.74724C15.0867 6.91206 14.7967 7.00004 14.5 7.00004H13V5.50004ZM17 19C17 19.2653 16.8946 19.5196 16.7071 19.7071C16.5196 19.8947 16.2652 20 16 20H13V13H17V19ZM19 11H13V9.00004H18C18.2652 9.00004 18.5196 9.10539 18.7071 9.29293C18.8946 9.48047 19 9.73482 19 10V11Z" fill="#121212"/>
                                     </svg>
                                 </div>
-                                <p>{{ Number(hackathon.prize_pool).toLocaleString('ru-RU') }} ₽</p>
+                                <p>
+                                    {{ hackathon.prize_pool ? `${Number(hackathon.prize_pool).toLocaleString('ru-RU')} ₽` : 'Подарки' }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -316,50 +285,6 @@ function formatDate(dateStr) {
                 </div>
             </div>
         </div>
-
-        <footer class="footer">
-            <div class="footer__container">
-                <div class="footer__header">
-                    <div class="footer__header_info">
-                        <p class="footer__header_title">Политика конфиденциальности</p>
-                        <p class="footer__header_text">ООО «ЦТБ» ИНН 9723191459</p>
-                    </div>
-                    <div class="footer__header_logo">
-                        <div class="footer__header_social">
-                            <svg width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <g clip-path="url(#clip0_681_250)">
-                                    <path d="M16 32.5C24.8366 32.5 32 25.3366 32 16.5C32 7.66344 24.8366 0.5 16 0.5C7.16344 0.5 0 7.66344 0 16.5C0 25.3366 7.16344 32.5 16 32.5Z" fill="#E80024"/>
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.24248 16.3312C11.9068 14.299 15.0171 12.9593 16.5733 12.312C21.0167 10.4638 21.94 10.1428 22.5418 10.1322C22.6741 10.1299 22.9701 10.1627 23.1618 10.3182C23.3236 10.4496 23.3682 10.627 23.3895 10.7515C23.4108 10.876 23.4373 11.1597 23.4162 11.3814C23.1755 13.9114 22.1336 20.0509 21.6035 22.8846C21.3792 24.0836 20.9376 24.4856 20.5101 24.5249C19.5809 24.6104 18.8754 23.9109 17.9754 23.321C16.5672 22.3979 15.7717 21.8233 14.4048 20.9225C12.8251 19.8815 13.8491 19.3093 14.7494 18.3743C14.985 18.1296 19.0789 14.4059 19.1581 14.0681C19.168 14.0258 19.1772 13.8684 19.0836 13.7852C18.9901 13.7021 18.852 13.7305 18.7524 13.7531C18.6111 13.7852 16.3615 15.2721 12.0035 18.2139C11.3649 18.6524 10.7866 18.866 10.2683 18.8548C9.69706 18.8425 8.59814 18.5318 7.78121 18.2662C6.77921 17.9405 5.98284 17.7683 6.05218 17.2152C6.0883 16.927 6.48507 16.6324 7.24248 16.3312Z" fill="white"/>
-                                </g>
-                                <defs>
-                                    <clipPath id="clip0_681_250">
-                                        <rect width="32" height="32" fill="white" transform="translate(0 0.5)"/>
-                                    </clipPath>
-                                </defs>
-                            </svg>
-                            <svg width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <g clip-path="url(#clip0_681_254)">
-                                    <mask id="mask0_681_254" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="32" height="33">
-                                        <path d="M31.8416 0.5H0.158447V32.5H31.8416V0.5Z" fill="white"/>
-                                    </mask>
-                                    <g mask="url(#mask0_681_254)">
-                                        <path d="M0.158447 15.86C0.158447 8.61923 0.158447 4.99885 2.3856 2.74942C4.61275 0.5 8.19729 0.5 15.3664 0.5H16.6337C23.8028 0.5 27.3873 0.5 29.6145 2.74942C31.8416 4.99885 31.8416 8.61923 31.8416 15.86V17.14C31.8416 24.3808 31.8416 28.0012 29.6145 30.2506C27.3873 32.5 23.8028 32.5 16.6337 32.5H15.3664C8.19729 32.5 4.61275 32.5 2.3856 30.2506C0.158447 28.0012 0.158447 24.3808 0.158447 17.14V15.86Z" fill="#E80024"/>
-                                        <path d="M17.0165 23.5534C9.79541 23.5534 5.67663 18.5534 5.505 10.2334H9.12218C9.24099 16.3401 11.9076 18.9267 14.0198 19.4601V10.2334H17.4259V15.5C19.5117 15.2734 21.7028 12.8734 22.4421 10.2334H25.8481C25.2805 13.4867 22.9042 15.8867 21.2145 16.8734C22.9042 17.6734 25.6106 19.7667 26.6403 23.5534H22.891C22.0858 21.0201 20.0793 19.0601 17.4259 18.7934V23.5534H17.0165Z" fill="white"/>
-                                    </g>
-                                </g>
-                                <defs>
-                                    <clipPath id="clip0_681_254">
-                                        <rect width="32" height="32" fill="white" transform="translate(0 0.5)"/>
-                                    </clipPath>
-                                </defs>
-                            </svg>
-                        </div>
-                        <img src="/logo.png" alt="Logo" class="footer__logo" />
-                    </div>
-                </div>
-                <p class="footer__header_text">© 2023-2025 г. Сайт не является публичной офертой и носит информационный характер. Все материалы данного сайта являются объектами авторского права (в том числе дизайн). Запрещается копирование, распространение (в том числе путем копирования на другие сайты и ресурсы в Интернете) или любое иное использование информации и объектов без предварительного согласия правообладателя.</p>
-            </div>
-        </footer>
 
 <!--        <div class="py-12">-->
 <!--            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">-->
