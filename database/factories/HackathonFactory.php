@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Hackathon;
 use App\Models\Role;
+use Closure;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
@@ -16,11 +17,10 @@ class HackathonFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->sentence(3);
-        $prize_type = $this->faker->randomElement(['cash', 'items']);
+        $prize_type = $this->faker->randomElement(['cash', 'non-cash']);
         return [
             'user_id' => Role::ORGANIZER,
             'title' => $title,
-            'image_path' => 'test/image.jpg',
             'format' => $this->faker->randomElement(['online', 'offline', 'hybrid']),
             'type' => $this->faker->randomElement(['team', 'individual']),
             'min_team_size' => $this->faker->numberBetween(1, 2),

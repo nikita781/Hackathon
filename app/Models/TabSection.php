@@ -20,6 +20,6 @@ class TabSection extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(TabItem::class);
+        return $this->hasMany(TabItem::class)->orderBy('id');
     }
 }

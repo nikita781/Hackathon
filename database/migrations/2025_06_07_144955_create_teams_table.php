@@ -21,14 +21,6 @@ return new class extends Migration
             $table->string('title');
             $table->timestamps();
         });
-
-        Schema::create('team_user', function (Blueprint $table) {
-            $table->id();
-            $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignIdFor(Hackathon::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignIdFor(Position::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->timestamps();
-        });
     }
 
     /**

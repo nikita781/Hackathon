@@ -7,16 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Tab extends Model
+class Tab extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'hackathon_id', 'title', 'content',
     ];
-    const TAB_TITLES = ['Обзор', 'Ресурсы', 'Правила', 'Контакты', 'Оценка'];
+    public const TAB_TITLES = ['Обзор', 'Ресурсы', 'Правила', 'Контакты', 'Оценка'];
 
     /**
      * @return BelongsTo
@@ -28,6 +29,6 @@ class Tab extends Model
 
     public function sections(): HasMany
     {
-        return $this->hasMany(TabSection::class);
+        return $this->hasMany(TabSection::class)->orderBy('id');
     }
 }

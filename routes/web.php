@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HackathonController;
+use App\Http\Controllers\TabController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,6 +22,10 @@ Route::get('/', [HackathonController::class, 'index'])->name('index');
 Route::prefix('hackathons')->name('hackathons.')->group(function () {
     Route::prefix('/{hackathon}')->group(function () {
         Route::get('/', [HackathonController::class, 'show'])->name('show');
+        Route::post('/', [HackathonController::class, 'store'])->name('store');
+        Route::prefix('/tabs')->name('tabs.')->group(function () {
+            Route::put('/', [TabController::class, 'update'])->name('update');
+        });
     });
 });
 
@@ -40,5 +45,11 @@ Route::middleware('auth')->group(function () {
 //        });
 //    });
 });
+
+Route::prefix('storage/hackathons/{hackathon}/')->name('hackathons.')->group(function () {
+    Route::get('/media', [HackathonController::class, 'showMedia'])->name('image');
+    Route::get('/preview', [HackathonController::class, 'showMediaPreview'])->name('preview');
+});
+
 
 require __DIR__.'/auth.php';

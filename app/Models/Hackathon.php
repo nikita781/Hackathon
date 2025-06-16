@@ -11,14 +11,29 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Spatie\Image\Exceptions\InvalidManipulation;
+use Spatie\Image\Manipulations;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Hackathon extends Model
+class Hackathon extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
     protected $fillable = [
-        'user_id', 'title', 'image_path', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
+        'user_id', 'title', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
         'registration_end', 'event_start', 'event_end', 'prize_type', 'prize_pool', 'slug', 'is_published',
     ];
+
+    /**
+     * @throws InvalidManipulation
+     */
+    public function registerMediaConversions(Media $media = null): void
+    {
+        $this
+            ->addMediaConversion('preview')
+            ->fit(Manipulations::FIT_CROP, 413, 260);
+    }
 
     /**
      * @return string

@@ -18,6 +18,7 @@ return new class extends Migration
         });
 
         Position::insert([
+            ['title' => 'Капитан'],
             ['title' => 'Backend'],
             ['title' => 'Frontend'],
             ['title' => 'Дизайнер'],

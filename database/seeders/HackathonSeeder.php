@@ -15,7 +15,15 @@ class HackathonSeeder extends Seeder
 {
     public function run(): void
     {
-        Hackathon::factory()->count(60)->create();
+        Hackathon::factory()->count(60)->create()->each(function (Hackathon $hackathon) {
+            $imagePath = 'storage/app/public/test/image.jpg';
+            if (file_exists($imagePath)) {
+                $hackathon
+                    ->addMedia($imagePath)
+                    ->preservingOriginal()
+                    ->toMediaCollection('main_image');
+            }
+        });
         $hackathons = Hackathon::all();
         $user = User::find(2);
         foreach ($hackathons as $h) {

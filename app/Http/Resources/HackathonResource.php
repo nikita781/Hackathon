@@ -15,7 +15,8 @@ class HackathonResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'image_path' => $this->image_path ? Storage::url($this->image_path) : null,
+            'image_path' => route('hackathons.image', $this->resource),
+            'preview' => route('hackathons.preview', $this->resource),
             'format' => $this->format,
             'type' => $this->type,
             'min_team_size' => $this->min_team_size,
@@ -29,8 +30,8 @@ class HackathonResource extends JsonResource
             'slug' => $this->slug,
             'is_published' => $this->is_published,
             'tags' => TagResource::collection($this->whenLoaded('tags')),
-            'projects' => ProjectResource::collection($this->whenLoaded('projects')),
             'tabs' => TabResource::collection($this->whenLoaded('tabs')),
+
         ];
     }
 }

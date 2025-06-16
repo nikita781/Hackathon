@@ -9,11 +9,15 @@ use App\Models\Hackathon;
 use App\Models\Role;
 use App\Models\Tab;
 use App\Models\Tag;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class HackathonController extends Controller
 {
@@ -32,7 +36,7 @@ class HackathonController extends Controller
 
         return Inertia::render('Hackathon/Index', [
             'hackathons' => HackathonResource::collection($hackathons),
-            'tags' => HackathonResource::collection(Tag::orderBy('title')->get()),
+            'tags' => TagResource::collection(Tag::orderBy('title')->get()),
             'can' => [
                 'create' => Gate::check('create', Hackathon::class),
             ],
@@ -91,14 +95,18 @@ class HackathonController extends Controller
     {
     }
 
-    public function store(HackathonRequest $request)
+    /**
+     * @throws FileDoesNotExist
+     * @throws FileIsTooBig
+     */
+    public function store(HackathonRequest $request): RedirectResponse
     {
         $data = Arr::except($request->validated(), 'tags');
-        if ($request->hasFile('image_path')) {
-            $data['image_path'] = $request->file('image_path')?->store('hackathons', 'public');
-        }
         $data['slug'] = Hackathon::generateUniqueSlug($data['title']);
         $hackathon = Hackathon::create($data);
+        if ($request->hasFile('image_path')) {
+            $hackathon->addMediaFromRequest('image')->toMediaCollection('main_image');
+        }
         $hackathon->users()->syncWithoutDetaching([
             auth()->id() => ['role_id' => Role::ORGANIZER],
         ]);
@@ -118,26 +126,23 @@ class HackathonController extends Controller
      */
     public function show(Hackathon $hackathon): Response
     {
-        if (!Gate::check('view', $hackathon)) {
+        if (!Gate::check('view', [$hackathon])) {
             abort(404);
         }
         $hackathon->load([
             'tags',
-            'projects' => function ($query) {
-                $query->with([
-                    'members', 'capitan', 'images'
-                ]);
-            },
             'tabs' => function ($query) {
-                $query->with('images');
+                $query->with(['sections' => function ($query) {
+                    $query->with('items');
+                }]);
             }
         ]);
 
-        $hackathon->projects->each(function ($project) {
-            $project->members->each(function ($member) {
-                $member->pivot->load('position');
-            });
-        });
+//        $hackathon->projects->each(function ($project) {
+//            $project->members->each(function ($member) {
+//                $member->pivot->load('position');
+//            });
+//        });
 
         return Inertia::render('Hackathon/Show', [
             'hackathon' => new HackathonResource($hackathon),
@@ -158,5 +163,31 @@ class HackathonController extends Controller
 
     public function destroy(Hackathon $hackathon)
     {
+    }
+
+    public function showMedia(Hackathon $hackathon): BinaryFileResponse
+    {
+        Gate::authorize('view', $hackathon);
+
+        $media = $hackathon->getFirstMedia('main_image');
+
+        if (!$media) {
+            abort(404);
+        }
+
+        return response()->file($media->getPath());
+    }
+
+    public function showMediaPreview(Hackathon $hackathon): BinaryFileResponse
+    {
+        Gate::authorize('viewAny', $hackathon);
+
+        $media = $hackathon->getFirstMedia('main_image');
+
+        if (!$media) {
+            abort(404);
+        }
+
+        return response()->file($media->getPath('preview'));
     }
 }
