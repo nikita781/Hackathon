@@ -6,26 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Position extends Model
+class Team extends Model
 {
-    public $timestamps = false;
     protected $fillable = [
-        'title',
+        'hackathon_id', 'user_id', 'title',
     ];
 
-    public function teams(): BelongsToMany
+    public function hackathon(): BelongsTo
     {
-        return $this->belongsToMany(Team::class, 'team_user')
-            ->withPivot('user_id')
-            ->withTimestamps();
+        return $this->belongsTo(Hackathon::class);
     }
 
-    public function users(): BelongsToMany
+    public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'team_user')
-            ->withPivot('team_id')
+            ->withPivot('position_id')
             ->withTimestamps();
     }
 }

@@ -20,9 +20,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'name', 'email', 'email_verified_at',
     ];
 
     /**
@@ -85,15 +83,17 @@ class User extends Authenticatable
         $this->roles()->syncWithoutDetaching([$role_id]);
     }
 
-    public function projects(): BelongsToMany
+    public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class)
-            ->using(ProjectUser::class)
-            ->withPivot('position_id');
+        return $this->belongsToMany(Team::class, 'team_user')
+            ->withPivot('position_id')
+            ->withTimestamps();
     }
 
-    public function projectsAsCapitan(): HasMany
+    public function positions(): BelongsToMany
     {
-        return $this->hasMany(Project::class);
+        return $this->belongsToMany(Position::class, 'team_user')
+            ->withPivot('team_id')
+            ->withTimestamps();
     }
 }

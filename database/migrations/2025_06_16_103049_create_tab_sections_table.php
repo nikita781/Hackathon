@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Tab;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,13 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('images', function (Blueprint $table) {
+        Schema::create('tab_sections', function (Blueprint $table) {
             $table->id();
-            $table->morphs('imageable');
-            $table->string('path');
+            $table->foreignIdFor(Tab::class)->index()->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('title');
-            $table->string('mime');
-            $table->smallInteger('order')->default(0);
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('images');
+        Schema::dropIfExists('tab_sections');
     }
 };

@@ -8,14 +8,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Collection;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
+
     protected $fillable = [
         'hackathon_id', 'user_id', 'title', 'description', 'preview_path', 'about', 'stack', 'project_link',
-        'presentation_path',
-        'video_link', 'is_published',
+        'presentation_path', 'video_link', 'is_published',
     ];
 
     /**
@@ -27,39 +28,10 @@ class Project extends Model
     }
 
     /**
-     * @return BelongsToMany
-     */
-    public function members(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class)
-            ->using(ProjectUser::class)
-            ->withPivot('position_id');
-    }
-
-    /**
      * @return BelongsTo
      */
-    public function capitan(): BelongsTo
+    public function team(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    /**
-     * @return Collection
-     */
-    public function fullTeam(): Collection
-    {
-        $capitan = $this->capitan;
-        $members = $this->members;
-
-        return collect([$capitan])->merge($members);
-    }
-
-    /**
-     * @return MorphMany
-     */
-    public function images(): MorphMany
-    {
-        return $this->morphMany(Image::class, 'imageable');
+        return $this->belongsTo(Team::class);
     }
 }

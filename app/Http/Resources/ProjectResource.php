@@ -22,9 +22,6 @@ class ProjectResource extends JsonResource
             'presentation_path' => $this->presentation_path ? Storage::url($this->presentation_path) : null,
             'video_link' => $this->video_link,
             'is_published' => $this->is_published,
-            'capitan' => new UserResource($this->whenLoaded('capitan')),
-            'members' => UserResource::collection($this->whenLoaded('members')),
-            'images' => ImageResource::collection($this->whenLoaded('images')),
 
             'hackathon' => new HackathonResource($this->whenLoaded('hackathon')),
         ];

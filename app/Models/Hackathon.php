@@ -16,8 +16,8 @@ class Hackathon extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'title', 'image_path', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
-        'registration_end', 'event_start', 'event_end', 'prize_pool', 'slug', 'is_published', 'prize_type',
+        'user_id', 'title', 'image_path', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
+        'registration_end', 'event_start', 'event_end', 'prize_type', 'prize_pool', 'slug', 'is_published',
     ];
 
     /**
@@ -33,12 +33,9 @@ class Hackathon extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return HasMany
-     */
-    public function projects(): HasMany
+    public function teams(): HasMany
     {
-        return $this->hasMany(Project::class);
+        return $this->hasMany(Team::class);
     }
 
     /**

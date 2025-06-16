@@ -37,7 +37,7 @@ class HackathonController extends Controller
                 'create' => Gate::check('create', Hackathon::class),
             ],
             'filters'    => $request->only(
-                        'q', 'format', 'type', 'status', 'tags', 'order'
+                'q', 'format', 'type', 'status', 'tags', 'order'
             ),
         ]);
     }
@@ -52,7 +52,7 @@ class HackathonController extends Controller
 
         if ($user->hasRole(Role::ORGANIZER)) {
             $hackathonIds->union(
-                $user->hackathonsAsOrganizer()->select('hackathons.id')
+                $user->hackathonsAsOrganizer()->select('hackathons.id')->getQuery()
             );
         }
 

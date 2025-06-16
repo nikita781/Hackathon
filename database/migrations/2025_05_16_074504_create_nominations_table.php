@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Hackathon;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,13 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('files', function (Blueprint $table) {
+        Schema::create('nominations', function (Blueprint $table) {
             $table->id();
-            $table->morphs('fileable');
-            $table->string('path');
+            $table->foreignIdFor(Hackathon::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('title');
-            $table->string('mime');
-            $table->smallInteger('order')->default(0);
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('files');
+        Schema::dropIfExists('nominations');
     }
 };

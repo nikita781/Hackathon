@@ -17,14 +17,9 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at,
             'password' => $this->password,
             'remember_token' => $this->remember_token,
-            'notifications_count' => $this->notifications_count,
-            'read_notifications_count' => $this->read_notifications_count,
-            'unread_notifications_count' => $this->unread_notifications_count,
 
             'hackathons' => HackathonCollection::collection($this->whenLoaded('hackathons')),
-            'projects' => ProjectResource::collection($this->whenLoaded('projects')),
-            'projectsAsCapitan' => ProjectResource::collection($this->whenLoaded('projectsAsCapitan')),
-            'position' => new PositionResource(optional($this->pivot)->position),
+//            'position' => new PositionResource(optional($this->pivot)->position),
 
         ];
     }

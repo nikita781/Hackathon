@@ -15,8 +15,6 @@ class TabResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'content' => $this->content,
-            'images' => ImageResource::collection($this->whenLoaded('images')),
-            'files' => FileResource::collection($this->whenLoaded('files')),
         ];
     }
 }

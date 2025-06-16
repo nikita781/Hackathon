@@ -5,11 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Tab extends Model
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'hackathon_id', 'title', 'content',
@@ -24,19 +26,8 @@ class Tab extends Model
         return $this->belongsTo(Hackathon::class);
     }
 
-    /**
-     * @return MorphMany
-     */
-    public function images(): MorphMany
+    public function sections(): HasMany
     {
-        return $this->morphMany(Image::class, 'imageable');
-    }
-
-    /**
-     * @return MorphMany
-     */
-    public function files(): MorphMany
-    {
-        return $this->morphMany(File::class, 'fileable');
+        return $this->hasMany(TabSection::class);
     }
 }
