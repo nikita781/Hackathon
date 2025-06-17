@@ -48,7 +48,7 @@ Route::middleware('auth')->group(function () {
 
 Route::prefix('storage/hackathons/{hackathon}/')->name('hackathons.')->group(function () {
     Route::get('/media', [HackathonController::class, 'showMedia'])->name('image');
-    Route::get('/preview', [HackathonController::class, 'showMediaPreview'])->name('preview');
+    Route::get('/media-mobile', [HackathonController::class, 'showMediaMobile'])->name('image-mobile');
 });
 
 

@@ -178,7 +178,7 @@ class HackathonController extends Controller
         return response()->file($media->getPath());
     }
 
-    public function showMediaPreview(Hackathon $hackathon): BinaryFileResponse
+    public function showMediaMobile(Hackathon $hackathon): BinaryFileResponse
     {
         Gate::authorize('viewAny', $hackathon);
 

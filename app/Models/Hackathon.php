@@ -28,12 +28,12 @@ class Hackathon extends Model implements HasMedia
     /**
      * @throws InvalidManipulation
      */
-    public function registerMediaConversions(Media $media = null): void
-    {
-        $this
-            ->addMediaConversion('preview')
-            ->fit(Manipulations::FIT_CROP, 413, 260);
-    }
+//    public function registerMediaConversions(Media $media = null): void
+//    {
+//        $this
+//            ->addMediaConversion('preview')
+//            ->fit(Manipulations::FIT_CROP, 413, 260);
+//    }
 
     /**
      * @return string

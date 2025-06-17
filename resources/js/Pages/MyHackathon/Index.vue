@@ -129,7 +129,7 @@ onMounted(async () => {
             <div class="main__cards" style="margin-top: 40px">
                 <div v-for="hackathon in hackathons.data" :key="hackathon.id" class="main__card">
                     <div class="main__card_photo">
-                        <img :src="hackathon.preview" alt="Photo">
+                        <img :src="hackathon.image_path" alt="Photo">
                     </div>
                     <div class="main__card_content">
                         <p class="main__card_title">{{ hackathon.title }}</p>

@@ -16,7 +16,7 @@ class HackathonResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'image_path' => route('hackathons.image', $this->resource),
-            'preview' => route('hackathons.preview', $this->resource),
+//            'mobile_image_path' => route('hackathons.image-mobile', $this->resource),
             'format' => $this->format,
             'type' => $this->type,
             'min_team_size' => $this->min_team_size,
