@@ -162,30 +162,4 @@ class HackathonController extends Controller
     public function destroy(Hackathon $hackathon)
     {
     }
-
-    public function showMedia(Hackathon $hackathon): BinaryFileResponse
-    {
-        Gate::authorize('view', $hackathon);
-
-        $media = $hackathon->getFirstMedia('main_image');
-
-        if (!$media) {
-            abort(404);
-        }
-
-        return response()->file($media->getPath());
-    }
-
-    public function showMediaMobile(Hackathon $hackathon): BinaryFileResponse
-    {
-        Gate::authorize('viewAny', $hackathon);
-
-        $media = $hackathon->getFirstMedia('main_image');
-
-        if (!$media) {
-            abort(404);
-        }
-
-        return response()->file($media->getPath('preview'));
-    }
 }

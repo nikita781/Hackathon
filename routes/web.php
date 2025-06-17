@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HackathonController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\TabController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -47,8 +48,8 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::prefix('storage/hackathons/{hackathon}/')->name('hackathons.')->group(function () {
-    Route::get('/media', [HackathonController::class, 'showMedia'])->name('image');
-    Route::get('/media-mobile', [HackathonController::class, 'showMediaMobile'])->name('image-mobile');
+    Route::get('/media', [MediaController::class, 'showHackathonMedia'])->name('image');
+    Route::get('/media-mobile', [MediaController::class, 'showHackathonMediaMobile'])->name('image-mobile');
 });
 
 
