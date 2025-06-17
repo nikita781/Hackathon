@@ -30,8 +30,7 @@ class HackathonResource extends JsonResource
             'slug' => $this->slug,
             'is_published' => $this->is_published,
             'tags' => TagResource::collection($this->whenLoaded('tags')),
-            'tabs' => TabResource::collection($this->whenLoaded('tabs')),
-
+//            'tabs' => TabResource::collection($this->whenLoaded('tabs')),
         ];
     }
 }

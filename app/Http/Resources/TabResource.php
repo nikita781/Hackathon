@@ -14,7 +14,9 @@ class TabResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'content' => $this->content,
+            'sections' => $this->whenLoaded('sections', TabSectionResource::collection($this->whenLoaded('sections'))),
+            'partners' => route('hackathons.partner-images', [$this->hackathon_id, $this->resource]),
+//            'files' => route('hackathons.files', $this->resource),
         ];
     }
 }

@@ -22,7 +22,8 @@ const submit = () => {
     })
 }
 
-console.log(props.can.update)
+console.log(props.hackathon)
+console.log(props.tabs)
 </script>
 
 <template>

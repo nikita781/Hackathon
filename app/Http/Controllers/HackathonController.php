@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\HackathonRequest;
 use App\Http\Resources\HackathonResource;
+use App\Http\Resources\TabResource;
 use App\Http\Resources\TagResource;
 use App\Models\Hackathon;
 use App\Models\Role;
@@ -132,12 +133,9 @@ class HackathonController extends Controller
         }
         $hackathon->load([
             'tags',
-            'tabs' => function ($query) {
-                $query->with(['sections' => function ($query) {
-                    $query->with('items');
-                }]);
-            }
         ]);
+
+        $tabs = $hackathon->tabs()->with(['sections.items'])->get();
 
 //        $hackathon->projects->each(function ($project) {
 //            $project->members->each(function ($member) {
@@ -147,6 +145,9 @@ class HackathonController extends Controller
 
         return Inertia::render('Hackathon/Show', [
             'hackathon' => new HackathonResource($hackathon),
+            'tabs' => TabResource::collection($tabs)->additional([
+                'hackathon' => $hackathon->id,
+            ]),
             'can' => [
                 'update' => Gate::check('update', $hackathon),
             ],

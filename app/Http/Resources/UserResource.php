@@ -18,7 +18,7 @@ class UserResource extends JsonResource
             'password' => $this->password,
             'remember_token' => $this->remember_token,
 
-            'hackathons' => HackathonCollection::collection($this->whenLoaded('hackathons')),
+            'hackathons' => HackathonResource::collection($this->whenLoaded('hackathons')),
 //            'position' => new PositionResource(optional($this->pivot)->position),
 
         ];
