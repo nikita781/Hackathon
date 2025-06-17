@@ -15,7 +15,7 @@ class Tab extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
-        'hackathon_id', 'title', 'content',
+        'hackathon_id', 'title',
     ];
     public const TAB_TITLES = ['Обзор', 'Ресурсы', 'Правила', 'Контакты', 'Оценка'];
 

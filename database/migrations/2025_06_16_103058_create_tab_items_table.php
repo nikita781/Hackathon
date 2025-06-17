@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(TabSection::class)->index()->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('title');
-            $table->mediumText('content')->nullable();
+            $table->text('content')->nullable();
             $table->timestamps();
         });
     }

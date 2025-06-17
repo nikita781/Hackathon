@@ -17,7 +17,6 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Hackathon::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->enum('title', Tab::TAB_TITLES)->index();
-            $table->mediumText('content')->nullable();
             $table->timestamps();
         });
     }

@@ -11,7 +11,7 @@ class TabSection extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['tab_id', 'title'];
+    protected $fillable = ['tab_id', 'title', 'content'];
 
     public function tab(): BelongsTo
     {

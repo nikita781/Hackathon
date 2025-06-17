@@ -14,7 +14,6 @@ class TabRequest extends FormRequest
     {
         return [
             'title' => ['required', Rule::in(Tab::TAB_TITLES)],
-            'content' => ['required', ],
         ];
     }
 

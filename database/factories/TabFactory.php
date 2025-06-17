@@ -13,7 +13,6 @@ class TabFactory extends Factory
     public function definition(): array
     {
         return [
-            'content' => $this->faker->text(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ];
