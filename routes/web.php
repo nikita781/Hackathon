@@ -20,9 +20,9 @@ use Inertia\Inertia;
 Route::get('/', [HackathonController::class, 'index'])->name('index');
 
 Route::prefix('hackathons')->name('hackathons.')->group(function () {
+    Route::post('/', [HackathonController::class, 'store'])->name('store');
     Route::prefix('/{hackathon}')->group(function () {
         Route::get('/', [HackathonController::class, 'show'])->name('show');
-        Route::post('/', [HackathonController::class, 'store'])->name('store');
         Route::prefix('/tabs')->name('tabs.')->group(function () {
             Route::put('/', [TabController::class, 'update'])->name('update');
         });

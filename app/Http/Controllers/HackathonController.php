@@ -101,15 +101,13 @@ class HackathonController extends Controller
      */
     public function store(HackathonRequest $request): RedirectResponse
     {
-        $data = Arr::except($request->validated(), 'tags');
+        $data = Arr::except($request->validated(), ['tags', 'image_path']);
         $data['slug'] = Hackathon::generateUniqueSlug($data['title']);
-        $hackathon = Hackathon::create($data);
+        $user = auth()->user();
+        $hackathon = $user->hackathonsAsOrganizer()->create($data);
         if ($request->hasFile('image_path')) {
-            $hackathon->addMediaFromRequest('image')->toMediaCollection('main_image');
+            $hackathon->addMediaFromRequest('image_path')->toMediaCollection('main_image');
         }
-        $hackathon->users()->syncWithoutDetaching([
-            auth()->id() => ['role_id' => Role::ORGANIZER],
-        ]);
         $hackathon->tags()->sync($request->tags);
         foreach (Tab::TAB_TITLES as $tab) {
             $hackathon->tabs()->create([
