@@ -19,6 +19,29 @@ class Tab extends Model implements HasMedia
     ];
     public const TAB_TITLES = ['Обзор', 'Ресурсы', 'Правила', 'Контакты', 'Оценка'];
 
+    public static function defaultStructure(): array
+    {
+        return [
+            'Обзор' => [
+                'Описание',
+                'План проведения',
+            ],
+            'Ресурсы' => [
+                'Ресурсы',
+            ],
+            'Правила' => [
+                'Правила',
+            ],
+            'Контакты' => [
+                'Контакт',
+                'Ссылки на социальные сети',
+            ],
+            'Оценка' => [
+                'Критерии оценки',
+            ],
+        ];
+    }
+
     /**
      * @return BelongsTo
      */

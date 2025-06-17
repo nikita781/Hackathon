@@ -109,10 +109,13 @@ class HackathonController extends Controller
             $hackathon->addMediaFromRequest('image_path')->toMediaCollection('main_image');
         }
         $hackathon->tags()->sync($request->tags);
-        foreach (Tab::TAB_TITLES as $tab) {
-            $hackathon->tabs()->create([
-                'title' => $tab
-            ]);
+
+        foreach (Tab::defaultStructure() as $tabTitle => $sections) {
+            $tab = $hackathon->tabs()->create(['title' => $tabTitle]);
+
+            foreach ($sections as $sectionTitle) {
+                $tab->sections()->create(['title' => $sectionTitle]);
+            }
         }
 
         return redirect()->route('hackathons.show', $hackathon);

@@ -31,8 +31,11 @@ class HackathonSeeder extends Seeder
                 $h->tags()->syncWithoutDetaching(Tag::inRandomOrder()->first()->id);
             }
             $h->users()->syncWithoutDetaching([$user->id => ['role_id' => Role::MEMBER]]);
-            foreach (Tab::TAB_TITLES as $title) {
-                Tab::factory()->create(['title' => $title, 'hackathon_id' => $h->id]);
+            foreach (Tab::defaultStructure() as $tabTitle => $sections) {
+                $tab = Tab::factory()->create(['title' => $tabTitle, 'hackathon_id' => $h->id]);
+                foreach ($sections as $sectionTitle) {
+                    $tab->sections()->create(['title' => $sectionTitle]);
+                }
             }
         }
 //        $projects = Project::with('hackathon', 'members')->get();
