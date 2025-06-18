@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HackathonController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\TabController;
 use App\Http\Controllers\UserController;
@@ -17,6 +18,8 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::get('/lang/{locale}', LanguageController::class)->name('lang.switch');
 
 Route::get('/', [HackathonController::class, 'index'])->name('index');
 
@@ -47,11 +50,14 @@ Route::middleware('auth')->group(function () {
 //    });
 });
 
-Route::prefix('storage/hackathons/{hackathon}/')->name('hackathons.')->group(function () {
+Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function () {
     Route::get('/media', [MediaController::class, 'showHackathonMedia'])->name('image');
     Route::get('/media-mobile', [MediaController::class, 'showHackathonMediaMobile'])->name('image-mobile');
-    Route::get('/tabs/{tab}/partner-images', [MediaController::class, 'showHackathonPartners'])->name('partner-images');
+    Route::prefix('/tabs/{tab}')->name('tabs.')->group(function () {
+        Route::get('/partner-images', [MediaController::class, 'showHackathonPartners'])->name('partner-images');
+    });
 });
 
+Route::get('/hackathons/{hackathon}/files/{media}', [MediaController::class, 'showHackathonFile'])->name('hackathons.files.download');
 
 require __DIR__.'/auth.php';

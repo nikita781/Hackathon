@@ -10,13 +10,19 @@ use App\Models\Tab;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 
 class HackathonSeeder extends Seeder
 {
+    /**
+     * @throws FileDoesNotExist
+     * @throws FileIsTooBig
+     */
     public function run(): void
     {
-        Hackathon::factory()->count(60)->create()->each(function (Hackathon $hackathon) {
-            $imagePath = 'storage/app/public/test/image.jpg';
+        $imagePath = 'storage/app/public/test/image.jpg';
+        Hackathon::factory()->count(60)->create()->each(function (Hackathon $hackathon) use ($imagePath) {
             if (file_exists($imagePath)) {
                 $hackathon
                     ->addMedia($imagePath)
@@ -33,6 +39,21 @@ class HackathonSeeder extends Seeder
             $h->users()->syncWithoutDetaching([$user->id => ['role_id' => Role::MEMBER]]);
             foreach (Tab::defaultStructure() as $tabTitle => $sections) {
                 $tab = Tab::factory()->create(['title' => $tabTitle, 'hackathon_id' => $h->id]);
+                if (file_exists($imagePath)) {
+                    for ($i = 0; $i < random_int(0,2); $i++) {
+                        $tab
+                            ->addMedia($imagePath)
+                            ->preservingOriginal()
+                            ->toMediaCollection('files');
+                    }
+
+                    for ($i = 0; $i < random_int(0,2); $i++) {
+                        $tab
+                            ->addMedia($imagePath)
+                            ->preservingOriginal()
+                            ->toMediaCollection('partner_images');
+                    }
+                }
                 foreach ($sections as $sectionTitle) {
                     $tab->sections()->create(['title' => $sectionTitle]);
                 }

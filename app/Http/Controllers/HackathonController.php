@@ -13,6 +13,7 @@ use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -142,6 +143,8 @@ class HackathonController extends Controller
 //                $member->pivot->load('position');
 //            });
 //        });
+
+        dump(App::getLocale());
 
         return Inertia::render('Hackathon/Show', [
             'hackathon' => new HackathonResource($hackathon),
