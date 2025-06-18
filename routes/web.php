@@ -21,7 +21,7 @@ use Inertia\Inertia;
 
 Route::get('/lang/{locale}', LanguageController::class)->name('lang.switch');
 
-Route::get('/', [HackathonController::class, 'index'])->name('index');
+Route::get('/', [HackathonController::class, 'index'])->name('home');
 
 Route::prefix('hackathons')->name('hackathons.')->group(function () {
     Route::post('/', [HackathonController::class, 'store'])->name('store');

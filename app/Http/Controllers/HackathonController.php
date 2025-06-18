@@ -93,10 +93,6 @@ class HackathonController extends Controller
         ]);
     }
 
-    public function create()
-    {
-    }
-
     /**
      * @throws FileDoesNotExist
      * @throws FileIsTooBig
@@ -143,8 +139,6 @@ class HackathonController extends Controller
 //                $member->pivot->load('position');
 //            });
 //        });
-
-        dump(App::getLocale());
 
         return Inertia::render('Hackathon/Show', [
             'hackathon' => new HackathonResource($hackathon),

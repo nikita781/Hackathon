@@ -17,6 +17,6 @@ class LanguageController extends Controller
 
         App::setLocale($locale);
 
-        return redirect()->back();
+        return redirect()->route('home');
     }
 }
