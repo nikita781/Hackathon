@@ -28,7 +28,7 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
     Route::prefix('/{hackathon}')->group(function () {
         Route::get('/', [HackathonController::class, 'show'])->name('show');
         Route::prefix('/tabs')->name('tabs.')->group(function () {
-            Route::put('/', [TabController::class, 'update'])->name('update');
+            Route::patch('/', [TabController::class, 'update'])->name('update');
         });
     });
 });

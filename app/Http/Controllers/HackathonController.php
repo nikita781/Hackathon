@@ -132,7 +132,7 @@ class HackathonController extends Controller
             'tags',
         ]);
 
-        $tabs = $hackathon->tabs()->with(['sections.items'])->get();
+        $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();
 
 //        $hackathon->projects->each(function ($project) {
 //            $project->members->each(function ($member) {

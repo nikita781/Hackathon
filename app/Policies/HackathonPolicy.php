@@ -35,7 +35,8 @@ class HackathonPolicy
         if ($hackathon->is_published) {
             return false;
         }
-        return $user->hackathons()->where('hackathon_id', $hackathon->id)->where('role_id', Role::ORGANIZER)->exists();
+
+        return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 
     public function delete(User $user, Hackathon $hackathon): bool
