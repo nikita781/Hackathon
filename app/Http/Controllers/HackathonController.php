@@ -147,6 +147,7 @@ class HackathonController extends Controller
             ]),
             'can' => [
                 'update' => Gate::check('update', $hackathon),
+                'delete' => Gate::check('delete', $hackathon),
             ],
         ]);
     }
