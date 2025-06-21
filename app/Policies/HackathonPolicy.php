@@ -46,4 +46,21 @@ class HackathonPolicy
         }
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
+
+    public function join(?User $user, Hackathon $hackathon): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists()) {
+            return false;
+        }
+
+        if ($user->hackathons()->where('hackathon_id', $hackathon->id)->exists()) {
+            return false;
+        }
+
+        return $hackathon->is_published;
+    }
 }

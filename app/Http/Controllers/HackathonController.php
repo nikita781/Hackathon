@@ -134,18 +134,13 @@ class HackathonController extends Controller
 
         $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();
 
-//        $hackathon->projects->each(function ($project) {
-//            $project->members->each(function ($member) {
-//                $member->pivot->load('position');
-//            });
-//        });
-
         return Inertia::render('Hackathon/Show', [
             'hackathon' => new HackathonResource($hackathon),
             'tabs' => TabResource::collection($tabs)->additional([
                 'hackathon' => $hackathon->id,
             ]),
             'can' => [
+                'join' => Gate::check('join', $hackathon),
                 'update' => Gate::check('update', $hackathon),
                 'delete' => Gate::check('delete', $hackathon),
             ],
@@ -163,5 +158,16 @@ class HackathonController extends Controller
 
     public function destroy(Hackathon $hackathon)
     {
+    }
+
+    public function join(Hackathon $hackathon)
+    {
+        if (!Gate::check('join', $hackathon)) {
+            abort(404);
+        }
+
+        auth()->user()->hackathons()->attach($hackathon->id, ['role_id' => Role::MEMBER]);
+
+        return back()->with('joined', 'Вы успешно присоединились к хакатону!');
     }
 }

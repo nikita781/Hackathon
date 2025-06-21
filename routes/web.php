@@ -24,11 +24,12 @@ Route::get('/lang/{locale}', LanguageController::class)->name('lang.switch');
 Route::get('/', [HackathonController::class, 'index'])->name('home');
 
 Route::prefix('hackathons')->name('hackathons.')->group(function () {
-    Route::post('/', [HackathonController::class, 'store'])->name('store');
+    //
     Route::prefix('/{hackathon}')->group(function () {
         Route::get('/', [HackathonController::class, 'show'])->name('show');
+        //
         Route::prefix('/tabs')->name('tabs.')->group(function () {
-            Route::patch('/', [TabController::class, 'update'])->name('update');
+            //
         });
     });
 });
@@ -37,6 +38,15 @@ Route::get('/users/{user}', [UserController::class, 'show'])->middleware(['auth'
 
 Route::middleware('auth')->group(function () {
     Route::get('/my-hackathons', [HackathonController::class, 'myHackathons'])->name('my-hackathons');
+    Route::prefix('hackathons')->name('hackathons.')->group(function () {
+        Route::post('/', [HackathonController::class, 'store'])->name('store');
+        Route::prefix('/{hackathon}')->group(function () {
+            Route::post('/join', [HackathonController::class, 'join'])->name('join');
+            Route::prefix('/tabs')->name('tabs.')->group(function () {
+                Route::patch('/', [TabController::class, 'update'])->name('update');
+            });
+        });
+    });
 //    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 //    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 //    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
