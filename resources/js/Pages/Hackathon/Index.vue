@@ -51,7 +51,7 @@ function buildQuery(){
 }
 const fetchHackathons = debounce(() => {
     router.get(
-        route('index'),
+        route('home'),
         buildQuery(),
         { preserveState:true, replace:true, preserveScroll: true }
     )
@@ -130,6 +130,10 @@ function formatDate(dateStr) {
         <div class="head">
             <img src="/head.svg" alt="Head" class="head__img" />
         </div>
+
+<!--        <pre>-->
+<!--            {{props.tags}}-->
+<!--        </pre>-->
 
         <div class="main__search">
             <div class="main__search_container">
