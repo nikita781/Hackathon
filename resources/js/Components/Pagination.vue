@@ -43,6 +43,12 @@ const paginated = computed(() => {
 
     return { prev, pages: final, next }
 })
+
+const fixLabel = (label) => {
+    if (label === 'pagination.previous') return '‹'
+    if (label === 'pagination.next') return '›'
+    return label
+}
 </script>
 
 <template>
@@ -75,7 +81,7 @@ const paginated = computed(() => {
             preserve-scroll
             replace
         >
-            <span v-html="page.label" />
+            <span v-html="fixLabel(page.label)" />
         </Link>
 
         <Link

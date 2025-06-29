@@ -2,6 +2,7 @@
 @import './index.scss';
 @import './footer.scss';
 @import './myHackathon.scss';
+@import './dialog.scss';
 
 /*@tailwind base;*/
 /*@tailwind components;*/
