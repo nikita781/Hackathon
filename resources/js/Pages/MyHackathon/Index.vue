@@ -5,6 +5,7 @@ import {computed, nextTick, onMounted, ref, watch} from "vue";
 import Pagination from "@/Components/Pagination.vue";
 import {router, usePage} from "@inertiajs/vue3";
 import debounce from 'lodash.debounce'
+import DialogCreateHackathon from '@/Components/Dialog/CreateHackathon.vue'
 
 const props = defineProps({
     user: Object,
@@ -75,6 +76,8 @@ function formatDate(dateStr) {
     return `${day}.${month}.${year}`
 }
 
+const showDialog = ref(false)
+
 onMounted(async () => {
     await nextTick(() => {
         tabsRef.value = document.querySelectorAll('.my-hackathon__tabs_item');
@@ -97,7 +100,7 @@ onMounted(async () => {
                     <button type="button" class="main__btn_main" @click="fetchHackathons">Искать</button>
                 </div>
 <!--                <div class="my-hackathon__btn main__btn_main" v-if="props.can.create">-->
-                <div class="my-hackathon__btn main__btn_main">
+                <div class="my-hackathon__btn main__btn_main" @click="showDialog = true">
                     Создать хакатон
                     <div>
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -202,6 +205,7 @@ onMounted(async () => {
                 </div>
             </div>
             <Pagination :links="hackathons.meta.links" @navigate="go" style="margin-top: 30px" />
+            <DialogCreateHackathon v-model="showDialog" />
         </div>
     </AuthenticatedLayout>
 </template>
