@@ -93,7 +93,7 @@ watch(() => items.length, n => { if (!n && inputEl.value) inputEl.value.value = 
 
 <style scoped>
 .dropzone{
-    width:100%;min-height:150px;padding:8px;gap:12px;flex-wrap:wrap;
+    min-height:150px;padding:8px;gap:12px;flex-wrap:wrap;
     background:#f3f4f7;border-radius:8px;border:2px dashed transparent;
     display:flex;justify-content:center;align-items:center;cursor:pointer;
     transition:border-color .15s;user-select:none

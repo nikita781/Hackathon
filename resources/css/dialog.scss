@@ -30,6 +30,10 @@ $x-big: 1829.98px;
         &_small {
             max-width: 675px;
         }
+        @media screen and (max-width: $small){
+            gap: 20px;
+            padding: 20px;
+        }
     }
     &__header {
         display: flex;
@@ -39,6 +43,9 @@ $x-big: 1829.98px;
             font-size: 30px;
             letter-spacing: 1px;
             font-family: 'Cera';
+            @media screen and (max-width: $medium){
+                font-size: 24px;
+            }
         }
     }
     &__close {
@@ -67,8 +74,12 @@ $x-big: 1829.98px;
             color: #999;
             cursor: pointer;
             font-family: 'Cera';
+            text-wrap: nowrap;
             &.active {
                 color: #E80024;
+            }
+            @media screen and (max-width: $small){
+                font-size: 16px;
             }
         }
     }
@@ -85,18 +96,30 @@ $x-big: 1829.98px;
         display: flex;
         flex-direction: column;
         gap: 30px;
+        @media screen and (max-width: $small){
+            gap: 20px;
+        }
     }
     &__component {
         display: flex;
         flex-direction: column;
         gap: 10px;
+        @media screen and (max-width: $small){
+            width: 100%;
+        }
         &.small {
             max-width: 220px;
             width: 100%;
+            @media screen and (max-width: $medium){
+                max-width: unset;
+            }
         }
         &.medium {
             max-width: 385px;
             width: 100%;
+            @media screen and (max-width: $medium){
+                max-width: unset;
+            }
         }
     }
     &__prize {
@@ -107,6 +130,14 @@ $x-big: 1829.98px;
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 30px;
+            @media screen and (max-width: $medium){
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+            @media screen and (max-width: $x-small){
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
         }
         &_item {
             display: flex;
@@ -138,6 +169,9 @@ $x-big: 1829.98px;
         }
         &_btns {
             display: flex;
+            @media screen and (max-width: $x-small){
+                transform: scale(0.8);
+            }
             svg {
                 cursor: pointer;
             }
@@ -146,11 +180,15 @@ $x-big: 1829.98px;
     &__title {
         font-size: 22px;
         font-family: 'Cera';
+        @media screen and (max-width: $small){
+            font-size: 18px;
+        }
         &_header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
     }
     &__input {
@@ -162,23 +200,44 @@ $x-big: 1829.98px;
         &_short {
             max-width: 60px;
             width: 100%;
+            @media screen and (max-width: $medium){
+                max-width: unset;
+            }
         }
         &_medium {
             max-width: 144px;
             width: 100%;
+            @media screen and (max-width: $medium){
+                max-width: unset;
+            }
         }
         &_btns {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
             gap: 34px;
+            @media screen and (max-width: $small){
+                gap: 20px;
+            }
         }
+    }
+    &__textarea {
+        border-radius: 8px;
+        background-color: #f3f4f7;
+        padding: 12px 16px;
+        outline: none;
+        border: none;
+        resize: vertical;
+        min-height: 136px;
     }
     &__block {
         display: flex;
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 30px;
+        @media screen and (max-width: $small){
+            gap: 20px;
+        }
     }
     &__select {
         border: 1px solid #E80024;
@@ -195,15 +254,23 @@ $x-big: 1829.98px;
         display: flex;
         gap: 30px;
         align-items: center;
+        @media screen and (max-width: $x-small){
+            flex-direction: column;
+            gap: 20px;
+        }
     }
     &__info {
         display: flex;
         align-items: flex-end;
         gap: 12px;
+        @media screen and (max-width: $medium){
+            width: 100%;
+        }
     }
     &__tags {
         display: flex;
         gap: 10px;
+        overflow-x: auto;
     }
     &__tag {
         font-size: 13px;
@@ -214,9 +281,17 @@ $x-big: 1829.98px;
         border-radius: 10px;
         border: 2px solid #EF0000;
         color: #E80024;
+        @media screen and (max-width: $small){
+            font-size: 10px;
+            text-wrap: nowrap;
+            padding: 2px 10px;
+        }
         &_placeholder {
             font-size: 18px;
             color: #E80024;
+            @media screen and (max-width: $small){
+                font-size: 14px;
+            }
         }
     }
     &__plus {
@@ -250,11 +325,17 @@ $x-big: 1829.98px;
             color: #121212;
             font-size: 22px;
             font-family: Cera;
+            @media screen and (max-width: $small){
+                font-size: 18px;
+            }
         }
         &_number {
             display: flex;
             align-items: center;
             gap: 10px;
+            @media screen and (max-width: $x-small){
+                display: none;
+            }
             p {
                 color: #E80024;
                 font-size: 22px;
@@ -266,7 +347,41 @@ $x-big: 1829.98px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                @media screen and (max-width: $small){
+                    font-size: 18px;
+                }
             }
+        }
+    }
+    &__award {
+        display: flex;
+        gap: 30px;
+        @media screen and (max-width: $small){
+            gap: 20px;
+        }
+        @media screen and (max-width: $x-small){
+            flex-direction: column;
+        }
+        &_img {
+            object-fit: cover;
+            width: 100px;
+            height: 100px;
+            border-radius: 10px;
+        }
+        &_content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        &_title {
+            color: #121212;
+            font-size: 16px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        &_text {
+            font-size: 16px;
         }
     }
 }

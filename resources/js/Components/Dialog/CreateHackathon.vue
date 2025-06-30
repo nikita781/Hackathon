@@ -5,6 +5,7 @@ import DialogTabResources from '@/Components/Dialog/Tab/Resources.vue'
 import DialogTabRules from '@/Components/Dialog/Tab/Rules.vue'
 import DialogTabContacts from '@/Components/Dialog/Tab/Contacts.vue'
 import DialogTabEvaluation from '@/Components/Dialog/Tab/Evaluation.vue'
+import DialogTabAward from '@/Components/Dialog/Tab/Award.vue'
 import {ref} from "vue";
 
 defineProps({
@@ -48,7 +49,7 @@ const setActiveTab = (index) => {
             <div>
                 <div class="dialog__tabs">
                     <div
-                        v-for="(tab, index) in ['Основная информация', 'Обзор', 'Ресурсы', 'Правила', 'Контакты', 'Оценка']"
+                        v-for="(tab, index) in ['Основная информация', 'Обзор', 'Ресурсы', 'Правила', 'Контакты', 'Оценка', 'Награды']"
                         :key="tab"
                         class="dialog__tabs_item"
                         :class="{ active: activeTab === index }"
@@ -66,7 +67,8 @@ const setActiveTab = (index) => {
                       DialogTabResources,
                       DialogTabRules,
                       DialogTabContacts,
-                      DialogTabEvaluation
+                      DialogTabEvaluation,
+                      DialogTabAward
                     ][activeTab]" :key="activeTab"/>
                 </keep-alive>
             </div>

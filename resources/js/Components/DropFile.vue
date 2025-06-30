@@ -1,44 +1,57 @@
 <!-- DropImage.vue -->
 <script setup>
-import { ref, onBeforeUnmount } from 'vue'
+import {ref, onBeforeUnmount, watch} from 'vue'
 
+const props = defineProps({
+    file: { type: [File, String, null], default: null }
+})
 const emit = defineEmits(['update:file'])
 
 const previewSrc = ref('')          // objectURL для <img>
 const dragging   = ref(false)       // подсветка рамки при DnD
-const fileRef = ref(null)
+let   blobURL    = ''
 
-const revoke = () => {
-    if (previewSrc.value) URL.revokeObjectURL(previewSrc.value)
+function revoke () {
+    if (blobURL) {
+        URL.revokeObjectURL(blobURL)
+        blobURL = ''
+    }
     previewSrc.value = ''
 }
 
-function handleFiles(files) {
+watch(
+    () => props.file,
+    (f) => {
+        revoke()
+
+        if (!f) return
+
+        if (f instanceof File) {
+            blobURL = URL.createObjectURL(f)
+            previewSrc.value = blobURL
+        }
+        else if (typeof f === 'string') {
+            previewSrc.value = f
+        }
+    },
+    { immediate: true }
+)
+
+function handleFiles (files) {
     if (!files?.length) return
     const file = files[0]
     if (!file.type.startsWith('image/')) return
 
-    revoke()                           // очищаем прошлый objectURL
-    previewSrc.value = URL.createObjectURL(file)
-    fileRef.value = file
+    revoke()
+    blobURL = URL.createObjectURL(file)
+    previewSrc.value = blobURL
 
     emit('update:file', file)
 }
 
-/* <input type="file"> */
-function onInput(e) { handleFiles(e.target.files) }
-
-/* drag & drop */
-function onDrop(e) {
-    e.preventDefault()
-    dragging.value = false
-    handleFiles(e.dataTransfer.files)
-}
-function onDrag(e) {
-    e.preventDefault()
-    if (e.type === 'dragenter' || e.type === 'dragover') dragging.value = true
-    else dragging.value = false
-}
+function onInput (e)       { handleFiles(e.target.files) }
+function onDrop  (e)       { e.preventDefault(); dragging.value=false; handleFiles(e.dataTransfer.files) }
+function onDrag  (e)       { e.preventDefault(); dragging.value = e.type==='dragenter' || e.type==='dragover' }
 
 onBeforeUnmount(revoke)
 </script>
@@ -52,22 +65,21 @@ onBeforeUnmount(revoke)
         @dragenter="onDrag"
         @dragleave="onDrag"
     >
-        <!-- скрытый input -->
         <input type="file" accept="image/*" hidden @input="onInput" />
 
-        <!-- когда файла ещё нет -->
         <template v-if="!previewSrc">
-            <p class="hint">Перетащите или выберите файл<br>(JPG или PNG, &nbsp;5 MB&nbsp;максимальный размер файла)</p>
+            <p class="hint">
+                Перетащите или выберите файл<br>
+                (JPG или PNG, 5 MB максимальный размер)
+            </p>
         </template>
 
-        <!-- превью -->
         <img v-else :src="previewSrc" class="preview" />
     </label>
 </template>
 
 <style scoped>
 .dropzone {
-    width: 100%;
     min-height: 150px;
     background: #f3f4f7;
     border-radius: 8px;
