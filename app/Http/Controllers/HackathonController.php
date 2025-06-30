@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\HackathonRequest;
+use App\Http\Requests\HackathonUpdateRequest;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\TabResource;
 use App\Http\Resources\TagResource;
@@ -104,6 +105,9 @@ class HackathonController extends Controller
         $user = auth()->user();
         $hackathon = $user->hackathonsAsOrganizer()->create($data);
         if ($request->hasFile('image_path')) {
+            if ($hackathon->hasMedia('main_image')) {
+                $hackathon->clearMediaCollection('main_image');
+            }
             $hackathon->addMediaFromRequest('image_path')->toMediaCollection('main_image');
         }
         $hackathon->tags()->sync($request->tags);
@@ -149,13 +153,22 @@ class HackathonController extends Controller
         ]);
     }
 
-    public function edit(Hackathon $hackathon)
+    public function update(HackathonUpdateRequest $request, Hackathon $hackathon): RedirectResponse
     {
-    }
+        if (!Gate::check('update', $hackathon)) {
+            abort(404);
+        }
 
-    public function update(Request $request, Hackathon $hackathon)
-    {
-
+        $data = Arr::except($request->validated(), ['tags', 'image_path']);
+        $hackathon->update($data);
+        $hackathon->refresh();
+        if ($request->hasFile('image_path')) {
+            $hackathon->addMediaFromRequest('image_path')->toMediaCollection('main_image');
+        }
+        if (isset($request->tags)) {
+            $hackathon->tags()->sync($request->tags);
+        }
+        return redirect()->route('hackathons.show', $hackathon);
     }
 
     public function destroy(Hackathon $hackathon)

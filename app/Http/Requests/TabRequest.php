@@ -28,6 +28,7 @@ class TabRequest extends FormRequest
             'sections.*.items.*.id' => ['nullable', 'integer', 'exists:tab_items,id'],
             'sections.*.items.*.title' => ['required_with:sections.*.items', 'string', 'max:255'],
             'sections.*.items.*.content' => ['nullable', 'string', 'max:65535'],
+            'sections.*.items.*.image_path' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
 
             'partners' => ['nullable', 'array'],
             'partners.*' => ['image', 'max:2048'],

@@ -85,6 +85,12 @@ class TabController extends Controller
                                 'content' => $itemData['content'] ?? null,
                             ]);
                         }
+
+                        if (!empty($itemData['image'])) {
+                            $item->clearMediaCollection('image');
+                            $item->addMedia($itemData['image_path'])->toMediaCollection('image');
+                        }
+
                         $existingItemIdsBySection[$section->id][] = $item->id;
                     }
                 }

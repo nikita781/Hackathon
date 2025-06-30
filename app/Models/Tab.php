@@ -17,7 +17,7 @@ class Tab extends Model implements HasMedia
     protected $fillable = [
         'hackathon_id', 'title',
     ];
-    public const TAB_TITLES = ['Обзор', 'Ресурсы', 'Правила', 'Контакты', 'Оценка'];
+    public const TAB_TITLES = ['Обзор', 'Ресурсы', 'Правила', 'Контакты', 'Оценка', 'Награды'];
 
     public static function defaultStructure(): array
     {
@@ -38,6 +38,9 @@ class Tab extends Model implements HasMedia
             ],
             'Оценка' => [
                 'Критерии оценки',
+            ],
+            'Награды' => [
+                'Награды для участников',
             ],
         ];
     }
