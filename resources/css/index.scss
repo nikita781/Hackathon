@@ -80,7 +80,7 @@ $x-big: 1829.98px;
     }
     &__card {
         display: grid;
-        grid-template-columns: 1fr 1.5fr;
+        grid-template-columns: 413px 1fr;
         gap: 20px;
         padding-bottom: 30px;
         border-bottom: 1px solid #999999;
@@ -93,7 +93,7 @@ $x-big: 1829.98px;
             transition: 0.2s;
         }
         @media screen and (max-width: $large){
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 300px  1fr;
         }
         @media screen and (max-width: $small){
             grid-template-columns: 1fr;
@@ -106,8 +106,11 @@ $x-big: 1829.98px;
                 height: 260px;
                 object-fit: cover;
                 border-radius: 10px;
+                @media screen and (max-width: $large){
+                        height: 188px;
+                }
                 @media screen and (max-width: $small){
-                    height: 200px;
+                    height: unset;
                 }
             }
         }

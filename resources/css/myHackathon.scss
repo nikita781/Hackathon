@@ -38,10 +38,22 @@ $x-big: 1829.98px;
         }
     }
     &__btn {
-        width: 232px;
-        position: relative;
+        //width: 232px;
+        height: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        text-wrap: nowrap;
+        max-width: fit-content;
+        //position: relative;
         @media screen and (max-width: $small){
-            width: 180px;
+            height: 15px;
+        }
+        div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         button {
             width: 232px;
@@ -54,14 +66,14 @@ $x-big: 1829.98px;
             }
         }
         svg {
-            position: absolute;
-            top: calc(50% - 10px);
-            right: 18px;
+            //position: absolute;
+            //top: calc(50% - 10px);
+            //right: 18px;
             @media screen and (max-width: $small){
-                top: calc(50% - 8px);
+                //top: calc(50% - 8px);
                 width: 16px;
                 height: 16px;
-                right: 14px;
+                //right: 14px;
             }
         }
     }
