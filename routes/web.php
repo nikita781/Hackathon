@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\HackathonController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\NominationController;
 use App\Http\Controllers\TabController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +46,16 @@ Route::middleware('auth')->group(function () {
             Route::post('/join', [HackathonController::class, 'join'])->name('join');
             Route::prefix('/tabs')->name('tabs.')->group(function () {
                 Route::patch('/', [TabController::class, 'update'])->name('update');
+            });
+            Route::prefix('/nominations')->name('nominations.')->group(function () {
+                Route::post('/', [NominationController::class, 'store'])->name('store');
+                Route::patch('/{nomination}', [NominationController::class, 'update'])->name('update');
+                Route::delete('/{nomination}', [NominationController::class, 'destroy'])->name('destroy');
+            });
+            Route::prefix('/criteria')->name('criteria.')->group(function () {
+                Route::post('/', [CriteriaController::class, 'store'])->name('store');
+                Route::patch('/{criteria}', [CriteriaController::class, 'update'])->name('update');
+                Route::delete('/{criteria}', [CriteriaController::class, 'destroy'])->name('destroy');
             });
         });
     });

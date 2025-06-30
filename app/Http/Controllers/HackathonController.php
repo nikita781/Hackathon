@@ -130,6 +130,8 @@ class HackathonController extends Controller
         }
         $hackathon->load([
             'tags',
+            'nominations.distribution',
+            'criteriaGroups.criteria',
         ]);
 
         $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();

@@ -32,10 +32,6 @@ class HackathonPolicy
 
     public function update(User $user, Hackathon $hackathon): bool
     {
-        if ($hackathon->is_published) {
-            return false;
-        }
-
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 
@@ -44,6 +40,7 @@ class HackathonPolicy
         if ($hackathon->is_published) {
             return false;
         }
+
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 

@@ -65,6 +65,16 @@ class Hackathon extends Model implements HasMedia
             ->withPivot('role_id');
     }
 
+    public function nominations(): HasMany
+    {
+        return $this->hasMany(Nomination::class);
+    }
+
+    public function criteriaGroups(): HasMany
+    {
+        return $this->hasMany(CriterionGroup::class);
+    }
+
     /**
      * @param  Builder  $query
      * @param $request
