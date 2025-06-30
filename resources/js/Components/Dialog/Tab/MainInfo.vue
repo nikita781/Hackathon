@@ -25,7 +25,7 @@ const selectDirection = (direction) => {
 };
 
 const removeDirection = (direction, event) => {
-    event.stopPropagation();
+    event.stopPropagation();``
     const index = selectedDirections.value.indexOf(direction);
     if (index !== -1) {
         selectedDirections.value.splice(index, 1);
@@ -147,7 +147,15 @@ const pickedFile = ref(null)
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+$x-small: 575.98px;
+$small: 767.98px;
+$medium: 991.98px;
+$large: 1199.98px;
+$x-large: 1399.98px;
+$big: 1592.98px;
+$x-big: 1829.98px;
+
 .custom-container {
     display: flex;
     flex-direction: column;
@@ -181,6 +189,9 @@ const pickedFile = ref(null)
     display: flex;
     justify-content: space-between;
     align-items: center;
+    @media screen and (max-width: $small){
+        font-size: 14px;
+    }
 }
 
 .dropdown-item:hover {
@@ -198,6 +209,9 @@ const pickedFile = ref(null)
     text-align: center;
     color: #E80024;
     cursor: pointer;
+    @media screen and (max-width: $small){
+        font-size: 14px;
+    }
 }
 
 .clear-selection:hover {

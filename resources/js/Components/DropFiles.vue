@@ -77,7 +77,7 @@ watch(() => items.length, n => { if (!n && inputEl.value) inputEl.value.value=''
 
 <style scoped>
 .dropzone{
-    width:100%;min-height:150px;
+    min-height:150px;
     background:#f3f4f7;border-radius:8px;
     display:flex;justify-content:center;align-items:center;
     border:2px dashed transparent;transition:border-color .15s;
