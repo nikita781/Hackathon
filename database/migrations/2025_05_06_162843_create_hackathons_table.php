@@ -28,8 +28,8 @@ return new class extends Migration
             $table->date('event_end');
             $table->enum('prize_type', ['cash', 'non-cash']);
             $table->integer('prize_pool');
-            $table->string('evaluation_start')->nullable();
-            $table->string('evaluation_end')->nullable();
+            $table->dateTime('evaluation_start')->nullable();
+            $table->dateTime('evaluation_end')->nullable();
             $table->string('slug')->unique();
             $table->boolean('is_published')->default(false);
             $table->timestamps();
