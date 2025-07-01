@@ -86,6 +86,7 @@ class HackathonController extends Controller
             'user' => $user->load('roles'),
             'upcomingHackathons' => HackathonResource::collection($upcoming),
             'pastHackathons' => HackathonResource::collection($past),
+            'tags' => TagResource::collection(Tag::orderBy('title')->get()),
             'can' => [
                 'create' => $user->can('create', Hackathon::class),
             ],
