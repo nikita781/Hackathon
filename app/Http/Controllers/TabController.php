@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TabRequest;
 use App\Models\Hackathon;
 use App\Models\Tab;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -20,7 +21,7 @@ class TabController extends Controller
      * @throws FileDoesNotExist
      * @throws MediaCannotBeDeleted
      */
-    public function update(TabRequest $request, Hackathon $hackathon): RedirectResponse
+    public function update(TabRequest $request, Hackathon $hackathon): JsonResponse
     {
         if (!Gate::check('update', $hackathon)) {
             abort(404);
@@ -127,6 +128,9 @@ class TabController extends Controller
             }
         }
 
-        return back()->with('success', 'Сохранено');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Таб успешно обновлен',
+        ]);
     }
 }

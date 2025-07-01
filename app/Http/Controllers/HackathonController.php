@@ -11,6 +11,7 @@ use App\Models\Hackathon;
 use App\Models\Role;
 use App\Models\Tab;
 use App\Models\Tag;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -98,7 +99,7 @@ class HackathonController extends Controller
      * @throws FileDoesNotExist
      * @throws FileIsTooBig
      */
-    public function store(HackathonRequest $request): RedirectResponse
+    public function store(HackathonRequest $request): JsonResponse
     {
         $data = Arr::except($request->validated(), ['tags', 'image_path']);
         $data['slug'] = Hackathon::generateUniqueSlug($data['title']);
@@ -120,7 +121,15 @@ class HackathonController extends Controller
             }
         }
 
-        return redirect()->route('hackathons.show', $hackathon);
+        return response()->json([
+            'status' => 'success',
+            'hackathon' => [
+                'id' => $hackathon->id,
+                'title' => $hackathon->title,
+                'slug' => $hackathon->slug,
+            ],
+            'message' => "Хакатон '". $hackathon->title ."' успешно создан",
+        ]);
     }
 
     /**
