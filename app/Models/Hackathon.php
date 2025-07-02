@@ -23,6 +23,7 @@ class Hackathon extends Model implements HasMedia
     protected $fillable = [
         'user_id', 'title', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
         'registration_end', 'event_start', 'event_end', 'prize_type', 'prize_pool', 'slug', 'is_published',
+        'evaluation_start', 'evaluation_end', 'work_time_start', 'work_time_end',
     ];
 
     /**
