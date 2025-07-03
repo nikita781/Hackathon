@@ -137,11 +137,12 @@ class HackathonController extends Controller
      * @param  Hackathon  $hackathon
      * @return Response
      */
-    public function show(Hackathon $hackathon): Response
+    public function show(Request $request, Hackathon $hackathon): Response
     {
         if (!Gate::check('view', [$hackathon])) {
             abort(404);
         }
+
         $hackathon->load([
             'tags',
             'nominations.distribution',
@@ -149,6 +150,14 @@ class HackathonController extends Controller
         ]);
 
         $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();
+
+        if ($request->expectsJson()) {
+            return Inertia:: render ('Hackathon/Show', [
+                "hackathon" => (new HackathonResource($hackathon))->response(),
+                "tabs" => (TabResource::collection($tabs))->response(),
+            ]);
+        }
+
 
         return Inertia::render('Hackathon/Show', [
             'hackathon' => new HackathonResource($hackathon),
