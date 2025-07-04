@@ -135,9 +135,9 @@ class HackathonController extends Controller
 
     /**
      * @param  Hackathon  $hackathon
-     * @return Response
+     * @return JsonResponse|Response
      */
-    public function show(Request $request, Hackathon $hackathon): Response
+    public function show(Request $request, Hackathon $hackathon): JsonResponse|Response
     {
         if (!Gate::check('view', [$hackathon])) {
             abort(404);
@@ -151,8 +151,8 @@ class HackathonController extends Controller
 
         $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();
 
-        if ($request->expectsJson()) {
-            return Inertia:: render ('Hackathon/Show', [
+        if ($request->wantsJson()) {
+            return \Illuminate\Support\Facades\Response::json([
                 "hackathon" => (new HackathonResource($hackathon))->response(),
                 "tabs" => (TabResource::collection($tabs))->response(),
             ]);
