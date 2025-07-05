@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CriteriaRequest;
 use App\Models\Criterion;
+use App\Models\CriterionGroup;
 use App\Models\Hackathon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,7 +33,7 @@ class CriteriaController extends Controller
         return back()->with(['created' => 'Критерии успешно созданы!']);
     }
 
-    public function update(CriteriaRequest $request, Hackathon $hackathon, Criterion $criterion): RedirectResponse
+    public function update(CriteriaRequest $request, Hackathon $hackathon, CriterionGroup $criterion): RedirectResponse
     {
         if (!Gate::check('update', $hackathon)) {
             abort(404);
@@ -54,7 +55,7 @@ class CriteriaController extends Controller
 
     }
 
-    public function destroy(Criterion $criterion, Hackathon $hackathon): RedirectResponse
+    public function destroy(CriterionGroup $criterion, Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('update', $hackathon)) {
             abort(404);
