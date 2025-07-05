@@ -76,6 +76,11 @@ class Hackathon extends Model implements HasMedia
         return $this->hasMany(CriterionGroup::class);
     }
 
+    public function awards(): HasMany
+    {
+        return $this->hasMany(Award::class);
+    }
+
     /**
      * @param  Builder  $query
      * @param $request

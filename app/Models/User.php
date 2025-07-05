@@ -51,6 +51,9 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class);
     }
 
+    /**
+     * @return HasMany
+     */
     public function hackathonsAsOrganizer(): HasMany
     {
         return $this->hasMany(Hackathon::class);
@@ -74,6 +77,38 @@ class User extends Authenticatable
         return $this->roles->contains('id', $role_id);
     }
 
+    public function hasAnyRole(array $roles): bool
+    {
+        foreach ($roles as $role) {
+            if ($this->hasRole($role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function isHackathonStaff(Hackathon $hackathon): bool
+    {
+        $isAdmin = $this->hasAnyRole([
+            Role::SUPER_ADMIN,
+            Role::ADMIN,
+        ]);
+
+        if ($isAdmin) {
+            return true;
+        }
+
+        if ($this->hackathonsAsOrganizer()->where('id', $hackathon->id)) {
+            return true;
+        }
+
+        if ($this->hackathons()->where('hackathon_id', $hackathon->id)->whereIn('role_id', [Role::JUDGE, Role::MENTOR])->exists()) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * @param  int  $role_id
      * @return void
@@ -83,13 +118,27 @@ class User extends Authenticatable
         $this->roles()->syncWithoutDetaching([$role_id]);
     }
 
+    /**
+     * @return BelongsToMany
+     */
     public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Team::class, 'team_user')
-            ->withPivot('position_id')
-            ->withTimestamps();
+        return $this->belongsToMany(Team::class)
+            ->using(TeamUser::class)
+            ->withPivot(['position_id']);
     }
 
+    /**
+     * @return HasMany
+     */
+    public function teamUsers(): HasMany
+    {
+        return $this->hasMany(TeamUser::class);
+    }
+
+    /**
+     * @return BelongsToMany
+     */
     public function positions(): BelongsToMany
     {
         return $this->belongsToMany(Position::class, 'team_user')

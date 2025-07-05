@@ -33,6 +33,7 @@ class HackathonResource extends JsonResource
             'nominations' => NominationResource::collection($this->whenLoaded('nominations')),
             'criteria_groups' => CriterionGroupResource::collection($this->whenLoaded('criteriaGroups')),
             'tabs' => TabResource::collection($this->whenLoaded('tabs')),
+            'awards' => AwardResource::collection($this->whenLoaded('awards')),
         ];
     }
 }

@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\HackathonRequest;
 use App\Http\Requests\HackathonUpdateRequest;
+use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\TabResource;
 use App\Http\Resources\TagResource;
+use App\Http\Resources\TeamResource;
 use App\Models\Hackathon;
+use App\Models\Position;
 use App\Models\Role;
 use App\Models\Tab;
 use App\Models\Tag;
+use App\Models\Team;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -145,16 +149,21 @@ class HackathonController extends Controller
 
         $hackathon->load([
             'tags',
+            'teams',
+            'awards',
             'nominations.distribution',
             'criteriaGroups.criteria',
         ]);
 
         $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();
 
+        $teams = Team::getTeams($hackathon);
+
         if ($request->wantsJson()) {
             return \Illuminate\Support\Facades\Response::json([
                 "hackathon" => (new HackathonResource($hackathon))->response(),
                 "tabs" => (TabResource::collection($tabs))->response(),
+                "team" => (TeamResource::collection($teams))->response(),
             ]);
         }
 
@@ -164,6 +173,7 @@ class HackathonController extends Controller
             'tabs' => TabResource::collection($tabs)->additional([
                 'hackathon' => $hackathon->id,
             ]),
+            'teams' => TeamResource::collection($teams),
             'can' => [
                 'join' => Gate::check('join', $hackathon),
                 'update' => Gate::check('update', $hackathon),
@@ -187,20 +197,28 @@ class HackathonController extends Controller
         if (isset($request->tags)) {
             $hackathon->tags()->sync($request->tags);
         }
-        return redirect()->route('hackathons.show', $hackathon);
+        return back()->with('success', 'Хакатон обновлен');
     }
 
-    public function destroy(Hackathon $hackathon)
+    public function destroy(Hackathon $hackathon): void
     {
     }
 
-    public function join(Hackathon $hackathon)
+    public function join(Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('join', $hackathon)) {
             abort(404);
         }
 
-        auth()->user()->hackathons()->attach($hackathon->id, ['role_id' => Role::MEMBER]);
+        $user = auth()->user();
+
+        $user->hackathons()->attach($hackathon->id, ['role_id' => Role::MEMBER]);
+
+        $team = $hackathon->teams()->create([
+            'title' => "Команда {$user->name}"
+        ]);
+
+        $user->teams()->syncWithoutDetaching([$team->id => [Position::CAPITAN_POSITION]]);
 
         return back()->with('joined', 'Вы успешно присоединились к хакатону!');
     }

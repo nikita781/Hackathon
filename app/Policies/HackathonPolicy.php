@@ -50,7 +50,7 @@ class HackathonPolicy
             return false;
         }
 
-        if ($user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists()) {
+        if ($user->isHackathonStaff($hackathon)) {
             return false;
         }
 

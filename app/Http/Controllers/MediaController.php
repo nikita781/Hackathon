@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Award;
 use App\Models\Hackathon;
 use App\Models\Tab;
 use Illuminate\Http\Request;
@@ -14,7 +15,9 @@ class MediaController extends Controller
 {
     public function showHackathonMedia(Hackathon $hackathon): BinaryFileResponse
     {
-        Gate::authorize('view', $hackathon);
+        if (!Gate::check('view', $hackathon)) {
+            abort(404);
+        }
 
         $media = $hackathon->getFirstMedia('main_image');
 
@@ -40,8 +43,9 @@ class MediaController extends Controller
 
     public function showHackathonPartners($tab_id, Hackathon $hackathon): BinaryFileResponse
     {
-        Gate::authorize('view', $hackathon);
-
+        if (!Gate::check('view', $hackathon)) {
+            abort(404);
+        }
         $tab = $hackathon->tabs()->where('id', $tab_id)->firstOrFail();
 
         $media = $tab->getFirstMedia('partner_images');
@@ -67,12 +71,22 @@ class MediaController extends Controller
     public function showHackathonFile($hackathon_id, Media $media): BinaryFileResponse
     {
         $hackathon = Hackathon::findOrFail($hackathon_id);
-        if ($hackathon instanceof Hackathon) {
-            Gate::authorize('view', $hackathon);
-        } else {
+
+        if (!Gate::check('view', $hackathon)) {
             abort(404);
         }
 
         return response()->download($media->getPath(), $media->file_name);
+    }
+
+    public function showAwardMedia(Award $award): BinaryFileResponse
+    {
+        $media = $award->getFirstMedia('main_image');
+
+        if (!$media) {
+            abort(404);
+        }
+
+        return response()->file($media->getPath());
     }
 }
