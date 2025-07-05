@@ -15,17 +15,6 @@ class Position extends Model
         'title',
     ];
 
-    public function teams(): BelongsToMany
-    {
-        return $this->belongsToMany(Team::class, 'team_user')
-            ->withPivot('user_id')
-            ->withTimestamps();
-    }
-
-    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'team_user')
-            ->withPivot('team_id')
-            ->withTimestamps();
-    }
+    public const CAPITAN_POSITION = 1;
+    public const UNI_POSITION = 2;
 }

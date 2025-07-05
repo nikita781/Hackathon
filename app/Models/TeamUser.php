@@ -2,16 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class TeamUser extends Model
+class TeamUser extends Pivot
 {
-    use HasFactory;
-
     protected $table = 'team_user';
-    protected $fillable = ['user_id', 'hackathon_id', 'position_id', 'team_id'];
+    protected $fillable = ['team_id', 'user_id', 'position_id'];
 
     public function team(): BelongsTo
     {

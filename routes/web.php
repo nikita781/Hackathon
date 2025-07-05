@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\AwardsController;
 use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\HackathonController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NominationController;
 use App\Http\Controllers\TabController;
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -57,6 +59,17 @@ Route::middleware('auth')->group(function () {
                 Route::patch('/{criteria}', [CriteriaController::class, 'update'])->name('update');
                 Route::delete('/{criteria}', [CriteriaController::class, 'destroy'])->name('destroy');
             });
+            Route::prefix('/awards')->name('awards.')->group(function () {
+                Route::post('/', [AwardsController::class, 'store'])->name('store');
+                Route::patch('/{award}', [AwardsController::class, 'update'])->name('update');
+                Route::delete('/{award}', [AwardsController::class, 'destroy'])->name('destroy');
+            });
+            Route::prefix('/teams/{team}')->name('teams.')->group(function () {
+                Route::post('/invite', [TeamController::class, 'createInvite'])->name('create-invite');
+                Route::get('/invite/{token}', [TeamController::class, 'showInvite'])->name('invite.show');
+                Route::post('/invite/{token}', [TeamController::class, 'acceptInvite'])->name('accept-invite');
+
+            });
         });
     });
 //    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -75,11 +88,13 @@ Route::middleware('auth')->group(function () {
 Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function () {
     Route::get('/media', [MediaController::class, 'showHackathonMedia'])->name('image');
     Route::get('/media-mobile', [MediaController::class, 'showHackathonMediaMobile'])->name('image-mobile');
+    Route::get('/files/{media}', [MediaController::class, 'showHackathonFile'])->name('files.download');
     Route::prefix('/tabs/{tab}')->name('tabs.')->group(function () {
         Route::get('/partner-images', [MediaController::class, 'showHackathonPartners'])->name('partner-images');
     });
 });
 
-Route::get('/hackathons/{hackathon}/files/{media}', [MediaController::class, 'showHackathonFile'])->name('hackathons.files.download');
+Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])->name('awards.media');
+
 
 require __DIR__.'/auth.php';
