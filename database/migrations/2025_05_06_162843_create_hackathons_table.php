@@ -22,10 +22,10 @@ return new class extends Migration
             $table->enum('type', ['team', 'individual']);
             $table->smallInteger('min_team_size');
             $table->smallInteger('max_team_size');
-            $table->date('registration_start')->default(now());
-            $table->date('registration_end');
-            $table->date('event_start');
-            $table->date('event_end');
+            $table->dateTime('registration_start')->default(now());
+            $table->dateTime('registration_end');
+            $table->dateTime('event_start');
+            $table->dateTime('event_end');
             $table->enum('prize_type', ['cash', 'non-cash']);
             $table->integer('prize_pool');
             $table->dateTime('work_time_start')->nullable();
