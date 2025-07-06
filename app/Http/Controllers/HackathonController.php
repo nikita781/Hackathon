@@ -149,11 +149,17 @@ class HackathonController extends Controller
 
         $hackathon->load([
             'tags',
-            'teams',
             'awards',
             'nominations.distribution',
             'criteriaGroups.criteria',
         ]);
+
+        $user = auth()->user();
+        if ($user->isHackathonStaff($hackathon)) {
+            $hackathon->load('teams');
+        } else {
+            $ownTeam = $hackathon->ownTeam($user);
+        }
 
         $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();
 
@@ -163,7 +169,8 @@ class HackathonController extends Controller
             return \Illuminate\Support\Facades\Response::json([
                 "hackathon" => (new HackathonResource($hackathon))->response(),
                 "tabs" => (TabResource::collection($tabs))->response(),
-                "team" => (TeamResource::collection($teams))->response(),
+                "teams" => (TeamResource::collection($teams))->response(),
+                "ownTeam" => (new TeamResource($teams))->response(),
             ]);
         }
 
@@ -174,6 +181,7 @@ class HackathonController extends Controller
                 'hackathon' => $hackathon->id,
             ]),
             'teams' => TeamResource::collection($teams),
+            "ownTeam" => new TeamResource($teams),
             'can' => [
                 'join' => Gate::check('join', $hackathon),
                 'update' => Gate::check('update', $hackathon),
@@ -204,7 +212,7 @@ class HackathonController extends Controller
     {
     }
 
-    public function join(Hackathon $hackathon): RedirectResponse
+    public function joinHackathon(Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('join', $hackathon)) {
             abort(404);
@@ -218,7 +226,9 @@ class HackathonController extends Controller
             'title' => "Команда {$user->name}"
         ]);
 
-        $user->teams()->syncWithoutDetaching([$team->id => [Position::CAPITAN_POSITION]]);
+        $user->teams()->syncWithoutDetaching([
+            $team->id => ['position_id' => Position::CAPITAN_POSITION]
+        ]);
 
         return back()->with('joined', 'Вы успешно присоединились к хакатону!');
     }

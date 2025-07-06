@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\TeamResource;
+use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Team;
 use App\Models\TeamInvite;
@@ -38,7 +39,7 @@ class TeamController extends Controller
     }
 
 
-    public function createInvite(Team $team): JsonResponse
+    public function createInvite(Hackathon $hackathon, Team $team): JsonResponse
     {
         do {
             $token = Str::random(32);
@@ -58,7 +59,7 @@ class TeamController extends Controller
         ]);
     }
 
-    public function acceptInvite(Request $request, $token): RedirectResponse
+    public function acceptInvite(Request $request, Hackathon $hackathon, Team $team, $token): RedirectResponse
     {
         $invite = TeamInvite::where('token', $token)->firstOrFail();
 
@@ -67,8 +68,6 @@ class TeamController extends Controller
         }
 
         $user = auth()->user();
-        $team = $invite->team;
-        $hackathon = $team->hackathon;
 
         if (!Gate::check('join', $hackathon)) {
             abort(404);
@@ -110,7 +109,7 @@ class TeamController extends Controller
 //
 //        $invite = TeamInvite::create([
 //            'team_id' => $team->id,
-//            'invited_user_id' => $invitedUserId,
+//            'user_id' => $invitedUserId,
 //            'token' => null,
 //            'expires_at' => now()->addHour(),
 //        ]);

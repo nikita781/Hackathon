@@ -98,7 +98,7 @@ class User extends Authenticatable
             return true;
         }
 
-        if ($this->hackathonsAsOrganizer()->where('id', $hackathon->id)) {
+        if ($this->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists()) {
             return true;
         }
 

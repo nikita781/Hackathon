@@ -58,7 +58,11 @@ class HackathonPolicy
             return false;
         }
 
-        return $hackathon->is_published;
+        if ($user->hasRole(Role::MEMBER)) {
+            return $hackathon->is_published;
+        }
+
+        return false;
     }
 
     public function evaluation(User $user, Hackathon $hackathon): bool

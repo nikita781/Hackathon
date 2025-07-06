@@ -44,6 +44,11 @@ class Hackathon extends Model implements HasMedia
         return $this->hasMany(Team::class);
     }
 
+    public function ownTeam(User $user)
+    {
+        return $user->teams()->where('hackathon_id', $this->id)->first();
+    }
+
     /**
      * @return HasMany
      */
