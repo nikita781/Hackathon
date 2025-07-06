@@ -43,10 +43,8 @@ class CriteriaController extends Controller
             try {
                 $criterion->delete();
                 $this->store($request, $hackathon);
-                DB::commit();
                 return back()->with(['updated' => 'Критерии успешно обновлены!']);
             } catch (\Exception $e) {
-                DB::rollBack();
                 return back()->with(['updated' => 'Ошибка при обновлении критериев!']);
             }
         });
