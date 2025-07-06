@@ -3,6 +3,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import EditorJS from '@editorjs/editorjs'
 import Header    from '@editorjs/header'
 import List      from '@editorjs/list'
+import VkVideoTool from './VkVideoTool.js'
 
 const props = defineProps({
     /** plain-object (НЕ Proxy!) с initial data или null */
@@ -21,7 +22,7 @@ onMounted(async () => {
     editor = new EditorJS({
         holder: holder.value,
         placeholder: props.placeholder,
-        tools : { header: Header, list: List },
+        tools : { header: Header, list: List, vkvideo: VkVideoTool },
         data  : props.modelValue ?? {},    // ← только один раз!
         async onChange() {                 // ← отдаём наружу
             const data = await editor.save()

@@ -1,9 +1,19 @@
 <script setup>
-import { ref } from 'vue'
+import {ref, watch} from 'vue'
+import { router, useForm } from '@inertiajs/vue3'
 import DialogContact from '@/Components/Dialog/CreateContact.vue'
 
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import IconsPencil from "@/Components/Icons/Pencil.vue";
+
+const props = defineProps({
+    hackathonSlug : { type:String, required:true },
+    draft         : Object,
+    allTags  : { type:Array, default:() => [] }
+})
+const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const dirty = ref(false)
 
 const contacts = ref([
     { title: 'Ментор',       value: '+7 (919) 999-99-99' },
@@ -14,32 +24,95 @@ const socials = ref([
     { title: 'Telegram-канал', value: 'Ссылка на тг канал' },
 ])
 
-const dlgShown   = ref(false)
-const dlgList    = ref('contacts')
-const editingIdx = ref(null)
+const dlgShown    = ref(false)
+const dlgListName = ref('contacts')
+const editingIdx  = ref(null)
 
-function openAdd(listName){
-    dlgList.value   = listName
-    editingIdx.value = null
-    dlgShown.value   = true
-}
-
-function openEdit(listName, idx){
-    dlgList.value    = listName
-    editingIdx.value = idx
-    dlgShown.value   = true
-}
+function openAdd  (list){ dlgListName.value = list; editingIdx.value = null; dlgShown.value = true }
+function openEdit (list, idx){ dlgListName.value = list; editingIdx.value = idx; dlgShown.value = true }
 
 function addItem(item){
-    (dlgList.value === 'contacts' ? contacts : socials).value.push(item)
+    (dlgListName.value === 'contacts' ? contacts : socials).value.push(item)
 }
 function updateItem(item){
-    const arr = dlgList.value === 'contacts' ? contacts : socials
-    if (editingIdx.value !== null) arr.value[editingIdx.value] = item
+    const list = dlgListName.value === 'contacts' ? contacts : socials
+    if (editingIdx.value !== null) list.value[editingIdx.value] = item
     editingIdx.value = null
 }
-function removeItem(listName, idx){
-    (listName === 'contacts' ? contacts : socials).value.splice(idx,1)
+function removeItem(list, idx){
+    (list === 'contacts' ? contacts : socials).value.splice(idx,1)
+}
+
+const form = useForm({
+    sections: [
+        { title:'Контакты',          items: [] },
+        { title:'Социальные сети',   items: [] },
+    ],
+    delete_media_ids: []
+})
+
+watch(contacts, arr => {
+    form.sections[0].items = JSON.parse(JSON.stringify(arr))
+}, { deep:true, immediate:true })
+
+watch(socials,  arr => {
+    form.sections[1].items = JSON.parse(JSON.stringify(arr))
+}, { deep:true, immediate:true })
+
+watch(
+    [form.sections],
+    () => {
+        if (!dirty.value) {
+            dirty.value = true
+            emit('dirty', true)
+        }
+    },
+    { deep:true }
+)
+
+async function save () {
+    const fd = new FormData()
+    fd.append('title', 'Контакты')
+
+    form.sections.forEach((s, si) => {
+        fd.append(`sections[${si}][title]`, s.title)
+        s.items.forEach((it, ii) => {
+            fd.append(`sections[${si}][items][${ii}][title]`, it.title)
+            fd.append(`sections[${si}][items][${ii}][content]`, it.value)
+        })
+    })
+
+    fd.append('_method','PATCH')
+
+    try {
+        await axios.post(
+            route('hackathons.tabs.update', { hackathon: props.hackathonSlug }),
+            fd,
+            { headers:{ 'Content-Type':'multipart/form-data' } }
+        )
+        dirty.value = false
+        emit('dirty', false)
+        emit('saved', { slug: props.hackathonSlug })
+    } catch (err) {
+        console.error('contacts-tab-errors', err?.response ?? err)
+    }
+}
+
+defineExpose({ save })
+
+const resetState = () => {
+    contacts.value = []
+    socials.value  = []
+    dlgShown.value = false
+    editingIdx.value = null
+    dlgListName.value = 'contacts'
+
+    form.sections.forEach(s => (s.items = []))
+}
+
+function cancel () {
+    resetState()
+    emit('cancel')
 }
 </script>
 
@@ -58,11 +131,10 @@ function removeItem(listName, idx){
             <p class="dialog__title">{{ c.title }}</p>
 
             <div class="dialog__input_btns">
-                <input v-model="c.value" class="dialog__input" readonly style="width: 100%"/>
-
+                <input v-model="c.value" class="dialog__input" readonly style="width:100%"/>
                 <div class="dialog__prize_btns">
-                    <IconsPencil style="padding: 5px" class="clickable" @click="openEdit('contacts',idx)" />
-                    <IconsCancel class="clickable" @click="removeItem('contacts',idx)" />
+                    <IconsPencil  style="padding:5px" class="clickable" @click="openEdit('contacts',idx)" />
+                    <IconsCancel              class="clickable" @click="removeItem('contacts',idx)" />
                 </div>
             </div>
         </div>
@@ -93,11 +165,15 @@ function removeItem(listName, idx){
     <DialogContact
         v-model="dlgShown"
         :initial="editingIdx!==null
-                ? (dlgList==='contacts' ? contacts[editingIdx] : socials[editingIdx])
+                ? (dlgListName==='contacts' ? contacts[editingIdx] : socials[editingIdx])
                 : null"
         @add="addItem"
         @update="updateItem"
     />
+    <div class="dialog__btns">
+        <button class="main__btn main__btn_white" @click="cancel">Отменить</button>
+        <button class="main__btn" @click="save">Сохранить</button>
+    </div>
 </template>
 
 <style scoped>

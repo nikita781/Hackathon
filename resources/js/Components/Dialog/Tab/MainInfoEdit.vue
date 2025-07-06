@@ -1,14 +1,17 @@
 <script setup>
-import DropFile from '../../DropFile.vue';
-import {ref, toRaw, watch} from "vue";
-import { useForm, router } from '@inertiajs/vue3'
-import logs from "../../../../../vendor/laravel/telescope/resources/js/screens/logs/index.vue";
+import DropFile   from '../../DropFile.vue'
+import {ref, toRaw, watch, onMounted, nextTick, onBeforeUnmount} from 'vue'
+import { useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
-    draft    : Object,
-    allTags  : { type:Array, default:() => [] }
+    hackathonSlug : { type:String, required:true },
+    draft         : Object,
+    allTags       : { type:Array,  default:() => [] }
 })
-const emit = defineEmits(['saved', 'cancel', 'dirty'])
+const emit = defineEmits(['saved','cancel','dirty'])
+
+const loaded = ref(false)
+const dirty = ref(false)
 
 const form = useForm({
     title            : '',
@@ -25,85 +28,140 @@ const form = useForm({
     tags             : [],
 })
 
-async function save () {
+const previewUrl = ref(null)
+
+const participationType  = ref('Командный')
+const presentType        = ref('Денежный приз')
+const selectedDirections = ref([])
+const toggleDropdown     = ref(false)
+const directions         = props.allTags
+
+const toggleDropdownVisibility = () => toggleDropdown.value = !toggleDropdown.value
+
+function selectDirection(tag){
+    const idx = selectedDirections.value.findIndex(t=>t.id===tag.id)
+    idx === -1
+        ? selectedDirections.value.push(tag)
+        : selectedDirections.value.splice(idx,1)
+}
+function removeDirection(tag,e){
+    e.stopPropagation()
+    const idx = selectedDirections.value.findIndex(t=>t.id===tag.id)
+    if(idx!==-1) selectedDirections.value.splice(idx,1)
+}
+function clearSelection(){
+    selectedDirections.value = []
+    toggleDropdown.value = false
+}
+watch(selectedDirections, arr=>{
+    form.tags = arr.map(t=>t.id)
+},{immediate:true,deep:true})
+
+function revokePreview () {
+    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = null
+}
+
+onMounted(async () => {
+    try{
+        const { data } = await axios.get(
+            route('hackathons.show', { hackathon:props.hackathonSlug }),
+        )
+        const { data: blob } = await axios.get(
+            route('hackathons.image', { hackathon: props.hackathonSlug }),
+            { responseType: 'blob' }
+        )
+        const h = data.hackathon.original
+        previewUrl.value = URL.createObjectURL(blob)
+
+        form.title             = h.title
+        form.format            = h.format
+        form.type              = h.type
+        form.min_team_size     = h.min_team_size
+        form.max_team_size     = h.max_team_size
+        form.registration_end  = h.registration_end?.slice(0,16) ?? ''
+        form.event_start       = h.event_start?.slice(0,16) ?? ''
+        form.event_end         = h.event_end?.slice(0,16) ?? ''
+        form.prize_type        = h.prize_type
+        form.prize_pool        = h.prize_pool
+        form.image_path        = previewUrl.value
+
+        participationType.value= h.type==='team' ? 'Командный':'Индивидуальный'
+        presentType.value      = h.prize_type==='cash' ? 'Денежный приз':'Призы'
+
+        selectedDirections.value = h.tags ?? []
+        await nextTick()
+        loaded.value = true
+    }catch(e){
+        console.error('hackathon-load',e?.response??e)
+    }
+})
+
+watch(
+    () => form.image_path,
+    file => {
+        if (!file) revokePreview()
+    }
+)
+
+watch(
+    [form],
+    () => {
+        if (!loaded.value) return
+
+        if (!dirty.value) {
+            dirty.value = true
+            emit('dirty', true)
+        }
+    },
+    { deep:true }
+)
+
+async function save(){
     form.clearErrors()
 
+    const fd = new FormData()
     const data = form.data()
 
-    const fd = new FormData()
+    toRaw(data.tags).forEach(id => fd.append('tags[]', id))
 
-    Object.entries(data).forEach(([key, value]) => {
-        if (key === 'tags') {
-            toRaw(value).forEach(id => fd.append('tags[]', id))
-            return
-        }
-
-        // —––---  файл
-        if (key === 'image_path' && value instanceof File) {
-            fd.append('image_path', value)
-            return
-        }
-
-        fd.append(key, value ?? '')
+    Object.entries(data).forEach(([k, v]) => {
+        if (k === 'tags' || k === 'image_path') return   // уже обработали
+        fd.append(k, v ?? '')
     })
+    if (form.image_path instanceof File) {
+        fd.append('image_path', form.image_path)
+    }
+    fd.append('_method','PATCH')
 
-    try {
-        const { data: res } = await axios.post(
-            route('hackathons.store'),
-            fd,
-            { headers: { 'Content-Type': 'multipart/form-data' } }
+    try{
+        await axios.post(
+            route('hackathons.update', { hackathon:props.hackathonSlug }),
+            fd, { headers:{'Content-Type':'multipart/form-data'} }
         )
-
-        props.draft.slug = res.hackathon.slug
-        emit('saved', { slug: res.hackathon.slug })
-    } catch (e) {
-        console.error(e)
+        dirty.value = false
+        loaded.value = true
+        emit('dirty', false)
+        emit('saved',{ slug:props.hackathonSlug })
+    }catch(e){
+        console.error('hackathon-update',e?.response??e)
     }
 }
 
-const participationType = ref('Командный');
-const presentType = ref('Денежный приз');
-const selectedDirections = ref([]); // Массив для хранения выбранных направлений
-const toggleDropdown = ref(false);
-
-const directions = props.allTags
-
-const toggleDropdownVisibility = () => { toggleDropdown.value = !toggleDropdown.value }
-
-// Функция для выбора направления
-const selectDirection = (tag) => {
-    const idx = selectedDirections.value.findIndex(t => t.id === tag.id)
-    idx === -1
-        ? selectedDirections.value.push(tag)
-        : selectedDirections.value.splice(idx, 1)
-}
-
-const removeDirection = (tag, e) => {
-    e.stopPropagation()
-    const idx = selectedDirections.value.findIndex(t => t.id === tag.id)
-    if (idx !== -1) selectedDirections.value.splice(idx, 1)
-}
-watch(
-    selectedDirections,
-    arr   => { form.tags = arr.map(t => t.id) },
-    { immediate:true, deep:true }
-)
-
-const clearSelection = () => { selectedDirections.value = []; toggleDropdown.value = false }
-defineExpose({ save })
-
-const resetState = () => {
+function resetState(){
     form.reset()
-    participationType.value = 'Командный'
-    presentType.value       = 'Денежный приз'
+    participationType.value  = 'Командный'
+    presentType.value        = 'Денежный приз'
     selectedDirections.value = []
     toggleDropdown.value     = false
 }
-
-function cancel () {
+function cancel(){
     resetState()
     emit('cancel')
 }
+
+defineExpose({ save })
+onBeforeUnmount(revokePreview)
 </script>
 
 <template>
@@ -209,7 +267,7 @@ function cancel () {
     </div>
     <div class="dialog__component">
         <p class="dialog__title">Превью карточки хакатона</p>
-        <DropFile v-model:file="form.image_path" />
+        <DropFile v-model:file="form.image_path"/>
     </div>
     <div class="dialog__btns">
         <button class="main__btn main__btn_white" @click="cancel">Отменить</button>

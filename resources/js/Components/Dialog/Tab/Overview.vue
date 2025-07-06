@@ -1,30 +1,153 @@
 <script setup>
 import EditorField from '@/Components/EditorField.vue'
-import {ref} from "vue";
+import {nextTick, onMounted, ref, watch} from "vue";
+import {router, useForm} from '@inertiajs/vue3'
 import DialogCreateNomination from "@/Components/Dialog/CreateNomination.vue";
 import IconsCup from "@/Components/Icons/Cup.vue";
 import IconsPencil from "@/Components/Icons/Pencil.vue";
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import DropFiles from "@/Components/DropFiles.vue";
+import logs from "../../../../../vendor/laravel/telescope/resources/js/screens/logs/index.vue";
 
-const showDialog = ref(false)
+const props = defineProps({
+    hackathonSlug : { type:String, required:true },
+    draft         : Object,
+    allTags  : { type:Array, default:() => [] }
+})
+const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const loaded = ref(false)
+const dirty = ref(false)
+
+const dlgShown     = ref(false)
 const editingIndex = ref(null)
 
-const description = ref(null)
-const descriptionPlan = ref(null)
-const nominations = ref([])
+const taskStart = ref(null)
+const taskEnd   = ref(null)
+const description     = ref(null)
+const plan            = ref(null)
+const partnerLogos    = ref([])
 
-const openAdd  = () => { editingIndex.value = null; showDialog.value = true }
-const openEdit = (idx) => { editingIndex.value = idx; showDialog.value = true }
+const nominations = ref(null)
 
-const addNomination = (n) => nominations.value.push(n)
-const updateNomination = (n) => {
-    if (editingIndex.value !== null) nominations.value[editingIndex.value] = n
-    editingIndex.value = null
+async function fetchHackathon () {
+    try {
+        const { data } = await axios.get(
+            route('hackathons.show', { hackathon: props.hackathonSlug }),
+            { headers: { Accept: 'application/json' } }
+        )
+        nominations.value = data.hackathon.original.nominations
+        await nextTick()
+        loaded.value = true
+    } catch (err) {
+        console.error('fetch-hackathon-error', err?.response ?? err)
+    }
 }
-const removeNomination = (idx) => nominations.value.splice(idx,1)
+onMounted(fetchHackathon)
 
-const partnerLogos = ref([])
+function openAdd()              { editingIndex.value = null; dlgShown.value = true ; fetchHackathon() }
+function openEdit(idx)          { editingIndex.value = idx;  dlgShown.value = true }
+function onSaved()              { dlgShown.value = false; fetchHackathon() }
+
+async function removeNomination(idx){
+    const id = nominations.value[idx].id
+    try {
+        await router.delete(
+            route('hackathons.nominations.destroy', { hackathon: props.hackathonSlug, nomination: id }),
+            { preserveScroll:true }
+        )
+        nominations.value.splice(idx,1)
+    } catch (err){
+        console.error('nomination-delete-error', err?.response ?? err)
+    }
+}
+
+watch(description,  v => { form.sections[0].content = v ?? '' })
+watch(plan,         v => { form.sections[1].content = v ?? '' })
+
+const form = useForm({
+    sections : [
+        { title: 'Описание',        content: '', items: [] },
+        { title: 'План проведения', content: '', items: [] },
+    ],
+    partners: [],
+    files   : [],
+    delete_media_ids: []
+})
+
+watch(
+    [description, plan, partnerLogos, taskStart, taskEnd],
+    () => {
+        if (!loaded.value) return
+
+        if (!dirty.value) {
+            dirty.value = true
+            emit('dirty', true)
+        }
+    },
+    { deep:true }
+)
+
+async function save () {
+    form.sections[0].content = description.value ?? ''
+    form.sections[1].content = plan.value        ?? ''
+    form.sections[2] = {
+        title: 'Время на выполнение',
+        content: JSON.stringify({ start: taskStart.value, end: taskEnd.value })
+    }
+
+    const fd = new FormData()
+    fd.append('title', 'Обзор')
+    form.sections.forEach((s, si) => {
+        fd.append(`sections[${si}][title]`,   s.title)
+        fd.append(`sections[${si}][content]`, s.content ?? '')
+    })
+    partnerLogos.value.forEach((f,i)=>fd.append(`partners[${i}]`,f))
+    fd.append('_method', 'PATCH')
+
+    try {
+        await axios.post(
+            route('hackathons.tabs.update', { hackathon: props.hackathonSlug }),
+            fd,
+            {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        )
+    } catch (e) {
+        console.log('tab-errors', e)
+        console.log(e.response?.data)
+        return
+    }
+    dirty.value = false
+    loaded.value = true
+    emit('dirty', false)
+    emit('saved', { slug : props?.hackathonSlug })
+}
+
+defineExpose({ save })
+
+const resetState = () => {
+    description.value  = null
+    plan.value         = null
+    taskStart.value    = null
+    taskEnd.value      = null
+    partnerLogos.value = []
+    nominations.value  = []
+    dlgShown.value     = false
+    editingIndex.value = null
+
+    form.sections[0].content = ''
+    form.sections[1].content = ''
+    form.files               = []
+    form.partners            = []
+}
+
+function cancel () {
+    resetState()
+    emit('cancel')
+}
 </script>
 
 <template>
@@ -33,11 +156,11 @@ const partnerLogos = ref([])
         <div class="dialog__horizontal">
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">От</p>
-                <input type="date" class="dialog__input" placeholder="Кол-во" style="width: 100%">
+                <input type="datetime-local" v-model="taskStart" class="dialog__input" placeholder="Кол-во" style="width: 100%">
             </div>
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">До</p>
-                <input type="date" class="dialog__input" placeholder="Кол-во" style="width: 100%">
+                <input type="datetime-local" v-model="taskEnd" class="dialog__input" placeholder="Кол-во" style="width: 100%">
             </div>
         </div>
     </div>
@@ -47,7 +170,7 @@ const partnerLogos = ref([])
     </div>
     <div class="dialog__component">
         <p class="dialog__title">План проведения</p>
-        <EditorField v-model="descriptionPlan" placeholder="Введите план проведения"/>
+        <EditorField v-model="plan" placeholder="Введите план проведения"/>
     </div>
     <div class="dialog__prize">
         <div class="dialog__title_header">
@@ -59,13 +182,9 @@ const partnerLogos = ref([])
                 <p>Добавить еще</p>
             </div>
         </div>
-        <div class="dialog__prize_container" v-if="nominations.length">
-            <div
-                v-for="(n, idx) in nominations"
-                :key="idx"
-                class="dialog__prize_item"
-            >
-                <IconsCup/>
+        <div class="dialog__prize_container" v-if="nominations?.length">
+            <div v-for="(n, idx) in nominations" :key="n.id" class="dialog__prize_item">
+                <IconsCup />
                 <div class="dialog__prize_content">
                     <div class="dialog__prize_header">
                         <p class="dialog__prize_title">{{ n.title }}</p>
@@ -74,26 +193,25 @@ const partnerLogos = ref([])
                             <IconsCancel class="clickable" @click="removeNomination(idx)" />
                         </div>
                     </div>
-
-                    <p class="dialog__prize_text">
-                        {{ n.totalPrize || 'Без указания суммы' }}
-                    </p>
-                    <p class="dialog__prize_number">
-                        Количество победителей: {{ n.winners }}
-                    </p>
+                    <p class="dialog__prize_text">{{ n.prize || 'Без указания суммы' }}</p>
+                    <p class="dialog__prize_number">Кол-во победителей: {{ n.distribution.length }}</p>
                 </div>
             </div>
         </div>
     </div>
     <DialogCreateNomination
-        v-model="showDialog"
+        v-model="dlgShown"
+        :hackathon-slug="props.hackathonSlug"
         :initial="editingIndex !== null ? nominations[editingIndex] : null"
-        @add="addNomination"
-        @update="updateNomination"
+        @saved="onSaved"
     />
     <div class="dialog__component">
         <p class="dialog__title">Партнеры</p>
         <DropFiles v-model:files="partnerLogos" />
+    </div>
+    <div class="dialog__btns">
+        <button class="main__btn main__btn_white" @click="cancel">Отменить</button>
+        <button class="main__btn" @click="save">Сохранить</button>
     </div>
 </template>
 
