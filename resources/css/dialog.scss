@@ -74,12 +74,23 @@ $x-big: 1829.98px;
             color: #999;
             cursor: pointer;
             font-family: 'Cera';
+            font-weight: 600;
+            letter-spacing: 1px;
             text-wrap: nowrap;
+            user-select: none;
             &.active {
-                color: #E80024;
+                color: #E80024 !important;
             }
             @media screen and (max-width: $small){
                 font-size: 16px;
+            }
+            &.locked{
+                //pointer-events:none;
+                //opacity:.35;
+                cursor: not-allowed;
+            }
+            &.done{
+                color:#121212;
             }
         }
     }
@@ -116,6 +127,13 @@ $x-big: 1829.98px;
         }
         &.medium {
             max-width: 385px;
+            width: 100%;
+            @media screen and (max-width: $medium){
+                max-width: unset;
+            }
+        }
+        &.large {
+            max-width: 500px;
             width: 100%;
             @media screen and (max-width: $medium){
                 max-width: unset;
@@ -192,11 +210,15 @@ $x-big: 1829.98px;
         }
     }
     &__input {
+        font-size: 16px;
         border-radius: 8px;
         background-color: #f3f4f7;
         padding: 12px 16px;
         outline: none;
         border: none;
+        @media screen and (max-width: $small){
+            font-size: 14px;
+        }
         &_short {
             max-width: 60px;
             width: 100%;
@@ -205,7 +227,7 @@ $x-big: 1829.98px;
             }
         }
         &_medium {
-            max-width: 144px;
+            max-width: 163px;
             width: 100%;
             @media screen and (max-width: $medium){
                 max-width: unset;
@@ -263,6 +285,7 @@ $x-big: 1829.98px;
         display: flex;
         align-items: flex-end;
         gap: 12px;
+        width: 100%;
         @media screen and (max-width: $medium){
             width: 100%;
         }

@@ -13,6 +13,7 @@ const props = defineProps({
     upcomingHackathons: Object,
     pastHackathons: Object,
     query: Object,
+    tags: Object,
 })
 
 const search    = ref(usePage().props.query?.q     ?? '')
@@ -87,7 +88,6 @@ onMounted(async () => {
 
 <template>
     <AuthenticatedLayout>
-<!--        <pre>{{props.can.create}}</pre>-->
         <div class="my-hackathon">
             <div class="my-hackathon__header">
                 <div class="main__search my-hackathon__search">
@@ -205,7 +205,7 @@ onMounted(async () => {
                 </div>
             </div>
             <Pagination :links="hackathons.meta.links" @navigate="go" style="margin-top: 30px" />
-            <DialogCreateHackathon v-model="showDialog" />
+            <DialogCreateHackathon v-model="showDialog" :tags="props.tags ?? []"/>
         </div>
     </AuthenticatedLayout>
 </template>

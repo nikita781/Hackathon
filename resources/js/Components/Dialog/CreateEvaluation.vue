@@ -1,19 +1,33 @@
 <script setup>
-import { reactive, watch, toRaw } from 'vue'
+import {reactive, watch} from 'vue'
 import IconsCancel from '@/Components/Icons/Cancel.vue'
+import {router} from "@inertiajs/vue3";
 
 const props = defineProps({
-    modelValue : Boolean,                // v-model
-    initial    : { type:Object, default:null } // { title, items:[…] } | null
+    modelValue : Boolean,
+    hackathonSlug: { type:String, default:null },
+    initial    : { type:Object, default:null }
 })
-const emit = defineEmits(['update:modelValue','add','update'])
+const emit = defineEmits(['update:modelValue','saved'])
 
-const empty = { title:'', items:[''] }
-const form  = reactive({ ...empty })
+const empty = () => ({ id:null, title:'', items:[''] })
+const form  = reactive(empty())
 
 watch(
     () => props.initial,
-    n => Object.assign(form, n ? toRaw(n) : empty),
+      v => {
+        if (!v) {
+              Object.assign(form, empty())
+              return
+            }
+                Object.assign(form, {
+                      id   : v.id,
+              title: v.title,
+              items: (v.criteria ?? []).map(c => c.title).concat().length
+                   ? v.criteria.map(c => c.title)
+                       : ['']
+            })
+      },
     { immediate:true }
 )
 
@@ -23,14 +37,37 @@ function addItem(){ form.items.push('') }
 
 function removeItem(idx){ if (form.items.length>1) form.items.splice(idx,1) }
 
-function submit(){
+async function submit () {
     const payload = {
-        title : form.title.trim(),
-        items : form.items.map(t=>t.trim()).filter(Boolean)
+        title:  form.title.trim(),
+        criteria: form.items
+            .map(t => t.trim())
+            .filter(Boolean)
+            .map(t => ({ title: t, max_score: 10 }))
     }
-    emit(props.initial ? 'update' : 'add', payload)
-    Object.assign(form, empty)
-    close()
+
+    try {
+        if (form.id){                                         /* UPDATE */
+            await router.patch(
+                route('hackathons.criteria.update',
+                    { hackathon: props.hackathonSlug, criterionGroup: form.id }),
+                payload,
+                { preserveScroll:true }
+            )
+        } else {                                              /* CREATE */
+            await router.post(
+                route('hackathons.criteria.store',
+                    { hackathon: props.hackathonSlug }),
+                payload,
+                { preserveScroll:true }
+            )
+        }
+        emit('saved')
+        Object.assign(form, empty())
+        close()
+    } catch (err) {
+        console.error('criteria-save-error', err?.response ?? err)
+    }
 }
 </script>
 
