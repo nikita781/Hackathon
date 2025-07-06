@@ -54,10 +54,10 @@ Route::middleware('auth')->group(function () {
                 Route::patch('/{nomination}', [NominationController::class, 'update'])->name('update');
                 Route::delete('/{nomination}', [NominationController::class, 'destroy'])->name('destroy');
             });
-            Route::prefix('/criteria')->name('criteria.')->group(function () {
+            Route::prefix('/criterionGroup')->name('criteria.')->group(function () {
                 Route::post('/', [CriteriaController::class, 'store'])->name('store');
-                Route::patch('/{criteria}', [CriteriaController::class, 'update'])->name('update');
-                Route::delete('/{criteria}', [CriteriaController::class, 'destroy'])->name('destroy');
+                Route::patch('/{criterionGroup}', [CriteriaController::class, 'update'])->name('update');
+                Route::delete('/{criterionGroup}', [CriteriaController::class, 'destroy'])->name('destroy');
             });
             Route::prefix('/awards')->name('awards.')->group(function () {
                 Route::post('/', [AwardsController::class, 'store'])->name('store');

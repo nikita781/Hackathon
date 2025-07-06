@@ -19,48 +19,46 @@ class CriteriaController extends Controller
             abort(404);
         }
 
-        $data = $request->validated();
-
-        $criteriaGroup = $hackathon->criteriaGroups()->create($request->only(['title']));
-
-        foreach ($data['criteria'] as $criterion) {
-            if ($criterion['max_score'] === null) {
-                $criterion['max_score'] = 10;
-            }
-            $criteriaGroup->criteria()->create($criterion);
-        }
+        $this->createCriteriaGroup($request, $hackathon);
 
         return back()->with(['created' => 'Критерии успешно созданы!']);
     }
 
-    public function update(CriteriaRequest $request, Hackathon $hackathon, CriterionGroup $criterion): RedirectResponse
+    public function update(CriteriaRequest $request, Hackathon $hackathon, CriterionGroup $criterionGroup): RedirectResponse
     {
         if (!Gate::check('update', $hackathon)) {
             abort(404);
         }
 
-        DB::transaction(function () use ($request, $criterion, $hackathon) {
-            try {
-                $criterion->delete();
-                $this->store($request, $hackathon);
-                return back()->with(['updated' => 'Критерии успешно обновлены!']);
-            } catch (\Exception $e) {
-                return back()->with(['updated' => 'Ошибка при обновлении критериев!']);
-            }
-        });
+        $criterionGroup->delete();
+        $this->createCriteriaGroup($request, $hackathon);
 
         return back()->with(['updated' => 'Критерии успешно обновлены!']);
 
     }
 
-    public function destroy(CriterionGroup $criterion, Hackathon $hackathon): RedirectResponse
+    public function destroy(Hackathon $hackathon, CriterionGroup $criterionGroup): RedirectResponse
     {
         if (!Gate::check('update', $hackathon)) {
             abort(404);
         }
 
-        $criterion->delete();
+        $criterionGroup->delete();
 
         return back()->with(['deleted' => 'Критерии успешно удалены!']);
+    }
+
+    private function createCriteriaGroup(CriteriaRequest $request, Hackathon $hackathon): void
+    {
+        $data = $request->validated();
+
+        $criteriaGroup = $hackathon->criteriaGroups()->create([
+            'title' => $data['title'],
+        ]);
+
+        foreach ($data['criteria'] as $criterion) {
+            $criterion['max_score'] = $criterion['max_score'] ?? 10;
+            $criteriaGroup->criteria()->create($criterion);
+        }
     }
 }
