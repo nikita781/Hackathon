@@ -160,7 +160,9 @@ class HackathonController extends Controller
         $teams = collect();
         $ownTeam = null;
 
-        if ($user->isHackathonStaff($hackathon)) {
+        if (!isset($user)) {
+            $teams = collect();
+        } else if ($user->isHackathonStaff($hackathon)) {
             $teams = $hackathon->teams()
                 ->with(['projects', 'teamUsers.user', 'teamUsers.position'])
                 ->get();
