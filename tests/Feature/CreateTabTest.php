@@ -6,14 +6,23 @@ use App\Models\Hackathon;
 use App\Models\Role;
 use App\Models\Tab;
 use App\Models\User;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CreateTabTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(UserSeeder::class);
+    }
 
     /**
      * @throws \JsonException
@@ -63,7 +72,7 @@ class CreateTabTest extends TestCase
             'delete_media_ids' => [],
         ]);
 
-        $response->assertRedirect();
+        $response->assertOk();
 
         $sections = $tab->sections()->get();
 
@@ -204,7 +213,9 @@ class CreateTabTest extends TestCase
     public function test_unauthorized_user_cannot_submit_tab()
     {
         $user = User::factory()->create();
+        $org = User::factory()->create(['id' => 3]);
         $user->assignedRole(Role::ORGANIZER);
+        $org->assignedRole(Role::ORGANIZER);
         $h = Hackathon::factory()->create(['is_published' => false]);
 
         foreach (Tab::defaultStructure() as $tabTitle => $sections) {

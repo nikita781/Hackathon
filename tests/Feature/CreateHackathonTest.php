@@ -49,7 +49,7 @@ class CreateHackathonTest extends TestCase
             'tags' => $tags->pluck('id')->toArray(),
         ]);
 
-        $response->assertRedirect();
+        $response->assertOk();
 
         $this->assertDatabaseHas('hackathons', [
             'title' => 'Test Hackathon',
