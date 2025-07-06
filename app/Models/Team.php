@@ -32,25 +32,8 @@ class Team extends Model
         return $this->hasMany(TeamUser::class);
     }
 
-    public function project(): HasMany
+    public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
-    }
-
-    public static function getTeams(Hackathon $hackathon): Collection
-    {
-        $user = auth()->user();
-
-        if ($user->isHackathonStaff($hackathon)) {
-            return self::with([
-                'teamUsers.user',
-                'teamUsers.position',
-            ])->where('hackathon_id', $hackathon->id)->get();
-        }
-
-        return self::query()->whereHas('users', function ($q) use ($user) {
-            $q->where('id', $user->id);
-        })->get();
-
     }
 }

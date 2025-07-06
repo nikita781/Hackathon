@@ -46,7 +46,10 @@ class Hackathon extends Model implements HasMedia
 
     public function ownTeam(User $user)
     {
-        return $user->teams()->where('hackathon_id', $this->id)->first();
+        return $user->teams()
+            ->whereHas('hackathon', fn($q) => $q->where('id', $this->id))
+            ->with(['projects', 'teamUsers.user', 'teamUsers.position'])
+            ->first();
     }
 
     /**

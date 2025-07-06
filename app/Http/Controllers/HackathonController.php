@@ -6,6 +6,7 @@ use App\Http\Requests\HackathonRequest;
 use App\Http\Requests\HackathonUpdateRequest;
 use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
+use App\Http\Resources\PositionResource;
 use App\Http\Resources\TabResource;
 use App\Http\Resources\TagResource;
 use App\Http\Resources\TeamResource;
@@ -155,33 +156,45 @@ class HackathonController extends Controller
         ]);
 
         $user = auth()->user();
+
+        $teams = collect();
+        $ownTeam = null;
+
         if ($user->isHackathonStaff($hackathon)) {
-            $hackathon->load('teams');
+            $teams = $hackathon->teams()
+                ->with(['projects', 'teamUsers.user', 'teamUsers.position'])
+                ->get();
         } else {
             $ownTeam = $hackathon->ownTeam($user);
         }
 
         $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();
 
-        $teams = Team::getTeams($hackathon);
+        $positions = Position::getAllPositionExceptCapitan();
+
+        $hackathonResource = new HackathonResource($hackathon);
+        $tabsResource = TabResource::collection($tabs)->additional(['hackathon' => $hackathon->id]);
+        $teamsResource = $teams->isNotEmpty() ? TeamResource::collection($teams) : null;
+        $ownTeamResource = $ownTeam ? new TeamResource($ownTeam) : null;
+        $positionsResource = PositionResource::collection($positions);
 
         if ($request->wantsJson()) {
-            return \Illuminate\Support\Facades\Response::json([
-                "hackathon" => (new HackathonResource($hackathon))->response(),
-                "tabs" => (TabResource::collection($tabs))->response(),
-                "teams" => (TeamResource::collection($teams))->response(),
-                "ownTeam" => (new TeamResource($teams))->response(),
+            return response()->json([
+                "hackathon" => $hackathonResource->response(),
+                "tabs" => $tabsResource->response(),
+                "teams" => optional($teamsResource)->response(),
+                "ownTeam" => optional($ownTeamResource)->response(),
+                "positions" => $positionsResource->response(),
             ]);
         }
 
 
         return Inertia::render('Hackathon/Show', [
-            'hackathon' => new HackathonResource($hackathon),
-            'tabs' => TabResource::collection($tabs)->additional([
-                'hackathon' => $hackathon->id,
-            ]),
-            'teams' => TeamResource::collection($teams),
-            "ownTeam" => new TeamResource($teams),
+            'hackathon' => $hackathonResource,
+            'tabs' => $tabsResource,
+            'teams' => $teamsResource,
+            'ownTeam' => $ownTeamResource,
+            'positions' => $positionsResource,
             'can' => [
                 'join' => Gate::check('join', $hackathon),
                 'update' => Gate::check('update', $hackathon),
