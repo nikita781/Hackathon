@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('hackathons')->name('hackathons.')->group(function () {
         Route::post('/', [HackathonController::class, 'store'])->name('store');
         Route::prefix('/{hackathon}')->group(function () {
+            Route::patch('/', [HackathonController::class, 'update'])->name('update');
             Route::post('/join', [HackathonController::class, 'joinHackathon'])->name('join');
             Route::prefix('/tabs')->name('tabs.')->group(function () {
                 Route::patch('/', [TabController::class, 'update'])->name('update');

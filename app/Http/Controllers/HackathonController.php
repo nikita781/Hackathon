@@ -205,6 +205,10 @@ class HackathonController extends Controller
         ]);
     }
 
+    /**
+     * @throws FileDoesNotExist
+     * @throws FileIsTooBig
+     */
     public function update(HackathonUpdateRequest $request, Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('update', $hackathon)) {
@@ -215,6 +219,9 @@ class HackathonController extends Controller
         $hackathon->update($data);
         $hackathon->refresh();
         if ($request->hasFile('image_path')) {
+            if ($hackathon->hasMedia('main_image')) {
+                $hackathon->clearMediaCollection('main_image');
+            }
             $hackathon->addMediaFromRequest('image_path')->toMediaCollection('main_image');
         }
         if (isset($request->tags)) {
