@@ -20,8 +20,8 @@ return new class extends Migration
             $table->string('title');
             $table->enum('format', ['online', 'offline', 'hybrid']);
             $table->enum('type', ['team', 'individual']);
-            $table->smallInteger('min_team_size');
-            $table->smallInteger('max_team_size');
+            $table->smallInteger('min_team_size')->nullable();
+            $table->smallInteger('max_team_size')->nullable();
             $table->dateTime('registration_start')->default(now());
             $table->dateTime('registration_end');
             $table->dateTime('event_start');
