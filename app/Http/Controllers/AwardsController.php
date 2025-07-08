@@ -62,16 +62,14 @@ class AwardsController extends Controller
         $award->update($data);
 
         if ($request->hasFile('image')) {
-            if ($award->hasMedia('main_image')) {
-                $award->clearMediaCollection('main_image');
-            }
+            $award->clearMediaCollection('main_image');
             $award->addMediaFromRequest('image')->toMediaCollection('main_image');
         }
 
         return back()->with('award', 'Награда успешно создана');
     }
 
-    public function destroy(Award $award): RedirectResponse
+    public function destroy(Hackathon $hackathon, Award $award): RedirectResponse
     {
         if (!Gate::check('delete', $award)) {
             abort(404);
