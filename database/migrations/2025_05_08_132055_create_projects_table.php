@@ -27,7 +27,8 @@ return new class extends Migration
             $table->string('project_link')->nullable();
             $table->string('presentation_path')->nullable();
             $table->string('video_link')->nullable();
-            $table->boolean('is_published')->default(false)->nullable();
+            $table->boolean('is_published')->default(false);
+            $table->boolean('is_moderated')->default(false);
             $table->timestamps();
         });
     }

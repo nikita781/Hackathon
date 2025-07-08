@@ -17,7 +17,7 @@ class Project extends Model implements HasMedia
 
     protected $fillable = [
         'hackathon_id', 'user_id', 'title', 'description', 'preview_path', 'about', 'stack', 'project_link',
-        'presentation_path', 'video_link', 'is_published',
+        'presentation_path', 'video_link', 'is_published', 'is_moderated',
     ];
 
     /**

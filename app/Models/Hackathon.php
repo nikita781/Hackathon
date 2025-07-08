@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -50,6 +51,11 @@ class Hackathon extends Model implements HasMedia
             ->whereHas('hackathon', fn($q) => $q->where('id', $this->id))
             ->with(['projects', 'teamUsers.user', 'teamUsers.position'])
             ->first();
+    }
+
+    public function allProjects(): HasManyThrough
+    {
+        return $this->hasManyThrough(Project::class, Team::class);
     }
 
     /**

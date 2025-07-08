@@ -6,6 +6,7 @@ use App\Http\Controllers\HackathonController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NominationController;
+use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\TabController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
@@ -72,7 +73,10 @@ Route::middleware('auth')->group(function () {
                 Route::post('/invite', [TeamController::class, 'createInvite'])->name('create-invite');
                 Route::get('/invite/{token}', [TeamController::class, 'showInvite'])->name('invite.show');
                 Route::post('/invite/{token}', [TeamController::class, 'acceptInvite'])->name('accept-invite');
+            });
 
+            Route::prefix('/projects')->name('projects.')->group(function () {
+                Route::get('/all', [ProjectsController::class, 'index'])->name('index');
             });
         });
     });
