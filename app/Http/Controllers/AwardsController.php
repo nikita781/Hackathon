@@ -28,14 +28,14 @@ class AwardsController extends Controller
             abort(404);
         }
 
-        $data = Arr::except($request->validated(), 'image');
+        $data = Arr::except($request->validated(), ['image', 'hackathon_slug']);
 
         if (!auth()->user()->hasAnyRole([Role::SUPER_ADMIN, Role::ADMIN])) {
             $data['system'] = false;
         }
 
-        if ($data['hackathon_slug']) {
-            $award = $hackathon->awards()->create(Arr::except($data, 'hackathon_slug'));
+        if ($request->has('hackathon_slug')) {
+            $award = $hackathon->awards()->create($data);
         } else {
             $award = Award::create($data);
         }
