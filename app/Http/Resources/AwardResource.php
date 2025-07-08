@@ -17,7 +17,7 @@ class AwardResource extends JsonResource
             'place' => $this->place,
             'for_all' => $this->for_all,
             'system' => $this->system,
-            'image' => route('awards.media', $this->resource),
+            'image' => route('awards.image', $this->resource),
         ];
     }
 }
