@@ -34,6 +34,7 @@ return new class extends Migration
             $table->dateTime('evaluation_end')->nullable();
             $table->string('slug')->unique();
             $table->boolean('is_published')->default(false);
+            $table->boolean('is_moderated')->default(false);
             $table->timestamps();
         });
 
