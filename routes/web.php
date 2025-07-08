@@ -98,7 +98,7 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
     });
 });
 
-Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])->name('awards.media');
+Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])->name('awards.image');
 
 
 require __DIR__.'/auth.php';

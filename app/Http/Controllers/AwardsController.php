@@ -22,7 +22,7 @@ class AwardsController extends Controller
      * @throws FileDoesNotExist
      * @throws FileIsTooBig
      */
-    public function store(StoreAwardRequest $request, Hackathon $hackathon): RedirectResponse
+    public function store(StoreAwardRequest $request, ?Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('create', Award::class)) {
             abort(404);
@@ -35,6 +35,9 @@ class AwardsController extends Controller
         }
 
         if ($request->has('hackathon_slug')) {
+            if (!isset($hackathon)) {
+                abort(404);
+            }
             $award = $hackathon->awards()->create($data);
         } else {
             $award = Award::create($data);
