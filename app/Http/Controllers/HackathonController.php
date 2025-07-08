@@ -216,6 +216,16 @@ class HackathonController extends Controller
         }
 
         $data = Arr::except($request->validated(), ['tags', 'image_path']);
+
+        if ($hackathon->is_published) {
+            $data['type'] = $hackathon->type;
+            $data['min_team_size'] = $hackathon->min_team_size;
+            $data['max_team_size'] = $hackathon->max_team_size;
+        } elseif (($data['type'] ?? $hackathon->type) === 'individual') {
+            $data['min_team_size'] = 1;
+            $data['max_team_size'] = 1;
+        }
+
         $hackathon->update($data);
         $hackathon->refresh();
         if ($request->hasFile('image_path')) {
