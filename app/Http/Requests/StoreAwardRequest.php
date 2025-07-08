@@ -9,6 +9,7 @@ class StoreAwardRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'hackathon_id' => ['nullable', 'exists:hackathons,id'],
             'title' => ['required', 'max:255'],
             'description' => ['nullable', 'max:255'],
             'image' => ['image', 'max:2048'],
