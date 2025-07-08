@@ -60,10 +60,12 @@ class AwardsController extends Controller
         }
 
         $award->update($data);
+        $award->refresh();
 
         if ($request->hasFile('image')) {
             $award->clearMediaCollection('main_image');
             $award->addMediaFromRequest('image')->toMediaCollection('main_image');
+            $award->touch();
         }
 
         return back()->with('award', 'Награда успешно создана');
