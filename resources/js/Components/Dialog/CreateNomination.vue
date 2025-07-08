@@ -1,48 +1,60 @@
 <script setup>
 import { reactive, watch, toRaw, ref } from 'vue'
 import ConfirmDialog from '@/Components/Dialog/ConfirmDialog.vue'
+import {router} from "@inertiajs/vue3";
 
 const props = defineProps({
-    modelValue : Boolean,
-    initial    : { type: Object, default: null }
+    modelValue   : Boolean,
+    hackathonSlug: String,
+    initial      : { type:Object, default:null }
 })
-const emit = defineEmits(['update:modelValue', 'add', 'update'])
+const emit = defineEmits(['update:modelValue','saved'])
 
-const empty = { title:'', totalPrize:'', winners:1, prizes:[''] }
-const form  = reactive(structuredClone(empty))
+const blank = { id:null, title:'', prize:'', winners:1, prizes:[''] }
+const form  = reactive(structuredClone(blank))
+const winnersInput    = ref(1)
+const pendingWinners  = ref(null)
+const showConfirmDlg  = ref(false)
 
-const winnersInput  = ref(1)      // «то, что ввёл пользователь» (бинд к <input>)
-const pendingWinners = ref(null)  // новое значение, дожидающееся подтверждения
-const showConfirm   = ref(false)  // модалка «Подтвердить обрезание?»
+function close(){ emit('update:modelValue',false) }
 
 watch(
     () => props.initial,
-    (n) => {
-        const src = n ? toRaw(n) : empty
-        Object.assign(form, structuredClone(src))
-        winnersInput.value = form.winners
-        },
-    { immediate:true }
+    (value) => {
+        if (value) {
+            // заполняем поля для редактирования
+            form.id      = value.id
+            form.title   = value.title
+            form.prize   = value.prize
+            form.winners = value.distribution.length
+            form.prizes  = value.distribution.map(d => d.prize)
+
+            winnersInput.value = form.winners
+        } else {
+            // очищаем форму для «Создать»
+            Object.assign(form, structuredClone(blank))
+            winnersInput.value = 1
+        }
+    },
+    { immediate: true }
 )
 
 watch(winnersInput, (val) => {
-    /* границы ввода */
-    if (val < 1) { winnersInput.value = 1; return }
-    if (val > 100){ winnersInput.value = 100;return }
+    /* границы */
+    if (val < 1)   { winnersInput.value = 1;   return }
+    if (val > 100) { winnersInput.value = 100; return }
 
-    /* увеличение – применяем сразу */
-    if (val > form.winners) {
+    /* если увеличиваем — просто добавляем пустые поля */
+    if (val > form.winners) { applyWinners(val); return }
+
+    /* уменьшение: проверяем, потеряем ли введённые призы */
+    const willLoseData = form.prizes.slice(val)
+        .some(p => p.trim() !== '')
+    if (!willLoseData) {
         applyWinners(val)
-        return
-    }
-
-    /* уменьшение: проверяем, не потеряем ли данные */
-    const lostData = form.prizes.slice(val).some(p => p.trim() !== '')
-    if (!lostData) {
-        applyWinners(val)             // ничего важного не теряем
     } else {
-        pendingWinners.value = val    // ждём подтверждения
-        showConfirm.value  = true
+        pendingWinners.value = val
+        showConfirmDlg.value = true
     }
 })
 
@@ -55,35 +67,52 @@ function applyWinners(n){
     }
 }
 
-function onConfirm(){
-    applyWinners(pendingWinners.value)
-    showConfirm.value   = false
-    pendingWinners.value= null
-}
-function onCancel(){
-    winnersInput.value = form.winners
-    showConfirm.value  = false
+function onConfirm(){ applyWinners(pendingWinners.value); resetConfirm() }
+function onCancel (){ winnersInput.value = form.winners;  resetConfirm() }
+function resetConfirm(){
+    showConfirmDlg.value = false
     pendingWinners.value = null
 }
 
 const resetForm = () => {
+    form.id         = null
     form.title      = ''
-    form.totalPrize = ''
+    form.prize = ''
     form.winners    = 1
     form.prizes     = ['']
+    winnersInput.value = 1
 }
 
-const close = () => emit('update:modelValue', false)
-
-function submit(){
+async function submit(){
     const payload = {
-        title      : form.title.trim(),
-        totalPrize : form.totalPrize.trim(),
-        winners    : form.winners,
-        prizes     : form.prizes.map(p=>p.trim())
+        title : form.title.trim(),
+        prize : form.prize.trim(),
+        places: form.prizes.slice(0, form.winners)
+            .map((p,i)=>({ place:i+1, prize:p.trim() }))
     }
-    emit(props.initial ? 'update' : 'add', payload)
-    resetForm(); close()
+
+    try{
+        if (form.id){                                         /* UPDATE */
+            await router.patch(
+                route('hackathons.nominations.update',
+                    { hackathon: props.hackathonSlug, nomination: form.id }),
+                payload,
+                { preserveScroll:true }
+            )
+        } else {                                              /* CREATE */
+            await router.post(
+                route('hackathons.nominations.store',
+                    { hackathon: props.hackathonSlug }),
+                payload,
+                { preserveScroll:true }
+            )
+        }
+        emit('saved')
+        resetForm()
+        close()
+    } catch (err){
+        console.error('nomination-save-error', err?.response ?? err)
+    }
 }
 </script>
 
@@ -91,7 +120,7 @@ function submit(){
     <div v-if="modelValue" class="dialog" style="z-index:2">
         <div class="dialog__container dialog__container_small" @click.stop>
             <div class="dialog__header">
-                <p>Добавить номинацию</p>
+                <p>{{ form.id ? 'Редактировать номинацию' : 'Добавить номинацию' }}</p>
                 <div class="dialog__close" @click="close">✕</div>
             </div>
             <div class="dialog__component">
@@ -100,7 +129,7 @@ function submit(){
             </div>
             <div class="dialog__component">
                 <p class="dialog__title">Общая сумма или приз</p>
-                <input v-model="form.totalPrize" class="dialog__input" placeholder="Введите сумму или приз">
+                <input v-model="form.prize" class="dialog__input" placeholder="Введите сумму или приз">
             </div>
             <div class="dialog__component">
                 <p class="dialog__title">Количество победителей</p>
@@ -124,7 +153,7 @@ function submit(){
                     {{ props.initial ? 'Изменить' : 'Добавить' }}
                 </button>
             </div>
-            <ConfirmDialog v-model="showConfirm"
+            <ConfirmDialog v-model="showConfirmDlg"
                            text="Некоторые введённые призы будут удалены. Продолжить?"
                            @confirm="onConfirm"
                            @cancel="onCancel"/>
