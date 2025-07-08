@@ -2,29 +2,101 @@
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import IconsPencil from "@/Components/Icons/Pencil.vue";
 import CreateAward from "@/Components/Dialog/CreateAward.vue";
-import {ref} from "vue";
+import {computed, nextTick, onMounted, ref} from "vue";
+import {router} from "@inertiajs/vue3";
+import ConfirmDialog from '@/Components/Dialog/ConfirmDialog.vue'
 
-const awards      = ref([])   // [{ title, text, imageUrl, file }]
+const props = defineProps({
+    hackathonSlug : { type:String, required:true },
+    draft         : Object,
+    allTags  : { type:Array, default:() => [] }
+})
+const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const awards = ref([])
+
+async function fetchHackathon () {
+    try {
+        const { data } = await axios.get(
+            route('hackathons.show', { hackathon: props.hackathonSlug }),
+            { headers: { Accept: 'application/json' } }
+        )
+        awards.value = data.hackathon.original.awards
+        // console.log(awards.value)
+        // await nextTick()
+        // loaded.value = true
+    } catch (err) {
+        console.error('fetch-hackathon-error', err?.response ?? err)
+    }
+}
+onMounted(fetchHackathon)
+
+function onSaved()              { dlgShown.value = false; fetchHackathon() }
+
 const dlgShown    = ref(false)
-const editingIdx  = ref(null)
+const editingId  = ref(null)
+const defaultType  = ref('forAll')
 
-function openAdd ()       { editingIdx.value = null ; dlgShown.value = true }
-function openEdit(idx)    { editingIdx.value = idx ; dlgShown.value = true }
-function removeAward(idx) {
-    const aw = awards.value[idx]
-    if (aw?.imageUrl?.startsWith('blob:')) URL.revokeObjectURL(aw.imageUrl)
-    awards.value.splice(idx,1)
+const showDoneDlg = ref(false)
+
+const awardsForAll   = computed(() => awards.value.filter(a => a.for_all))
+const awardsByPlace  = computed(() => awards.value.filter(a => !a.for_all))
+
+function openAdd (type) {
+    editingId.value = null
+    defaultType.value = type
+    dlgShown.value = true
+}
+function openEdit(aw)             { editingId.value = aw.id; dlgShown.value = true }
+
+const getImgSrc = (aw) => {
+    if (aw._localBlob) return aw._localBlob
+
+    const ver = aw.updated_at ?? Date.now()
+    return `${route('awards.image', { award: aw.id })}?v=${ver}`
 }
 
-function addAward(a)    { awards.value.push(a) }
-function updateAward(a) { if (editingIdx.value!==null) awards.value[editingIdx.value]=a }
+async function removeAward (aw) {
+    try {
+        await router.delete(
+            route('hackathons.awards.destroy',
+                { hackathon: props.hackathonSlug, award: aw.id }),
+            { preserveScroll:true }
+        )
+        await fetchHackathon()
+        awards.value = awards.value.filter(a => a.id !== aw.id)
+    } catch (err) {
+        console.error('award-delete', err?.response ?? err)
+    }
+}
+
+const resetState = () => {
+    dlgShown.value   = false
+    editingId.value  = null
+    defaultType.value= 'forAll'
+    awards.value     = []
+}
+
+function cancel () {
+    resetState()
+    emit('cancel')
+}
+
+function askDone () {
+    showDoneDlg.value = true
+}
+
+async function confirmDone () {
+    showDoneDlg.value = false
+    emit('cancel')
+}
 </script>
 
 <template>
     <div class="dialog__prize">
         <div class="dialog__title_header">
-            <p class="dialog__title">Награды для участников</p>
-            <div class="dialog__plus" @click="openAdd">
+            <p class="dialog__title">Награды для всех участников</p>
+            <div class="dialog__plus" @click="openAdd('forAll')">
                 <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z" fill="#E80024"/>
                 </svg>
@@ -32,25 +104,60 @@ function updateAward(a) { if (editingIdx.value!==null) awards.value[editingIdx.v
             </div>
         </div>
     </div>
-    <div class="dialog__eva_container" v-for="(aw,idx) in awards" :key="idx">
+    <div v-for="aw in awardsForAll" :key="aw.id" class="dialog__eva_container">
         <div class="dialog__award">
-            <img class="dialog__award_img" :src="aw.imageUrl" alt="award"/>
+            <img :src="getImgSrc(aw)" class="dialog__award_img" />
             <div class="dialog__award_content">
                 <p class="dialog__award_title">{{ aw.title }}</p>
-                <p class="dialog__award_text">{{ aw.text }}</p>
+                <p class="dialog__award_text">{{ aw.description }}</p>
             </div>
         </div>
-
         <div class="dialog__prize_btns">
-            <IconsPencil style="padding: 5px" class="clickable" @click="openEdit(idx)" />
-            <IconsCancel class="clickable" @click="removeAward(idx)" />
+            <IconsPencil style="padding: 5px" class="clickable" @click="openEdit(aw)" />
+            <IconsCancel class="clickable" @click="removeAward(aw)" />
+        </div>
+    </div>
+    <div class="dialog__prize">
+        <div class="dialog__title_header">
+            <p class="dialog__title">Награды для призовых мест</p>
+            <div class="dialog__plus" @click="openAdd('forPrize')">
+                <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z" fill="#E80024"/>
+                </svg>
+                <p>Добавить еще</p>
+            </div>
+        </div>
+    </div>
+    <div v-for="aw in awardsByPlace" :key="aw.id" class="dialog__eva_container">
+        <div class="dialog__award">
+            <img :src="getImgSrc(aw)" class="dialog__award_img" />
+            <div class="dialog__award_content">
+                <p class="dialog__award_title">(Место {{ aw.place }}) {{ aw.title }}</p>
+                <p class="dialog__award_text">{{ aw.description }}</p>
+            </div>
+        </div>
+        <div class="dialog__prize_btns">
+            <IconsPencil style="padding: 5px" class="clickable" @click="openEdit(aw)" />
+            <IconsCancel class="clickable" @click="removeAward(aw)" />
         </div>
     </div>
     <CreateAward
         v-model="dlgShown"
-        :initial="editingIdx!==null ? awards[editingIdx] : null"
-        @add="addAward"
-        @update="updateAward"
+        :hackathonSlug="props.hackathonSlug"
+        :initial="editingId ? awards.find(a => a.id === editingId) : null"
+        :default-type="defaultType"
+        @saved="onSaved"
+    />
+    <div class="dialog__btns">
+        <button class="main__btn main__btn_white" @click="cancel">Отменить</button>
+        <button class="main__btn" @click="askDone">Сохранить</button>
+    </div>
+
+    <ConfirmDialog
+        v-model="showDoneDlg"
+        text="Вы закончили?"
+        @confirm="confirmDone"
+        @cancel="showDoneDlg = false"
     />
 </template>
 

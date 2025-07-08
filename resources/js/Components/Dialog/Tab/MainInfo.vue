@@ -38,14 +38,23 @@ async function save () {
             return
         }
 
-        // —––---  файл
         if (key === 'image_path' && value instanceof File) {
             fd.append('image_path', value)
             return
         }
 
+        if (key === 'min_team_size' || key === 'max_team_size') {
+            if (form.type === 'team') {
+                fd.append(key, value);
+            } else {
+                fd.append(key, 1);
+            }
+            return;
+        }
+
         fd.append(key, value ?? '')
     })
+    // console.log('FD →', [...fd.entries()].map(([k, v]) => [k, v instanceof File ? v.name : v]));
 
     try {
         const { data: res } = await axios.post(
@@ -57,7 +66,19 @@ async function save () {
         props.draft.slug = res.hackathon.slug
         emit('saved', { slug: res.hackathon.slug })
     } catch (e) {
-        console.error(e)
+        if (e.response?.status === 422) {
+            // form.clearErrors()
+
+            const errors = e.response.data.errors
+            Object.entries(errors).forEach(([field, messages]) => {
+                form.setError(field, messages.join(' '))
+            })
+
+            console.table(errors)
+        } else {
+
+            console.error('hackathon-create', e)
+        }
     }
 }
 
@@ -113,7 +134,7 @@ function cancel () {
         <small v-if="form.errors.title" class="error">{{ form.errors.title }}</small>
     </div>
     <div class="dialog__block">
-        <div class="dialog__component" :class="participationType === 'Командный' ? 'small' : 'medium'">
+        <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
             <p class="dialog__title">Формат хакатона</p>
             <select class="main__cards_select dialog__select" v-model="form.format">
                 <option value="online">Онлайн</option>
@@ -121,14 +142,14 @@ function cancel () {
                 <option value="hybrid">Смешанный</option>
             </select>
         </div>
-        <div class="dialog__component" :class="participationType === 'Командный' ? 'small' : 'medium'">
+        <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
             <p class="dialog__title">Тип участия</p>
             <select v-model="form.type" class="main__cards_select dialog__select">
                 <option value="team">Командный</option>
                 <option value="individual">Индивидуальный</option>
             </select>
         </div>
-        <div v-if="participationType === 'Командный'" class="dialog__component">
+        <div v-if="form.type === 'team'" class="dialog__component">
             <p class="dialog__title">Количество человек в команде</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
@@ -199,7 +220,7 @@ function cancel () {
             <p class="dialog__title">Формат приза</p>
             <select v-model="form.prize_type" class="main__cards_select dialog__select">
                 <option value="cash">Денежный приз</option>
-                <option value="prize">Призы</option>
+                <option value="non-cash">Призы</option>
             </select>
         </div>
         <div class="dialog__component medium">

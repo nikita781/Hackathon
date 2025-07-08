@@ -126,7 +126,15 @@ async function save(){
     toRaw(data.tags).forEach(id => fd.append('tags[]', id))
 
     Object.entries(data).forEach(([k, v]) => {
-        if (k === 'tags' || k === 'image_path') return   // уже обработали
+        if (k === 'tags' || k === 'image_path') return
+        if (k === 'min_team_size' || k === 'max_team_size') {
+            if (form.type === 'team') {
+                fd.append(k, v);
+            } else {
+                fd.append(k, 1);
+            }
+            return;
+        }
         fd.append(k, v ?? '')
     })
     if (form.image_path instanceof File) {
@@ -171,7 +179,7 @@ onBeforeUnmount(revokePreview)
         <small v-if="form.errors.title" class="error">{{ form.errors.title }}</small>
     </div>
     <div class="dialog__block">
-        <div class="dialog__component" :class="participationType === 'Командный' ? 'small' : 'medium'">
+        <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
             <p class="dialog__title">Формат хакатона</p>
             <select class="main__cards_select dialog__select" v-model="form.format">
                 <option value="online">Онлайн</option>
@@ -179,14 +187,14 @@ onBeforeUnmount(revokePreview)
                 <option value="hybrid">Смешанный</option>
             </select>
         </div>
-        <div class="dialog__component" :class="participationType === 'Командный' ? 'small' : 'medium'">
+        <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
             <p class="dialog__title">Тип участия</p>
             <select v-model="form.type" class="main__cards_select dialog__select">
                 <option value="team">Командный</option>
                 <option value="individual">Индивидуальный</option>
             </select>
         </div>
-        <div v-if="participationType === 'Командный'" class="dialog__component">
+        <div v-if="form.type === 'team'" class="dialog__component">
             <p class="dialog__title">Количество человек в команде</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
@@ -257,7 +265,7 @@ onBeforeUnmount(revokePreview)
             <p class="dialog__title">Формат приза</p>
             <select v-model="form.prize_type" class="main__cards_select dialog__select">
                 <option value="cash">Денежный приз</option>
-                <option value="prize">Призы</option>
+                <option value="non-cash">Призы</option>
             </select>
         </div>
         <div class="dialog__component medium">
