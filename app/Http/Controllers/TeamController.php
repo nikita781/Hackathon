@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\KickTeamRequest;
+use App\Http\Requests\UpdateTeamRequest;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\TeamResource;
 use App\Models\Hackathon;
@@ -19,6 +21,41 @@ use Inertia\Response;
 
 class TeamController extends Controller
 {
+    public function update(UpdateTeamRequest $request, Team $team): RedirectResponse
+    {
+        if (!Gate::check('update', $team)) {
+            abort(404);
+        }
+
+        $team->update($request->only('title'));
+        $data = $request->validated();
+
+        foreach ($data['members'] as $member) {
+            if ($team->users->contains('user_id', $member['member_id'])) {
+                $team->users()->updateExistingPivot($member['member_id'], [
+                    'position_id' => $member['position_id'],
+                ]);
+            }
+        }
+
+        return back()->with('team', 'Команда успешно обновлена');
+    }
+
+    public function kick(KickTeamRequest $request, Team $team): RedirectResponse
+    {
+        if (!Gate::check('kick', $team)) {
+            abort(404);
+        }
+
+        $data = $request->validated();
+
+        foreach ($data['members'] as $memberId) {
+            $team->users()->detach($memberId);
+        }
+
+        return back()->with('team', 'Участник команды успешно исключен');
+    }
+
     public function showInvite($token): Response
     {
         $invite = TeamInvite::where('token', $token)->firstOrFail();

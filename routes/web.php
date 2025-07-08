@@ -66,6 +66,9 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/{award}', [AwardsController::class, 'destroy'])->name('destroy');
             });
             Route::prefix('/teams/{team}')->name('teams.')->group(function () {
+                Route::patch('/', [TeamController::class, 'update'])->name('update');
+                Route::delete('/kick', [TeamController::class, 'kick'])->name('kick');
+
                 Route::post('/invite', [TeamController::class, 'createInvite'])->name('create-invite');
                 Route::get('/invite/{token}', [TeamController::class, 'showInvite'])->name('invite.show');
                 Route::post('/invite/{token}', [TeamController::class, 'acceptInvite'])->name('accept-invite');
