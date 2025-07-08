@@ -6,6 +6,7 @@ use App\Http\Requests\StoreAwardRequest;
 use App\Http\Requests\UpdateAwardRequest;
 use App\Http\Resources\AwardResource;
 use App\Models\Award;
+use App\Models\Hackathon;
 use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class AwardsController extends Controller
      * @throws FileDoesNotExist
      * @throws FileIsTooBig
      */
-    public function store(StoreAwardRequest $request): RedirectResponse
+    public function store(StoreAwardRequest $request, Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('create', Award::class)) {
             abort(404);
@@ -33,7 +34,11 @@ class AwardsController extends Controller
             $data['system'] = false;
         }
 
-        $award = Award::create($data);
+        if ($data['hackathon_slug']) {
+            $award = $hackathon->awards()->create(Arr::except($data, 'hackathon_slug'));
+        } else {
+            $award = Award::create($data);
+        }
 
         if ($request->hasFile('image')) {
             $award->addMediaFromRequest('image')->toMediaCollection('main_image');
