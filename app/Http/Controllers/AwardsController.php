@@ -22,26 +22,19 @@ class AwardsController extends Controller
      * @throws FileDoesNotExist
      * @throws FileIsTooBig
      */
-    public function store(StoreAwardRequest $request, ?Hackathon $hackathon): RedirectResponse
+    public function store(StoreAwardRequest $request, Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('create', Award::class)) {
             abort(404);
         }
 
-        $data = Arr::except($request->validated(), ['image', 'hackathon_slug']);
+        $data = Arr::except($request->validated(), ['image']);
 
         if (!auth()->user()->hasAnyRole([Role::SUPER_ADMIN, Role::ADMIN])) {
             $data['system'] = false;
         }
 
-        if ($request->has('hackathon_slug')) {
-            if (!isset($hackathon)) {
-                abort(404);
-            }
-            $award = $hackathon->awards()->create($data);
-        } else {
-            $award = Award::create($data);
-        }
+        $award = $hackathon->awards()->create($data);
 
         if ($request->hasFile('image')) {
             $award->addMediaFromRequest('image')->toMediaCollection('main_image');
@@ -54,7 +47,7 @@ class AwardsController extends Controller
      * @throws FileIsTooBig
      * @throws FileDoesNotExist
      */
-    public function update(UpdateAwardRequest $request, Award $award): RedirectResponse
+    public function update(UpdateAwardRequest $request, Hackathon $hackathon, Award $award): RedirectResponse
     {
         if (!Gate::check('update', $award)) {
             abort(404);
@@ -66,7 +59,7 @@ class AwardsController extends Controller
             $data['system'] = false;
         }
 
-        Award::update($data);
+        $award->update($data);
 
         if ($request->hasFile('image')) {
             if ($award->hasMedia('main_image')) {
