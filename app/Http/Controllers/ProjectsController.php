@@ -10,10 +10,10 @@ use Illuminate\Http\Request;
 
 class ProjectsController extends Controller
 {
-    public function index(Hackathon $hackathon): JsonResponse
+    public function index(Request $request, Hackathon $hackathon): JsonResponse
     {
         return response()->json([
-            'projects' => ProjectResource::collection($hackathon->allProjects),
+            'projects' => ProjectResource::collection($hackathon->allProjects()->filter($request)->get()),
         ]);
     }
 

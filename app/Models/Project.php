@@ -19,7 +19,7 @@ class Project extends Model implements HasMedia
 
     protected $fillable = [
         'hackathon_id', 'team_id', 'title', 'description', 'about', 'stack', 'project_link', 'video_link', 'status',
-        'moderated_time', 'published_time', 'blocked_time',
+        'moderated_time', 'published_time', 'blocked_time', 'avg_score',
     ];
 
     public const DRAFT = 'draft';
@@ -48,6 +48,13 @@ class Project extends Model implements HasMedia
         return $this->hasMany(Evaluation::class);
     }
 
+    public function updateAvgScore(): void
+    {
+        $avg = $this->evaluations()->avg('score');
+        $this->avg_score = $avg;
+        $this->saveQuietly();
+    }
+
     public function scopeFilter(Builder $query, $request): Builder
     {
         $query->when($request->q, function ($q, $search) {
@@ -65,18 +72,8 @@ class Project extends Model implements HasMedia
                 'dateD' => $q->orderBy('moderated_time', 'desc'),
                 'titleA' => $q->orderBy('title', 'asc'),
                 'titleD' => $q->orderBy('title', 'desc'),
-                'scoreA' => $q
-                    ->leftJoin('evaluations', 'projects.id', '=', 'evaluations.project_id')
-                    ->select('projects.*')
-                    ->selectRaw('AVG(evaluations.score) as avg_score')
-                    ->groupBy('projects.id')
-                    ->orderBy('avg_score', 'asc'),
-                'scoreD' => $q
-                    ->leftJoin('evaluations', 'projects.id', '=', 'evaluations.project_id')
-                    ->select('projects.*')
-                    ->selectRaw('AVG(evaluations.score) as avg_score')
-                    ->groupBy('projects.id')
-                    ->orderBy('avg_score', 'desc'),
+                'scoreA' => $q->orderBy('avg_score', 'asc'),
+                'scoreD' => $q->orderBy('avg_score', 'desc'),
                 default => $q,
             };
         });
