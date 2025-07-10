@@ -166,13 +166,18 @@ $x-big: 1829.98px;
             transition: 0.3s;
         }
         &_white {
-            background-color: unset;
-            color: #E80024;
+            background-color: unset !important;
+            color: #E80024 !important;
             &:hover {
                 background-color: unset;
                 border: 2px solid #C5122E;
                 transition: 0.3s;
             }
+        }
+        &.blocked {
+            background-color: #F699A7;
+            border-color: #F699A7;
+            cursor: not-allowed;
         }
     }
 }

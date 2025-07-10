@@ -253,6 +253,28 @@ $x-big: 1829.98px;
         resize: vertical;
         min-height: 136px;
     }
+    &__checkbox {
+        margin-top: 10px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        .custom-checkbox {
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #E80024;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: background-color 0.2s, border-color 0.2s;
+            &.active {
+                background-color: #E80024;
+                border-color: #E80024;
+            }
+        }
+        p {
+            font-size: 16px;
+        }
+    }
     &__block {
         display: flex;
         justify-content: space-between;

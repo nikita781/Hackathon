@@ -3,6 +3,7 @@
 @import './footer.scss';
 @import './myHackathon.scss';
 @import './dialog.scss';
+@import './hackathon.scss';
 
 /*@tailwind base;*/
 /*@tailwind components;*/
@@ -19,6 +20,7 @@ body {
 main {
     background-color: #fff;
 }
+html, body, #app { height: 100%; margin: 0; }
 
 @font-face {
     font-family: 'Cera Pro';
@@ -27,4 +29,12 @@ main {
 @font-face {
     font-family: 'Cera';
     src: url('/public/fonts/CeraPro-Medium.ttf');
+}
+@font-face {
+    font-family: 'Cera Black';
+    src: url('/public/fonts/CeraPro-Black.ttf');
+}
+@font-face {
+    font-family: 'Cera Bold';
+    src: url('/public/fonts/CeraPro-Bold.ttf');
 }

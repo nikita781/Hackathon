@@ -1,0 +1,87 @@
+$x-small: 575.98px;
+$small: 767.98px;
+$medium: 991.98px;
+$large: 1199.98px;
+$x-large: 1399.98px;
+$big: 1592.98px;
+$x-big: 1829.98px;
+
+.hackathon {
+    &__header {
+        max-width: 1280px;
+        padding: 60px 80px 76px 80px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        &_btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 30px;
+            cursor: pointer;
+        }
+        &_content {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        &_img {
+            padding-right: 100px;
+            img {
+                width: 100%;
+                object-fit: cover;
+                border-radius: 10px;
+            }
+        }
+    }
+    &__title {
+        color: #121212;
+        font-size: 34px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-family: 'Cera Bold';
+    }
+    &__btn {
+        width: fit-content;
+        margin-top: 10px;
+    }
+    &__menu {
+        background-color: #E80024;
+        &_container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+        }
+        &_item {
+            padding: 17px 16px;
+            color: #FFFFFF;
+            letter-spacing: 1px;
+            font-size: 22px;
+            cursor: pointer;
+            &.active {
+                background-color: #C5122E;
+            }
+        }
+    }
+}
+.hackathon__arrow {
+    transition: transform .3s ease;
+    &._rotated { transform: rotate(180deg); }
+}
+.accordion-enter-from,
+.accordion-leave-to   {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.accordion-enter-active,
+.accordion-leave-active {
+    transition: max-height .35s ease, opacity .35s ease;
+}
+
+.accordion-enter-to,
+.accordion-leave-from {
+    max-height: 1000px;
+    opacity: 1;
+}

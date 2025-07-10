@@ -149,11 +149,29 @@ const showingNavigationDropdown = ref(false);
 <!--            </header>-->
 
             <!-- Page Content -->
-            <Header/>
-            <main>
-                <slot />
-            </main>
-            <Footer/>
+            <div class="layout">
+                <Header />
+
+                <main class="layout__main">
+                    <slot />
+                </main>
+
+                <Footer />
+            </div>
         </div>
     </div>
 </template>
+
+<style lang="scss">
+/* 1) колонка во всю высоту окна */
+.layout {
+    min-height: 100vh;          /* 100 % высоты вьюпорта */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 2) «растяжка» центральной области */
+.layout__main {
+    flex: 1 0 auto;             /* grow = 1 → заполняем остаток */
+}
+</style>

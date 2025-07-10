@@ -133,7 +133,7 @@ onMounted(async () => {
                 ></div>
             </div>
             <div class="main__cards" style="margin-top: 40px">
-                <div v-for="hackathon in hackathons.data" :key="hackathon.id" class="main__card">
+                <a v-for="hackathon in hackathons.data" :key="hackathon.id" class="main__card" :href="`/hackathons/${hackathon.slug}`">
                     <div class="main__card_photo">
                         <img :src="hackathon.image_path" alt="Photo">
                     </div>
@@ -202,7 +202,7 @@ onMounted(async () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             <Pagination :links="hackathons.meta.links" @navigate="go" style="margin-top: 30px" />
             <DialogCreateHackathon v-model="showDialog" :tags="props.tags ?? []"/>
