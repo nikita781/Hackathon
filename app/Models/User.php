@@ -89,7 +89,7 @@ class User extends Authenticatable
 
     public function onHackathonAsMember(Hackathon $hackathon): bool
     {
-        return $this->hackathons()->where('hackathons.id', $hackathon->id)->where('roles_id', Role::MEMBER)->exists();
+        return $this->hackathons()->where('hackathons.id', $hackathon->id)->where('role_id', Role::MEMBER)->exists();
     }
 
     public function isHackathonStaff(Hackathon $hackathon): bool
