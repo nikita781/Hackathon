@@ -15,14 +15,13 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::inRandomOrder()->first()->id,
             'title' => $this->faker->word(),
             'description' => $this->faker->text(),
-            'preview_path' => 'test/image.jpg',
+//            'preview_path' => 'test/image.jpg',
             'about' => $this->faker->word(),
             'stack' => $this->faker->word(),
             'project_link' => $this->faker->word(),
-            'presentation_path' => 'test/file.pdf',
+//            'presentation_path' => 'test/file.pdf',
             'video_link' => $this->faker->word(),
             'is_published' => $this->faker->boolean(),
             'created_at' => Carbon::now(),

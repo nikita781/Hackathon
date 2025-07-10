@@ -136,6 +136,11 @@ class User extends Authenticatable
         return $this->hasMany(TeamUser::class);
     }
 
+    public function evaluations(): HasMany
+    {
+        return $this->hasMany(Evaluation::class);
+    }
+
     /**
      * @return BelongsToMany
      */
