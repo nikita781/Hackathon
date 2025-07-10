@@ -198,6 +198,7 @@ class HackathonController extends Controller
             'teams' => $teamsResource,
             'ownTeam' => $ownTeamResource,
             'positions' => $positionsResource,
+            'is_join' => $user->onHackathonAsMember($hackathon),
             'can' => [
                 'hackathon' => [
                     'join' => Gate::check('join', $hackathon),
