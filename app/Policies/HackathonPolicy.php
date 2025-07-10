@@ -78,10 +78,6 @@ class HackathonPolicy
 
     public function leave(User $user, Hackathon $hackathon): bool
     {
-        if (!$user) {
-            return false;
-        }
-
         if ($user->isHackathonStaff($hackathon)) {
             return false;
         }

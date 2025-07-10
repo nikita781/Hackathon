@@ -35,6 +35,17 @@ class Hackathon extends Model implements HasMedia
         return 'slug';
     }
 
+    protected $casts = [
+        'event_start' => 'datetime',
+        'event_end' => 'datetime',
+        'registration_start' => 'datetime',
+        'registration_end' => 'datetime',
+        'evaluation_start' => 'datetime',
+        'evaluation_end' => 'datetime',
+        'work_time_start' => 'datetime',
+        'work_time_end' => 'datetime',
+    ];
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class);
