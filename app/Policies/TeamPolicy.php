@@ -28,7 +28,10 @@ class TeamPolicy
             return false;
         }
 
-        return $user->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('id', $team->id)->exists();
+        return $user->teams()
+            ->wherePivot('position_id', Position::CAPITAN_POSITION)
+            ->where('teams.id', $team->id)
+            ->exists();
     }
 
     public function kick(User $user, Team $team): bool
@@ -38,7 +41,10 @@ class TeamPolicy
             return false;
         }
 
-        return $user->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('id', $team->id)->exists();
+        return $user->teams()
+            ->wherePivot('position_id', Position::CAPITAN_POSITION)
+            ->where('teams.id', $team->id)
+            ->exists();
     }
 
     public function invite(User $user, Team $team): bool
@@ -49,11 +55,7 @@ class TeamPolicy
         }
 
         $teamCount = $team->users->count();
-        if ($teamCount < $hackathon->max_team_size) {
-            return true;
-        }
-
-        return false;
+        return $teamCount < $hackathon->max_team_size;
     }
 
     public function joinTeam(User $user, Team $team): bool
@@ -64,10 +66,6 @@ class TeamPolicy
         }
 
         $teamCount = $team->users->count();
-        if ($teamCount < $hackathon->max_team_size) {
-            return true;
-        }
-
-        return false;
+        return $teamCount < $hackathon->max_team_size;
     }
 }
