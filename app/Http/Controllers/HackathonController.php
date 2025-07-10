@@ -12,6 +12,7 @@ use App\Http\Resources\TagResource;
 use App\Http\Resources\TeamResource;
 use App\Models\Hackathon;
 use App\Models\Position;
+use App\Models\Project;
 use App\Models\Role;
 use App\Models\Tab;
 use App\Models\Tag;
@@ -198,9 +199,22 @@ class HackathonController extends Controller
             'ownTeam' => $ownTeamResource,
             'positions' => $positionsResource,
             'can' => [
-                'join' => Gate::check('join', $hackathon),
-                'update' => Gate::check('update', $hackathon),
-                'delete' => Gate::check('delete', $hackathon),
+                'hackathon' => [
+                    'join' => Gate::check('join', $hackathon),
+                    'update' => Gate::check('update', $hackathon),
+                    'delete' => Gate::check('delete', $hackathon),
+                    'viewTask' => Gate::check('viewTask', $hackathon),
+                ],
+                'team' => [
+                    'update' => Gate::check('update', $ownTeam),
+                    'kick' => Gate::check('kick', $ownTeam),
+                    'joinTeam' => Gate::check('joinTeam', $ownTeam),
+                    'invite' => Gate::check('invite', $ownTeam),
+                ],
+                'project' => [
+                    'viewAny' => Gate::check('viewAny', Project::class),
+                    'createProject' => Gate::check('createProject', [Project::class, $hackathon]),
+                ],
             ],
         ]);
     }
@@ -263,5 +277,18 @@ class HackathonController extends Controller
         ]);
 
         return back()->with('joined', 'Вы успешно присоединились к хакатону!');
+    }
+
+    public function leaveHackathon(Hackathon $hackathon): RedirectResponse
+    {
+        if (!Gate::check('leave', $hackathon)) {
+            abort(404);
+        }
+
+        $user = auth()->user();
+
+        $user->hackathons()->detach($hackathon->id);
+
+        return back()->with('joined', 'Вы успешно покинули хакатон!');
     }
 }

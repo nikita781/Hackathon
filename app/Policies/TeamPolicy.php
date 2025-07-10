@@ -41,6 +41,21 @@ class TeamPolicy
         return $user->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('id', $team->id)->exists();
     }
 
+    public function invite(User $user, Team $team): bool
+    {
+        $hackathon = $team->hackathon;
+        if ($hackathon->event_start->lessThan(now())) {
+            return false;
+        }
+
+        $teamCount = $team->users->count();
+        if ($teamCount < $hackathon->max_team_size) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function joinTeam(User $user, Team $team): bool
     {
         $hackathon = $team->hackathon;

@@ -29,6 +29,8 @@ return new class extends Migration
             $table->dateTime('moderated_time')->nullable();
             $table->dateTime('published_time')->nullable();
             $table->dateTime('blocked_time')->nullable();
+            $table->string('comment')->nullable();
+            $table->string('slug')->unique();
             $table->float('avg_score')->nullable()->default(null);
             $table->timestamps();
         });

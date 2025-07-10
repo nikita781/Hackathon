@@ -22,7 +22,18 @@ class HackathonPolicy
             return $hackathon->is_published;
         }
 
-        return $hackathon->is_published || $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
+        return $hackathon->is_published || $user->isHackathonStaff($hackathon);
+    }
+
+    public function viewTask(?User $user, Hackathon $hackathon): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $isHackathonPublish = $hackathon->is_published && $hackathon->event_start->lessThan(now());
+
+        return $isHackathonPublish || $user->isHackathonStaff($hackathon);
     }
 
     public function create(User $user): bool
@@ -55,6 +66,35 @@ class HackathonPolicy
         }
 
         if ($user->hackathons()->where('hackathon_id', $hackathon->id)->exists()) {
+            return false;
+        }
+
+        if ($user->hasRole(Role::MEMBER)) {
+            return $hackathon->is_published;
+        }
+
+        return false;
+    }
+
+    public function leave(?User $user, Hackathon $hackathon): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isHackathonStaff($hackathon)) {
+            return false;
+        }
+
+        if (!$user->hackathons()->where('hackathon_id', $hackathon->id)->exists()) {
+            return false;
+        }
+
+        $team = $user->teams()
+            ->where('hackathon_id', $hackathon->id)
+            ->first();
+
+        if ($team && $team->users()->count() > 1) {
             return false;
         }
 

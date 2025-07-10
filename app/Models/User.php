@@ -136,6 +136,19 @@ class User extends Authenticatable
         return $this->hasMany(TeamUser::class);
     }
 
+    public function isCapitan(Project $project): bool
+    {
+        return $this->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('id', $project->team_id)->exists();
+    }
+
+    public function isCapitanOfHackathon(Hackathon $hackathon): bool
+    {
+        return $this->teams()
+            ->where('hackathon_id', $hackathon->id)
+            ->wherePivot('position_id', Position::CAPITAN_POSITION)
+            ->exists();
+    }
+
     public function evaluations(): HasMany
     {
         return $this->hasMany(Evaluation::class);
