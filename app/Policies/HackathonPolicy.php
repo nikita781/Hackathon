@@ -76,7 +76,7 @@ class HackathonPolicy
         return false;
     }
 
-    public function leave(?User $user, Hackathon $hackathon): bool
+    public function leave(User $user, Hackathon $hackathon): bool
     {
         if (!$user) {
             return false;
