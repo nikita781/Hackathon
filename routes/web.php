@@ -101,6 +101,11 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
     Route::prefix('/tabs/{tab}')->name('tabs.')->group(function () {
         Route::get('/partner-images', [MediaController::class, 'showHackathonPartners'])->name('partner-images');
     });
+    Route::prefix('/projects/{project}')->name('projects.')->group(function () {
+        Route::get('/preview', [MediaController::class, 'showProjectPreview'])->name('image');
+        Route::get('/presentation', [MediaController::class, 'showProjectPresentation'])->name('presentation');
+        Route::get('/gallery', [MediaController::class, 'showProjectGallery'])->name('gallery');
+    });
 });
 
 Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])->name('awards.image');

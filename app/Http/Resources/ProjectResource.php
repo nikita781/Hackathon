@@ -15,15 +15,23 @@ class ProjectResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'preview_path' => $this->preview_path ? Storage::url($this->preview_path) : null,
+            'preview_path' => route('hackathons.projects.image', $this->resource),
             'about' => $this->about,
             'stack' => $this->stack,
             'project_link' => $this->project_link,
-            'presentation_path' => $this->presentation_path ? Storage::url($this->presentation_path) : null,
+            'presentation_path' => route('hackathons.projects.presentation', $this->resource),
             'video_link' => $this->video_link,
-            'is_published' => $this->is_published,
+            'status' => $this->status,
+            'moderated_time' => $this->moderated_time,
+            'published_time' => $this->published_time,
+            'blocked_time' => $this->blocked_time,
+            'comment' => $this->comment,
+            'slug' => $this->slug,
+            'avg_score' => $this->avg_score,
+            'gallery' => route('hackathons.projects.gallery', $this->resource),
 
-            'hackathon' => new HackathonResource($this->whenLoaded('hackathon')),
+            'hackathon' => $this->whenLoaded('hackathon', new HackathonResource($this->hackathon)),
+            'team' => $this->whenLoaded('team', new TeamResource($this->team)),
         ];
     }
 }
