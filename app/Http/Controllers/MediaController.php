@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Award;
 use App\Models\Hackathon;
+use App\Models\Project;
 use App\Models\Tab;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
@@ -41,7 +43,7 @@ class MediaController extends Controller
         return response()->file($media->getPath('preview'));
     }
 
-    public function showHackathonPartners($tab_id, Hackathon $hackathon): BinaryFileResponse
+    public function showHackathonPartners(Hackathon $hackathon, $tab_id): BinaryFileResponse
     {
         if (!Gate::check('view', $hackathon)) {
             abort(404);
@@ -89,4 +91,72 @@ class MediaController extends Controller
 
         return response()->file($media->getPath());
     }
+
+    public function showProjectPreview(Hackathon $hackathon, Project $project): BinaryFileResponse
+    {
+        if (!Gate::check('view', $hackathon) || !Gate::check('view', $project)) {
+            abort(404);
+        }
+
+        $media = $project->getFirstMedia('main_image');
+
+        if (!$media) {
+            abort(404);
+        }
+
+        return response()->file($media->getPath());
+    }
+
+    public function showProjectPresentation(Hackathon $hackathon, Project $project): JsonResponse
+    {
+        if (!Gate::check('view', $hackathon) || !Gate::check('view', $project)) {
+            abort(404);
+        }
+
+        $media = $project->getFirstMedia('main_image');
+
+        if (!$media) {
+            abort(404);
+        }
+
+        return response()->json([
+            'id' => $media->id,
+            'name' => $media->file_name,
+            'url' => $media->getFullUrl(),
+        ]);
+    }
+
+    public function showProjectGallery(Request $request, Hackathon $hackathon, Project $project)
+    {
+        $user = $request->user();
+
+        if (! $user->can('view', $project)) {
+            abort(404);
+        }
+
+        $mediaItems = $project->getMedia('gallery')->map(fn ($media) => [
+            'id' => $media->id,
+            'url' => $media->getFullUrl(),
+            'name' => $media->name,
+        ]);
+
+        return response()->json([
+            'gallery' => $mediaItems,
+        ]);
+    }
+
+//    public function downloadProjectPresentation(Hackathon $hackathon, Project $project): BinaryFileResponse
+//    {
+//        if (!Gate::check('view', $hackathon) || !Gate::check('view', $project)) {
+//            abort(404);
+//        }
+//
+//        $media = $project->getFirstMedia('main_image');
+//
+//        if (!$media) {
+//            abort(404);
+//        }
+//
+//        return response()->download($media->getPath(), $media->file_name);
+//    }
 }

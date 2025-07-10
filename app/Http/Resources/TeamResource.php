@@ -13,8 +13,6 @@ class TeamResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'project_count' => $this->project_count,
-            'users_count' => $this->users_count,
             'users' => $this->whenLoaded('users', UserResource::collection($this->users))
         ];
     }
