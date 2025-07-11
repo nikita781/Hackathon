@@ -14,4 +14,9 @@ class UserController extends Controller
             'user' => $user->load('roles'),
         ]);
     }
+
+    public function showMe(): Response
+    {
+        return $this->show(auth()->user());
+    }
 }
