@@ -47,6 +47,7 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
 });
 
 Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.show');
+Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
 
 Route::middleware('auth')->group(function () {
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');

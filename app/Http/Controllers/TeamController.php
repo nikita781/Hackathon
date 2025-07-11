@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateTeamRequest;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\TeamResource;
 use App\Models\Hackathon;
+use App\Models\Notification;
 use App\Models\Position;
 use App\Models\Team;
 use App\Models\TeamInvite;
@@ -21,7 +22,7 @@ use Inertia\Response;
 
 class TeamController extends Controller
 {
-    public function update(UpdateTeamRequest $request, Team $team): RedirectResponse
+    public function update(UpdateTeamRequest $request, Hackathon $hackathon, Team $team): RedirectResponse
     {
         if (!Gate::check('update', $team)) {
             abort(404);
@@ -41,7 +42,7 @@ class TeamController extends Controller
         return back()->with('team', 'Команда успешно обновлена');
     }
 
-    public function kick(KickTeamRequest $request, Team $team): RedirectResponse
+    public function kick(KickTeamRequest $request, Hackathon $hackathon, Team $team): RedirectResponse
     {
         if (!Gate::check('kick', $team)) {
             abort(404);
@@ -55,25 +56,25 @@ class TeamController extends Controller
 
         return back()->with('team', 'Участник команды успешно исключен');
     }
-
-    public function showInvite($token): Response
-    {
-        $invite = TeamInvite::where('token', $token)->firstOrFail();
-
-        if ($invite->isExpired()) {
-            abort(410, 'Срок действия приглашения истёк');
-        }
-
-        $team = $invite->team->load('users');
-        $hackathon = $team->hackathon->load(['tags', 'media']);
-
-        return Inertia::render('Invites/Show', [
-            'token' => $token,
-            'team' => new TeamResource($team),
-            'hackathon' => new HackathonResource($hackathon),
-            'expires_at' => $invite->expires_at,
-        ]);
-    }
+//
+//    public function showInvite($token): Response
+//    {
+//        $invite = TeamInvite::where('token', $token)->firstOrFail();
+//
+//        if ($invite->isExpired()) {
+//            abort(410, 'Срок действия приглашения истёк');
+//        }
+//
+//        $team = $invite->team->load('users');
+//        $hackathon = $team->hackathon->load(['tags', 'media']);
+//
+//        return Inertia::render('Invites/Show', [
+//            'token' => $token,
+//            'team' => new TeamResource($team),
+//            'hackathon' => new HackathonResource($hackathon),
+//            'expires_at' => $invite->expires_at,
+//        ]);
+//    }
 
 
     public function createInvite(Hackathon $hackathon, Team $team): JsonResponse
@@ -82,7 +83,7 @@ class TeamController extends Controller
             $token = Str::random(32);
         } while (TeamInvite::where('token', $token)->exists());
 
-        $expired_at = Carbon::now()->addHour();
+        $expired_at = Carbon::now()->addDay();
 
         TeamInvite::create([
             'team_id' => $team->id,
@@ -91,7 +92,7 @@ class TeamController extends Controller
         ]);
 
         return response()->json([
-            'url' => url("/invite/{$token}"),
+            'url' => route('hackathons.teams.accept-invite', [$hackathon, $team, $token]),
             'expires_at' => $expired_at->toDateTimeString(),
         ]);
     }
@@ -108,6 +109,10 @@ class TeamController extends Controller
 
         if (!Gate::check('join', $hackathon)) {
             abort(404);
+        }
+
+        if (!$hackathon->users()->where('user_id', $user->id)->exists()) {
+            return redirect()->route('hackathons.show', $hackathon)->with('hackathon', 'Сначала вступите в хакатон');
         }
 
         if ($invite->team->users()->where('user_id', $user->id)->exists()) {
@@ -128,38 +133,45 @@ class TeamController extends Controller
         return redirect()->route('hackathons.show', $invite->team_id)->with('team', 'Вы вступили в команду!');
     }
 
-//    public function inviteUser(Request $request, Team $team): JsonResponse
-//    {
-//        $request->validate([
-//            'user_id' => 'required|exists:users,id',
-//        ]);
-//
-//        $invitedUserId = $request->input('user_id');
-//
-//        if ($team->users()->where('user_id', $invitedUserId)->exists()) {
-//            return response()->json(['message' => 'Пользователь уже в команде'], 400);
-//        }
-//
-//        if (TeamInvite::where('team_id', $team->id)->where('invited_user_id', $invitedUserId)->exists()) {
-//            return response()->json(['message' => 'Приглашение уже отправлено'], 400);
-//        }
-//
-//        $invite = TeamInvite::create([
-//            'team_id' => $team->id,
-//            'user_id' => $invitedUserId,
-//            'token' => null,
-//            'expires_at' => now()->addHour(),
-//        ]);
-//
-//        Notification::create([
-//            'user_id' => $invitedUserId,
-//            'title' => 'Приглашение в команду',
-//            'image' => '/images/invite.png',
-//            'content' => "Вас пригласили в команду '{$team->title}' на хакатоне '{$team->hackathon->title}'",
-//            'send_date' => now()->toDateString(),
-//            'type' => NotificationType::INVITE,
-//        ]);
-//
-//        return response()->json(['message' => 'Приглашение отправлено']);
-//    }
+    public function inviteUserById(Request $request, Hackathon $hackathon, Team $team): JsonResponse
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'position_id' => 'required|exists:positions,id',
+        ]);
+
+        do {
+            $token = Str::random(32);
+        } while (TeamInvite::where('token', $token)->exists());
+
+        $invitedUserId = $request->input('user_id');
+        $invitedPositionId = $request->input('position_id');
+
+        if ($team->users()->where('user_id', $invitedUserId)->exists()) {
+            return response()->json(['message' => 'Пользователь уже в команде'], 400);
+        }
+
+        if (TeamInvite::where('team_id', $team->id)->where('invited_user_id', $invitedUserId)->exists()) {
+            return response()->json(['message' => 'Приглашение уже отправлено'], 400);
+        }
+
+        $invite = TeamInvite::create([
+            'team_id' => $team->id,
+            'user_id' => $invitedUserId,
+            'position_id' => $invitedPositionId,
+            'token' => $token,
+            'expires_at' => now()->addDay(),
+        ]);
+
+        Notification::create([
+            'user_id' => $invitedUserId,
+            'title' => 'Приглашение в команду',
+            'content' => "Вас пригласили в команду '{$team->title}' на хакатоне '{$hackathon->title}'",
+            'send_date' => now()->toDateString(),
+            'type' => 'invite',
+            'link' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
+        ]);
+
+        return response()->json(['message' => 'Приглашение отправлено']);
+    }
 }

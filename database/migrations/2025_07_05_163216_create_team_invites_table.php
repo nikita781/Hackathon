@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Position;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
@@ -17,6 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Team::class)->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignIdFor(User::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignIdFor(Position::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('token')->unique();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();

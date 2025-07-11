@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TeamInvite extends Model
 {
     protected $fillable = [
-        'team_id', 'token', 'expires_at'
+        'team_id', 'user_id', 'position_id', 'token', 'expires_at',
     ];
 
     public function team(): BelongsTo
