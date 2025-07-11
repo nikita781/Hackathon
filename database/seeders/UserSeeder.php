@@ -14,45 +14,47 @@ class UserSeeder extends Seeder
     {
         $superAdmin = User::create([
             'name' => 'Главный Админ',
+            'nickname' => 'SAdmin',
             'email' => 'SAdmin@SAdmin.com',
-            'password' => Hash::make('1'),
         ]);
 
         $admin = User::create([
             'name' => 'Admin',
+            'nickname' => 'admin',
             'email' => 'admin@admin.com',
-            'password' => Hash::make('1'),
         ]);
 
         $org = User::create([
             'name' => 'Organizer',
+            'nickname' => 'org',
             'email' => 'org@org.com',
-            'password' => Hash::make('1'),
         ]);
 
         $judge = User::create([
             'name' => 'JUDGE',
+            'nickname' => 'judge',
             'email' => 'judge@judge.com',
-            'password' => Hash::make('1'),
         ]);
 
         $mentor = User::create([
             'name' => 'MENTOR',
+            'nickname' => 'mentor',
             'email' => 'mentor@mentor.com',
-            'password' => Hash::make('1'),
         ]);
 
         $member = User::create([
             'name' => 'Member',
+            'nickname' => 'member',
             'email' => 'member@member.com',
-            'password' => Hash::make('1'),
         ]);
 
         $superAdmin->assignedRole(Role::SUPER_ADMIN);
         $admin->assignedRole(Role::ADMIN);
         $org->assignedRole(Role::ORGANIZER);
         $judge->assignedRole(Role::JUDGE);
+        $judge->assignedRole(Role::MEMBER);
         $mentor->assignedRole(Role::MENTOR);
+        $mentor->assignedRole(Role::MEMBER);
         $member->assignedRole(Role::MEMBER);
     }
 }
