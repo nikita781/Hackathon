@@ -7,6 +7,7 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NominationController;
 use App\Http\Controllers\ProjectsController;
+use App\Http\Controllers\SessionController;
 use App\Http\Controllers\TabController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
@@ -26,6 +27,12 @@ use Inertia\Inertia;
 
 Route::get('/lang/{locale}', LanguageController::class)->name('lang.switch');
 
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [SessionController::class, 'index'])->name('login');
+    Route::get('/auth/redirect', [SessionController::class, 'redirect'])->name('auth.redirect');
+    Route::get('/auth/callback', [SessionController::class, 'callback'])->name('auth.callback');
+});
+
 Route::get('/', [HackathonController::class, 'index'])->name('home');
 
 Route::prefix('hackathons')->name('hackathons.')->group(function () {
@@ -42,6 +49,7 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
 Route::get('/users/{user}', [UserController::class, 'show'])->middleware(['auth'])->name('user.show');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/logout', [SessionController::class, 'logout'])->name('logout');
     Route::get('/my-hackathons', [HackathonController::class, 'myHackathons'])->name('my-hackathons');
     Route::prefix('hackathons')->name('hackathons.')->group(function () {
         Route::post('/', [HackathonController::class, 'store'])->name('store');
@@ -109,6 +117,3 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
 });
 
 Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])->name('awards.image');
-
-
-require __DIR__.'/auth.php';
