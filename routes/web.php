@@ -46,7 +46,7 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
     });
 });
 
-Route::get('/users/{user}', [UserController::class, 'show'])->middleware(['auth'])->name('user.show');
+Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');
@@ -89,17 +89,6 @@ Route::middleware('auth')->group(function () {
             });
         });
     });
-//    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-//    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-//    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-//    Route::prefix('hackathons')->name('hackathons.')->group(function () {
-//        Route::post('/', [HackathonController::class, 'store'])->name('store');
-//        Route::prefix('/{hackathon}')->group(function () {
-//                Route::prefix('/tabs')->name('tabs.')->group(function () {
-//                    Route::put('/', [TabController::class, 'update'])->name('update');
-//            });
-//        });
-//    });
 });
 
 Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function () {

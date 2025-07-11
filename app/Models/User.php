@@ -20,7 +20,8 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name', 'email', 'email_verified_at', 'password', 'remember_token',
+        'oauth_id', 'name', 'nickname', 'email', 'date_of_birth', 'phone_number', 'tshort_size',
+        'favorite_programming_lang',
     ];
 
     /**
@@ -30,7 +31,6 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'remember_token',
     ];
 
     /**
@@ -39,9 +39,14 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'date_of_birth' => 'date',
         'password' => 'hashed',
     ];
+
+    public function getRouteKeyName(): string
+    {
+        return 'nickname';
+    }
 
     /**
      * @return BelongsToMany
