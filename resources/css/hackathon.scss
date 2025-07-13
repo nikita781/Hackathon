@@ -49,6 +49,7 @@ $x-big: 1829.98px;
         background-color: #E80024;
         &_container {
             max-width: 1280px;
+            padding: 0 80px;
             margin: 0 auto;
             display: flex;
         }
@@ -60,6 +61,77 @@ $x-big: 1829.98px;
             cursor: pointer;
             &.active {
                 background-color: #C5122E;
+            }
+            &.blocked {
+                cursor: not-allowed;
+            }
+        }
+    }
+    &__tab {
+        max-width: 1280px;
+        padding: 60px 80px 80px 80px;
+        margin: 0 auto;
+    }
+    &__my-project {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        &__create {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        &__team {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-left: 120px;
+            &_svg {
+                padding: 8px;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+        &__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        &__title {
+            color: #121212;
+            font-size: 34px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Cera Bold';
+            font-weight: 700;
+        }
+        &__list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            &_item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            &_container {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                img {
+                    width: 44px;
+                    height: 44px;
+                    object-fit: cover;
+                    border-radius: 50%;
+                }
+            }
+            &_text {
+                font-size: 22px;
+                font-family: "Cera";
             }
         }
     }

@@ -209,6 +209,10 @@ $x-big: 1829.98px;
             flex-wrap: wrap;
         }
     }
+    &__text {
+        font-size: 22px;
+        color: #999;
+    }
     &__input {
         font-size: 16px;
         border-radius: 8px;
@@ -238,6 +242,9 @@ $x-big: 1829.98px;
             justify-content: space-between;
             align-items: flex-end;
             gap: 34px;
+            &_small {
+                gap: 24px;
+            }
             @media screen and (max-width: $small){
                 gap: 20px;
             }
@@ -266,6 +273,12 @@ $x-big: 1829.98px;
             border-radius: 5px;
             box-sizing: border-box;
             transition: background-color 0.2s, border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            svg {
+                height: 10px;
+            }
             &.active {
                 background-color: #E80024;
                 border-color: #E80024;
@@ -429,5 +442,9 @@ $x-big: 1829.98px;
         &_text {
             font-size: 16px;
         }
+    }
+    &__line {
+        padding-bottom: 30px;
+        border-bottom: 1px solid #F3F4F7;
     }
 }

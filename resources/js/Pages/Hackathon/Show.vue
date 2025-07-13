@@ -1,15 +1,45 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import IconsArrow from '@/Components/Icons/Arrow.vue'
-import {ref, watch} from "vue";
+import {computed, defineAsyncComponent, ref, watch} from "vue";
 import TakePart from "@/Components/Dialog/TakePart.vue";
 
 const props = defineProps({
     hackathon: Object,
     tabs: Object,
     can: Object,
+    team: Object,
+    ownTeam: Object,
+    positions: Object,
     is_join: Object
 })
+
+const tabComponents = {
+    overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
+    project  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/MyProject.vue')),
+    gallery  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Gallery.vue')),
+    resources: defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Resources.vue')),
+    rules    : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Rules.vue')),
+    contacts : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Contacts.vue')),
+    support  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Support.vue')),
+}
+
+const availableTabs = computed(() => {
+    return [
+        {key: 'overview', title: 'Обзор', blocked: false},
+        {key: 'project', title: 'Мой проект', blocked: false},
+        {key: 'gallery', title: 'Галерея проектов', blocked: !props.can?.project?.viewAny},
+        {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
+        {key: 'rules', title: 'Правила', blocked: false},
+        {key: 'contacts', title: 'Контакты', blocked: false},
+        {key: 'support', title: 'Техподдержка', blocked: false},
+    ]
+})
+
+const activeTab = ref(availableTabs.value[0]?.key ?? null)
+function openTab(tab) { if (!tab.blocked) activeTab.value = tab.key }
+
+const CurrentTab = computed(() => tabComponents[activeTab.value] ?? null)
 
 console.log(props.hackathon)
 console.log(props.tabs)
@@ -37,6 +67,7 @@ function formatDate(dateStr) {
 
 <template>
     <AuthenticatedLayout>
+<!--        <pre>{{props.ownTeam}}</pre>-->
         <div class="hackathon__header">
             <div class="hackathon__header_btn" @click="toggleHeader">
                 <h1 class="hackathon__title">{{props.hackathon.title}}</h1>
@@ -131,17 +162,25 @@ function formatDate(dateStr) {
         </div>
         <div class="hackathon__menu">
             <div class="hackathon__menu_container">
-                <p class="hackathon__menu_item">Обзор</p>
-                <p class="hackathon__menu_item active">Мой проект</p>
-                <p class="hackathon__menu_item">Галерея проектов</p>
-                <p class="hackathon__menu_item">Ресурсы</p>
-                <p class="hackathon__menu_item">Правила</p>
-                <p class="hackathon__menu_item">Контакты</p>
-                <p class="hackathon__menu_item">Техподдержка</p>
+                <p
+                    v-for="tab in availableTabs"
+                    :key="tab.key"
+                    class="hackathon__menu_item"
+                    :class="{ active: activeTab===tab.key, blocked:tab.blocked }"
+                    @click="openTab(tab)"
+                >
+                    {{ tab.title }}
+                </p>
             </div>
         </div>
         <div class="hackathon__panel">
-
+            <component
+                :is="CurrentTab"
+                v-if="CurrentTab"
+                :positions="props.positions"
+                :ownTeam="props.ownTeam"
+                :hackathon="props.hackathon"
+            />
         </div>
     </AuthenticatedLayout>
 </template>
