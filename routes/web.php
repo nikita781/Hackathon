@@ -6,6 +6,7 @@ use App\Http\Controllers\HackathonController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NominationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\TabController;
@@ -48,6 +49,9 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
 
 Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.show');
 Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
+
+Route::get('/notification', [NotificationController::class, 'index'])->name('notification.index');
+Route::patch('/notification/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notification.mark-as-read');
 
 Route::middleware('auth')->group(function () {
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');

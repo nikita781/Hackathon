@@ -191,7 +191,6 @@ class HackathonController extends Controller
             ]);
         }
 
-
         return Inertia::render('Hackathon/Show', [
             'hackathon' => $hackathonResource,
             'tabs' => $tabsResource,
