@@ -11,6 +11,8 @@ use App\Models\Notification;
 use App\Models\Position;
 use App\Models\Team;
 use App\Models\TeamInvite;
+use App\Models\User;
+use App\Notifications\InviteNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -163,14 +165,15 @@ class TeamController extends Controller
             'expires_at' => now()->addDay(),
         ]);
 
-        Notification::create([
-            'user_id' => $invitedUserId,
+        $invitedUser = User::findOrFail($invitedUserId);
+        $invitedUserPosition = Position::findOrFail($invitedPositionId);
+
+        $invitedUser->notify(new InviteNotification([
             'title' => 'Приглашение в команду',
-            'content' => "Вас пригласили в команду '{$team->title}' на хакатоне '{$hackathon->title}'",
-            'send_date' => now()->toDateString(),
-            'type' => 'invite',
-            'link' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
-        ]);
+            'description' => "Пользователь {$invitedUser->nickname} пригласил Вас в свою команду для хакатона «{$hackathon->title}» на роль “{$invitedUserPosition->title}”.",
+            'url' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
+            'send_at' => now()->toDateString(),
+        ]));
 
         return response()->json(['message' => 'Приглашение отправлено']);
     }
