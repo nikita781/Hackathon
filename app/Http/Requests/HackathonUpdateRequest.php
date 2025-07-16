@@ -42,7 +42,11 @@ class HackathonUpdateRequest extends FormRequest
             'is_published' => ['boolean'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
-
         ];
+    }
+
+    public function messages(): array
+    {
+        return trans('validations/hackathon_update');
     }
 }

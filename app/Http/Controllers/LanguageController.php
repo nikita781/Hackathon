@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LanguageController extends Controller
 {
-    public function __invoke($locale)
+    public function switchLang($locale): RedirectResponse
     {
         if (!in_array($locale, ['en', 'ru'])) {
             abort(400);
@@ -18,5 +20,10 @@ class LanguageController extends Controller
         App::setLocale($locale);
 
         return redirect()->route('home');
+    }
+
+    public function json(string $locale): BinaryFileResponse
+    {
+        return response()->file(lang_path("$locale.json"));
     }
 }

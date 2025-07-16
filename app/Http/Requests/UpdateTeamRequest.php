@@ -15,4 +15,9 @@ class UpdateTeamRequest extends FormRequest
             'members.*.position_id' => ['required_with:members', 'exists:team_user.position_id'],
         ];
     }
+
+    public function messages(): array
+    {
+        return trans('validations/team');
+    }
 }

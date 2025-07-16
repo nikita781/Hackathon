@@ -17,4 +17,9 @@ class StoreAwardRequest extends FormRequest
             'system' => ['boolean'],
         ];
     }
+
+    public function messages(): array
+    {
+        return trans('validations/award');
+    }
 }

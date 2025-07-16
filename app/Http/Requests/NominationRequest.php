@@ -23,4 +23,9 @@ class NominationRequest extends FormRequest
     {
         return true;
     }
+
+    public function messages(): array
+    {
+        return trans('validations/nomination');
+    }
 }

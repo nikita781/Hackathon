@@ -20,6 +20,8 @@
         "barryvdh/laravel-debugbar": "^3.15",
         "fakerphp/faker": "^1.9.1",
         "larastan/larastan": "^2.0",
+        "laravel-lang/lang": "^14.0",
+        "laravel-lang/publisher": "^16.7",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.4.4",

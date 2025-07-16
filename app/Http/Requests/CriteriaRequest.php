@@ -22,4 +22,9 @@ class CriteriaRequest extends FormRequest
     {
         return true;
     }
+
+    public function messages(): array
+    {
+        return trans('validations/criteria');
+    }
 }

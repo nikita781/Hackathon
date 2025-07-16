@@ -10,7 +10,12 @@ class KickTeamRequest extends FormRequest
     {
         return [
             'members' => ['required','array'],
-            'members.*' => ['required_with:members', 'exists:team_user.user_id'],
+            'members.*' => ['required_with:members', 'exists:team_user,user_id'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return trans('validations/kick_team');
     }
 }

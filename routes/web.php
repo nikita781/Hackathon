@@ -26,7 +26,8 @@ use Inertia\Inertia;
 |
 */
 
-Route::get('/lang/{locale}', LanguageController::class)->name('lang.switch');
+Route::get('/lang/switch/{locale}', [LanguageController::class, 'switchLang'])->name('lang.switch');
+Route::get('/lang/{locale}.json', [LanguageController::class, 'json'])->name('lang.json');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [SessionController::class, 'index'])->name('login');

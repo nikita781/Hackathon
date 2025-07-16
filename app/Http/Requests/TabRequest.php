@@ -38,4 +38,9 @@ class TabRequest extends FormRequest
             'delete_media_ids.*' => ['integer', 'exists:media,id'],
         ];
     }
+
+    public function messages(): array
+    {
+        return trans('validations/tab');
+    }
 }
