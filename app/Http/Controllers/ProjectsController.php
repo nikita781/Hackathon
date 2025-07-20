@@ -20,7 +20,7 @@ class ProjectsController extends Controller
         ]);
     }
 
-    public function store(StoreProjectRequest $request, Hackathon $hackathon, Team $team)
+    public function store(StoreProjectRequest $request, Hackathon $hackathon, Team $team): JsonResponse
     {
         $data = Arr::except($request->validated(), ['preview']);
         $data['hackathon_id'] = $hackathon->id;
