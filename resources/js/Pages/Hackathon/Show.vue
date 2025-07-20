@@ -10,8 +10,8 @@ const props = defineProps({
     can: Object,
     team: Object,
     ownTeam: Object,
-    positions: Object,
-    is_join: Object
+    positions: Array,
+    is_join: Boolean
 })
 
 const tabComponents = {

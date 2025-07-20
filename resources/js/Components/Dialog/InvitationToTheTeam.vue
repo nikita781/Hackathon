@@ -2,6 +2,7 @@
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import {ref, watch} from "vue";
 import { useClipboard } from '@vueuse/core'
+import {useForm} from "@inertiajs/vue3";
 
 const props = defineProps({
     modelValue : Boolean,
@@ -18,6 +19,11 @@ function close(){ emit('update:modelValue',false) }
 const inviteLink = ref('')
 const { copy, copied } = useClipboard()
 
+const userIds = ref([{ user_id: '', position_id: props.positions[0]?.id }])
+const form = useForm({
+    users: []
+})
+
 async function getLink () {
     inviteLink.value = ''
     try {
@@ -33,6 +39,27 @@ async function getLink () {
 
 watch(() => props.modelValue, v => { if (v) getLink() })
 
+const addUserField = () => {
+    userIds.value.push({ user_id: '', position_id: props.positions[0]?.id }) // Добавляем новое поле
+}
+
+const removeUserField = (index) => {
+    userIds.value.splice(index, 1) // Удаляем поле
+}
+
+const inviteUsers = async () => {
+    form.users = userIds.value
+    console.log(form.users)
+    try {
+        await form.post(route('hackathons.teams.invite-by-id', {
+            hackathon: props.hackathon.slug,
+            team: props.ownTeam.id
+        }))
+        close()
+    } catch (error) {
+        console.error(error)
+    }
+}
 </script>
 
 <template>
@@ -66,23 +93,28 @@ watch(() => props.modelValue, v => { if (v) getLink() })
                     </button>
                 </div>
             </div>
-            <div class="dialog__component">
+            <div v-for="(user, index) in userIds" :key="index" class="dialog__component">
                 <p class="dialog__title">Добавить участника по ID</p>
                 <div class="dialog__input_btns dialog__input_btns_small">
-                    <input class="dialog__input" placeholder="Введите ID участника"  style="width: 100%"/>
-                    <select class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
+                    <input
+                        v-model="user.user_id"
+                        class="dialog__input"
+                        placeholder="Введите ID участника"
+                        style="width: 100%"
+                    />
+                    <select v-model="user.position_id" class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
                         <option v-for="p in positions" :key="p.id" :value="p.id">{{ p.name }}</option>
                     </select>
                     <div>
-                        <IconsCancel class="clickable" style="cursor: pointer"/>
+                        <IconsCancel class="clickable" style="cursor: pointer" @click="removeUserField(index)"/>
                     </div>
                 </div>
-                <div class="dialog__plus" style="margin-top: 10px">
-                    <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z" fill="#E80024"/>
-                    </svg>
-                    <p>Добавить еще</p>
-                </div>
+            </div>
+            <div class="dialog__plus" style="margin-top: -10px" @click="addUserField">
+                <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z" fill="#E80024"/>
+                </svg>
+                <p>Добавить еще</p>
             </div>
             <div class="dialog__btns">
                 <button class="main__btn main__btn_white dialog__btn" @click="close">
@@ -90,6 +122,7 @@ watch(() => props.modelValue, v => { if (v) getLink() })
                 </button>
                 <button
                     class="main__btn dialog__btn"
+                    @click="inviteUsers"
                 >
                     Пригласить
                 </button>

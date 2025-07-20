@@ -4,6 +4,8 @@
 @import './myHackathon.scss';
 @import './dialog.scss';
 @import './hackathon.scss';
+@import './profile.scss';
+@import './notification.scss';
 
 /*@tailwind base;*/
 /*@tailwind components;*/

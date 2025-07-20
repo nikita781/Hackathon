@@ -1,0 +1,73 @@
+$x-small: 575.98px;
+$small: 767.98px;
+$medium: 991.98px;
+$large: 1199.98px;
+$x-large: 1399.98px;
+$big: 1592.98px;
+$x-big: 1829.98px;
+
+.notification {
+    max-width: 1280px;
+    padding: 60px 80px 100px 80px;
+    margin: 0 auto;
+    @media screen and (max-width: $large){
+        padding: 60px 80px 100px 80px;
+    }
+    @media screen and (max-width: $medium){
+        padding: 30px 50px;
+    }
+    @media screen and (max-width: $x-small){
+        padding: 20px 30px;
+    }
+    &__title {
+        font-family: "Cera Bold";
+        font-size: 34px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    &__container {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        margin-top: 40px;
+    }
+    &__item {
+        padding: 30px 26px;
+        display: flex;
+        gap: 30px;
+        box-shadow: 0 0 16px 0 rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+    }
+    &__image {
+        width: 278px;
+        max-height: 200px;
+        img {
+            object-fit: cover;
+            width: 278px;
+            height: 100%;
+            border-radius: 10px;
+        }
+    }
+    &__content {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 30px;
+    }
+    &_main {
+        display: flex;
+        flex-direction: column;
+    }
+    &__name {
+        font-size: 16px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+    &__text {
+        font-size: 16px;
+        margin-top: 8px;
+    }
+    &__btn {
+        margin-top: 20px;
+    }
+}
