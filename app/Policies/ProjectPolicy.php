@@ -18,19 +18,19 @@ class ProjectPolicy
 
     public function view(?User $user, Project $project): bool
     {
-        if (!$user) {
-            return false;
-        }
-
         if ($project->status === Project::PUBLISHED) {
             return true;
+        }
+
+        if (!$user) {
+            return false;
         }
 
         if ($user->isHackathonStaff(Hackathon::find($project->hackathon_id))) {
             return true;
         }
 
-        return $user->isCapitan($project);
+        return $user->isMemberOfProject($project);
     }
 
     public function createProject(User $user, Hackathon $hackathon): bool

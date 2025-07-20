@@ -39,6 +39,7 @@ class InviteNotification extends Notification
             'description' => $this->data['description'],
             'url' => $this->data['url'],
             'send_at' => $this->data['send_at'],
+            'is_active' => $this->data['is_active'],
         ];
     }
 }

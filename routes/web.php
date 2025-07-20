@@ -88,6 +88,9 @@ Route::middleware('auth')->group(function () {
                 Route::post('/invite', [TeamController::class, 'createInvite'])->name('create-invite');
                 Route::get('/invite/{token}', [TeamController::class, 'acceptInvite'])->name('accept-invite');
                 Route::post('/inviteById', [TeamController::class, 'inviteUserById'])->name('invite-by-id');
+                Route::prefix('/projects')->name('projects.')->group(function () {
+                    Route::post('/', [ProjectsController::class, 'store'])->name('store');
+                });
             });
 
             Route::prefix('/projects')->name('projects.')->group(function () {
