@@ -125,6 +125,10 @@ class TeamController extends Controller
 
         $invite->team->users()->attach($user->id, ['position_id' => Position::UNI_POSITION]);
 
+        $user->notifications()
+            ->where('data->url', route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]))
+            ->update(['is_active' => false]);
+
         $invite->delete();
 
         return redirect()->route('hackathons.show', $invite->team_id)->with('team', 'Вы вступили в команду!');
@@ -170,6 +174,7 @@ class TeamController extends Controller
                 'description' => "Пользователь {$invitedUser->nickname} пригласил Вас в свою команду для хакатона «{$hackathon->title}» на роль “{$invitedUserPosition->title}”.",
                 'url' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
                 'send_at' => now()->toDateString(),
+                'is_active' => true,
             ]));
         }
 
