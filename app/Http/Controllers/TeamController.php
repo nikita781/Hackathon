@@ -4,10 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\KickTeamRequest;
 use App\Http\Requests\UpdateTeamRequest;
-use App\Http\Resources\HackathonResource;
-use App\Http\Resources\TeamResource;
 use App\Models\Hackathon;
-use App\Models\Notification;
 use App\Models\Position;
 use App\Models\Team;
 use App\Models\TeamInvite;
@@ -137,44 +134,47 @@ class TeamController extends Controller
 
     public function inviteUserById(Request $request, Hackathon $hackathon, Team $team): JsonResponse
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'position_id' => 'required|exists:positions,id',
+        $data = $request->validate([
+            'users' => 'array',
+            'users.*.user_id' => 'required|exists:users,id',
+            'users.*.position_id' => 'required|exists:positions,id',
         ]);
 
-        do {
-            $token = Str::random(32);
-        } while (TeamInvite::where('token', $token)->exists());
+        foreach ($data['users'] as $user) {
+            do {
+                $token = Str::random(32);
+            } while (TeamInvite::where('token', $token)->exists());
 
-        $invitedUserId = $request->input('user_id');
-        $invitedPositionId = $request->input('position_id');
+            $invitedUserId = $user['user_id'];
+            $invitedPositionId = $user['position_id'];
+            $invitedUser = User::findOrFail($invitedUserId);
+            $invitedUserPosition = Position::findOrFail($invitedPositionId);
 
-        if ($team->users()->where('user_id', $invitedUserId)->exists()) {
-            return response()->json(['message' => 'Пользователь уже в команде'], 400);
+            if ($team->users()->where('user_id', $invitedUserId)->exists()) {
+                return response()->json(['message' => 'Пользователь «'. $invitedUser->nickname .'» уже в команде'], 400);
+            }
+
+            if (TeamInvite::where('team_id', $team->id)->where('user_id', $invitedUserId)->exists()) {
+                return response()->json(['message' => 'Приглашение пользователю «' . $invitedUser->nickname . '» уже отправлено'], 400);
+            }
+
+            $invite = TeamInvite::create([
+                'team_id' => $team->id,
+                'user_id' => $invitedUserId,
+                'position_id' => $invitedPositionId,
+                'token' => $token,
+                'expires_at' => now()->addDay(),
+            ]);
+
+
+            $invitedUser->notify(new InviteNotification([
+                'title' => 'Приглашение в команду',
+                'description' => "Пользователь {$invitedUser->nickname} пригласил Вас в свою команду для хакатона «{$hackathon->title}» на роль “{$invitedUserPosition->title}”.",
+                'url' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
+                'send_at' => now()->toDateString(),
+            ]));
         }
 
-        if (TeamInvite::where('team_id', $team->id)->where('invited_user_id', $invitedUserId)->exists()) {
-            return response()->json(['message' => 'Приглашение уже отправлено'], 400);
-        }
-
-        $invite = TeamInvite::create([
-            'team_id' => $team->id,
-            'user_id' => $invitedUserId,
-            'position_id' => $invitedPositionId,
-            'token' => $token,
-            'expires_at' => now()->addDay(),
-        ]);
-
-        $invitedUser = User::findOrFail($invitedUserId);
-        $invitedUserPosition = Position::findOrFail($invitedPositionId);
-
-        $invitedUser->notify(new InviteNotification([
-            'title' => 'Приглашение в команду',
-            'description' => "Пользователь {$invitedUser->nickname} пригласил Вас в свою команду для хакатона «{$hackathon->title}» на роль “{$invitedUserPosition->title}”.",
-            'url' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
-            'send_at' => now()->toDateString(),
-        ]));
-
-        return response()->json(['message' => 'Приглашение отправлено']);
+        return response()->json(['message' => 'Все отправлено']);
     }
 }
