@@ -86,7 +86,7 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/kick', [TeamController::class, 'kick'])->name('kick');
 
                 Route::post('/invite', [TeamController::class, 'createInvite'])->name('create-invite');
-                Route::post('/invite/{token}', [TeamController::class, 'acceptInvite'])->name('accept-invite');
+                Route::get('/invite/{token}', [TeamController::class, 'acceptInvite'])->name('accept-invite');
                 Route::post('/inviteById', [TeamController::class, 'inviteUserById'])->name('invite-by-id');
             });
 
