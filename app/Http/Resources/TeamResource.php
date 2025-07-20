@@ -13,7 +13,14 @@ class TeamResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'users' => $this->whenLoaded('users', UserResource::collection($this->users))
+            'users' => $this->whenLoaded('teamUsers', function() {
+                return $this->teamUsers->map(function($teamUser) {
+                    return [
+                        'user' => new UserResource($teamUser->user),
+                        'position' => new PositionResource($teamUser->position),
+                    ];
+                });
+            }),
         ];
     }
 }
