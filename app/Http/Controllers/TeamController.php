@@ -36,7 +36,7 @@ class TeamController extends Controller
             }
         }
 
-        return back()->with('team', 'Команда успешно обновлена');
+        return back()->with('status', 'Команда успешно обновлена');
     }
 
     public function kick(KickTeamRequest $request, Hackathon $hackathon, Team $team): RedirectResponse
@@ -51,7 +51,7 @@ class TeamController extends Controller
             $team->users()->detach($memberId);
         }
 
-        return back()->with('team', 'Участник команды успешно исключен');
+        return back()->with('status', 'Участник команды успешно исключен');
     }
 //
 //    public function showInvite($token): Response
@@ -109,7 +109,7 @@ class TeamController extends Controller
         }
 
         if (!$hackathon->users()->where('user_id', $user->id)->exists()) {
-            return redirect()->route('hackathons.show', $hackathon)->with('hackathon', 'Сначала вступите в хакатон');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Сначала вступите в хакатон');
         }
 
         if ($invite->team->users()->where('user_id', $user->id)->exists()) {
@@ -131,7 +131,7 @@ class TeamController extends Controller
 
         $invite->delete();
 
-        return redirect()->route('hackathons.show', $invite->team_id)->with('team', 'Вы вступили в команду!');
+        return redirect()->route('hackathons.show', $invite->team_id)->with('status', 'Вы вступили в команду!');
     }
 
     public function inviteUserById(Request $request, Hackathon $hackathon, Team $team): JsonResponse
@@ -178,6 +178,6 @@ class TeamController extends Controller
             ]));
         }
 
-        return response()->json(['message' => 'Все отправлено']);
+        return response()->json(['status' => 'Все отправлено']);
     }
 }
