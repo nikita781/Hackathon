@@ -90,6 +90,9 @@ Route::middleware('auth')->group(function () {
                 Route::post('/inviteById', [TeamController::class, 'inviteUserById'])->name('invite-by-id');
                 Route::prefix('/projects')->name('projects.')->group(function () {
                     Route::post('/', [ProjectsController::class, 'store'])->name('store');
+                    Route::prefix('/{project}')->group(function () {
+                        Route::post('/publish', [ProjectsController::class, 'publish'])->name('publish');
+                    });
                 });
             });
 

@@ -251,7 +251,7 @@ class HackathonController extends Controller
         if (isset($request->tags)) {
             $hackathon->tags()->sync($request->tags);
         }
-        return back()->with('success', 'Хакатон обновлен');
+        return back()->with('status', 'Хакатон обновлен');
     }
 
     public function destroy(Hackathon $hackathon): void
@@ -276,7 +276,7 @@ class HackathonController extends Controller
             $team->id => ['position_id' => Position::CAPITAN_POSITION]
         ]);
 
-        return back()->with('joined', 'Вы успешно присоединились к хакатону!');
+        return back()->with('status', 'Вы успешно присоединились к хакатону!');
     }
 
     public function leaveHackathon(Hackathon $hackathon): RedirectResponse
@@ -289,6 +289,6 @@ class HackathonController extends Controller
 
         $user->hackathons()->detach($hackathon->id);
 
-        return back()->with('joined', 'Вы успешно покинули хакатон!');
+        return back()->with('status', 'Вы успешно покинули хакатон!');
     }
 }

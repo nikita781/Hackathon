@@ -19,11 +19,9 @@ return new class extends Migration
             $table->foreignIdFor(Team::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('title');
             $table->text('description');
-//            $table->string('preview_path');
             $table->text('about')->nullable();
             $table->string('stack')->nullable();
             $table->string('project_link')->nullable();
-//            $table->string('presentation_path')->nullable();
             $table->string('video_link')->nullable();
             $table->enum('status', ['draft', 'moderation', 'published', 'blocked'])->default('draft');
             $table->dateTime('moderated_time')->nullable();

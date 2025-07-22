@@ -20,6 +20,8 @@ class Project extends Model implements HasMedia
         'moderated_time', 'published_time', 'blocked_time', 'avg_score', 'comment', 'slug',
     ];
 
+    public const PROJECT_STATUS = ['draft', 'moderation', 'published', 'blocked'];
+
     public const DRAFT = 'draft';
     public const MODERATION = 'moderation';
     public const PUBLISHED = 'published';
