@@ -11,7 +11,7 @@ class LanguageController extends Controller
 {
     public function switchLang($locale): RedirectResponse
     {
-        if (!in_array($locale, ['en', 'ru', 'es', 'zh'])) {
+        if (!in_array($locale, ['en', 'ru', 'es', 'zh_CH'])) {
             abort(400);
         }
 
