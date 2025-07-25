@@ -84,6 +84,7 @@ class TeamController extends Controller
 
         TeamInvite::create([
             'team_id' => $team->id,
+            'position_id' => Position::UNI_POSITION,
             'token' => $token,
             'expires_at' => $expired_at,
         ]);
@@ -123,7 +124,7 @@ class TeamController extends Controller
             abort(400, 'Команда уже заполнена');
         }
 
-        $invite->team->users()->attach($user->id, ['position_id' => Position::UNI_POSITION]);
+        $invite->team->users()->attach($user->id, ['position_id' => $invite->position_id]);
 
         $user->notifications()
             ->where('data->url', route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]))

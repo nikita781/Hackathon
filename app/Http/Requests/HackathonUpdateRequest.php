@@ -47,6 +47,6 @@ class HackathonUpdateRequest extends FormRequest
 
     public function messages(): array
     {
-        return trans('validations/hackathon_update');
+        return trans('validations/hackathon');
     }
 }
