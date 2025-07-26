@@ -65,6 +65,10 @@ class ProjectsController extends Controller
 
     public function show(Project $project): JsonResponse
     {
+        if (!Gate::check('view', $project)) {
+            abort(404);
+        }
+
         $project->load('team.teamUsers.user', 'team.teamUsers.position');
         return response()->json([
             'project' => new ProjectResource($project)

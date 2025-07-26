@@ -67,10 +67,6 @@ class Project extends Model implements HasMedia
                 ->orWhere('description', 'ILIKE', '%' . $search . '%');
         });
 
-        $query->when($request->q, function ($q, $status) {
-            $q->where('status', $status);
-        });
-
         $query->when($request->order, function ($q, $order) {
             return match ($order) {
                 'dateA' => $q->orderBy('moderated_time', 'asc'),

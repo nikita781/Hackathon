@@ -69,6 +69,16 @@ class Hackathon extends Model implements HasMedia
         return $this->hasManyThrough(Project::class, Team::class);
     }
 
+    public function allTeams(): HasMany
+    {
+        return $this->teams();
+    }
+
+    public function countTeams(): int
+    {
+        return $this->teams()->count();
+    }
+
     /**
      * @return HasMany
      */
