@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\KickTeamRequest;
 use App\Http\Requests\UpdateTeamRequest;
+use App\Http\Resources\TeamResource;
 use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Team;
@@ -19,6 +20,18 @@ use Illuminate\Support\Str;
 
 class TeamController extends Controller
 {
+    public function index(Request $request, Hackathon $hackathon)
+    {
+        if (!Gate::check('viewAll', [Team::class, $hackathon])) {
+            abort(404);
+        }
+
+        return response()->json([
+            'teams' => TeamResource::collection($hackathon->allTeams()->filter($request)->get()),
+            'count' => $hackathon->countTeams(),
+        ]);
+    }
+
     public function update(UpdateTeamRequest $request, Hackathon $hackathon, Team $team): RedirectResponse
     {
         if (!Gate::check('update', $team)) {

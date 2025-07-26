@@ -41,9 +41,11 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
     //
     Route::prefix('/{hackathon}')->group(function () {
         Route::get('/', [HackathonController::class, 'show'])->name('show');
-        //
         Route::prefix('/tabs')->name('tabs.')->group(function () {
             //
+        });
+        Route::prefix('/projects/{project}')->name('projects.')->group(function () {
+            Route::get('/', [ProjectsController::class, 'show'])->name('show');
         });
     });
 });
@@ -81,22 +83,23 @@ Route::middleware('auth')->group(function () {
                 Route::patch('/{award}', [AwardsController::class, 'update'])->name('update');
                 Route::delete('/{award}', [AwardsController::class, 'destroy'])->name('destroy');
             });
-            Route::prefix('/teams/{team}')->name('teams.')->group(function () {
-                Route::patch('/', [TeamController::class, 'update'])->name('update');
-                Route::delete('/kick', [TeamController::class, 'kick'])->name('kick');
-
-                Route::post('/invite', [TeamController::class, 'createInvite'])->name('create-invite');
-                Route::get('/invite/{token}', [TeamController::class, 'acceptInvite'])->name('accept-invite');
-                Route::post('/inviteById', [TeamController::class, 'inviteUserById'])->name('invite-by-id');
-                Route::prefix('/projects')->name('projects.')->group(function () {
-                    Route::post('/', [ProjectsController::class, 'store'])->name('store');
-                    Route::prefix('/{project}')->group(function () {
-                        Route::post('/publish', [ProjectsController::class, 'publish'])->name('publish');
+            Route::prefix('/teams')->name('teams.')->group(function () {
+                Route::get('/', [TeamController::class, 'index'])->name('index');
+                Route::prefix('/{team}')->group(function () {
+                    Route::patch('/', [TeamController::class, 'update'])->name('update');
+                    Route::delete('/kick', [TeamController::class, 'kick'])->name('kick');
+                    Route::post('/invite', [TeamController::class, 'createInvite'])->name('create-invite');
+                    Route::get('/invite/{token}', [TeamController::class, 'acceptInvite'])->name('accept-invite');
+                    Route::post('/inviteById', [TeamController::class, 'inviteUserById'])->name('invite-by-id');
+                    Route::prefix('/projects')->name('projects.')->group(function () {
+                        Route::post('/', [ProjectsController::class, 'store'])->name('store');
+                        Route::prefix('/{project}')->group(function () {
+                            Route::post('/publish', [ProjectsController::class, 'publish'])->name('publish');
+                        });
                     });
                 });
             });
             Route::prefix('/projects/{project}')->name('projects.')->group(function () {
-                Route::get('/', [ProjectsController::class, 'show'])->name('show');
                 Route::patch('/', [ProjectsController::class, 'update'])->name('update');
                 Route::delete('/', [ProjectsController::class, 'destroy'])->name('destroy');
             });

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,5 +36,38 @@ class Team extends Model
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
+    }
+
+    public function scopeFilter(Builder $query, $request): Builder
+    {
+        $query->when($request->q, function ($q, $search) {
+            $q->where('title', 'ILIKE', '%' . $search . '%');
+        });
+
+        $query->when($request->team, function ($q, $team) {
+            if ($team === 'yes') {
+                $q->has('teamUsers', '>=', 2);
+            } elseif ($team === 'no') {
+                $q->has('teamUsers', '=', 1);
+            }
+        });
+
+        $query->when($request->status, function ($q, $status) {
+            if ($status === Project::PUBLISHED || $status === Project::MODERATION || $status === Project::DRAFT || $status === Project::BLOCKED) {
+                $q->whereHas('projects', fn($q) => $q->where('status', $status));
+            }
+        });
+
+        $query->when($request->order, function ($q, $order) {
+            return match ($order) {
+                'dateA' => $q->orderBy('created_at', 'asc'),
+                'dateD' => $q->orderBy('created_at', 'desc'),
+                'titleA' => $q->orderBy('title', 'asc'),
+                'titleD' => $q->orderBy('title', 'desc'),
+                default => $q,
+            };
+        });
+
+        return $query;
     }
 }

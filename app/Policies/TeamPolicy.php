@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Team;
 use App\Models\User;
@@ -14,6 +15,11 @@ class TeamPolicy
     public function viewAny(?User $user): bool
     {
         return true;
+    }
+
+    public function viewAll(User $user, Hackathon $hackathon): bool
+    {
+        return $user->isHackathonStaff($hackathon);
     }
 
     public function view(?User $user, Team $team): bool
