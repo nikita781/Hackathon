@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Hackathon;
+use App\Models\Support;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -13,12 +13,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('supports', function (Blueprint $table) {
+        Schema::create('support_messages', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignIdFor(Hackathon::class)->index()->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->enum('type', ['question', 'suggestion', 'bug', 'other'])->default('question');
-            $table->boolean('is_completed')->default(false);
+            $table->foreignIdFor(Support::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->enum('message_type', ['support', 'user']);
+            $table->text('message');
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('supports');
+        Schema::dropIfExists('support_messages');
     }
 };
