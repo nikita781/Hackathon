@@ -16,6 +16,11 @@ class ProjectPolicy
         return true;
     }
 
+    public function viewAll(User $user, Hackathon $hackathon): bool
+    {
+        return $user->isHackathonStaff($hackathon);
+    }
+
     public function view(?User $user, Project $project): bool
     {
         if ($project->status === Project::PUBLISHED) {

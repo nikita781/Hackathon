@@ -13,6 +13,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
+use Inertia\Response;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\MediaCannotBeDeleted;
@@ -22,6 +24,10 @@ class ProjectsController extends Controller
 {
     public function index(Request $request, Hackathon $hackathon): JsonResponse
     {
+        if (!Gate::check('viewAll', [Project::class, $hackathon])) {
+            abort('404', 'У вас нет прав для просмотра проектов');
+        }
+
         return response()->json([
             'projects' => ProjectResource::collection($hackathon->allProjects()->filter($request)->get()),
         ]);
@@ -57,9 +63,12 @@ class ProjectsController extends Controller
         ]);
     }
 
-    public function show(Project $project)
+    public function show(Project $project): JsonResponse
     {
-
+        $project->load('team.teamUsers.user', 'team.teamUsers.position');
+        return response()->json([
+            'project' => new ProjectResource($project)
+        ]);
     }
 
     /**
@@ -67,7 +76,7 @@ class ProjectsController extends Controller
      * @throws FileIsTooBig
      * @throws MediaCannotBeDeleted
      */
-    public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
+    public function update(UpdateProjectRequest $request, Hackathon $hackathon, Project $project): RedirectResponse
     {
         if(!Gate::check('update', Project::class)) {
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для обновления проекта');
@@ -109,7 +118,7 @@ class ProjectsController extends Controller
         return back()->with('status', 'Проект успешно обновлен!');
     }
 
-    public function destroy(Project $project): RedirectResponse
+    public function destroy(Hackathon $hackathon, Project $project): RedirectResponse
     {
         if(!Gate::check('delete', $project)) {
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для удаления проекта');
