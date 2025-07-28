@@ -141,11 +141,11 @@ class TeamController extends Controller
 
         $user->notifications()
             ->where('data->url', route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]))
-            ->update(['is_active' => false]);
+            ->update(['data->is_active' => false]);
 
         $invite->delete();
 
-        return redirect()->route('hackathons.show', $invite->team_id)->with('status', 'Вы вступили в команду!');
+        return redirect()->route('hackathons.show', $hackathon)->with('status', 'Вы вступили в команду!');
     }
 
     public function inviteUserById(Request $request, Hackathon $hackathon, Team $team): JsonResponse
