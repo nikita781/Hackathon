@@ -39,7 +39,7 @@ class HackathonController extends Controller
     {
         $hackathons = Hackathon::filter($request)
             ->with('tags')
-            ->where('is_published', true)
+            ->where('status', Hackathon::STATUS_PUBLISHED)
             ->latest()
             ->paginate($request->per_page ?? 6)
             ->withQueryString();
@@ -231,7 +231,7 @@ class HackathonController extends Controller
 
         $data = Arr::except($request->validated(), ['tags', 'image_path']);
 
-        if ($hackathon->is_published) {
+        if ($hackathon->status !== Hackathon::STATUS_DRAFT) {
             $data['type'] = $hackathon->type;
             $data['min_team_size'] = $hackathon->min_team_size;
             $data['max_team_size'] = $hackathon->max_team_size;
