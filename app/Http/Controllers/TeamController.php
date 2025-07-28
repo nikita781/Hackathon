@@ -118,7 +118,7 @@ class TeamController extends Controller
 
         $user = auth()->user();
 
-        if (!Gate::check('join', $hackathon)) {
+        if (!Gate::check('acceptInvite', $hackathon)) {
             abort(404);
         }
 

@@ -32,7 +32,7 @@ class HackathonFactory extends Factory
             'prize_type' => $prize_type,
             'prize_pool' => $prize_type === 'cash' ? round($this->faker->numberBetween(10000, 1000000), -3) : $this->faker->numberBetween(1,10),
             'slug' => Str::slug($title),
-            'is_published' => $this->faker->boolean(),
+            'status' => $this->faker->randomElement(Hackathon::STATUSES),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ];

@@ -76,6 +76,23 @@ class HackathonPolicy
         return false;
     }
 
+    public function acceptInvite(?User $user, Hackathon $hackathon): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isHackathonStaff($hackathon)) {
+            return false;
+        }
+
+        if ($user->hasRole(Role::MEMBER)) {
+            return $hackathon->is_published;
+        }
+
+        return false;
+    }
+
     public function leave(User $user, Hackathon $hackathon): bool
     {
         if ($user->isHackathonStaff($hackathon)) {

@@ -23,9 +23,16 @@ class Hackathon extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
     protected $fillable = [
         'user_id', 'title', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
-        'registration_end', 'event_start', 'event_end', 'prize_type', 'prize_pool', 'slug', 'is_published',
-        'evaluation_start', 'evaluation_end', 'work_time_start', 'work_time_end',
+        'registration_end', 'event_start', 'event_end', 'prize_type', 'prize_pool', 'work_time_start', 'work_time_end',
+        'evaluation_start', 'evaluation_end', 'slug', 'status', 'moderated_time', 'published_time', 'blocked_time',
+        'comment'
     ];
+
+    public const STATUSES = ['draft', 'moderation', 'published', 'blocked'];
+    public const DRAFT = 'draft';
+    public const MODERATION = 'moderation';
+    public const PUBLISHED = 'published';
+    public const BLOCKED = 'blocked';
 
     /**
      * @return string
@@ -114,6 +121,11 @@ class Hackathon extends Model implements HasMedia
     public function awards(): HasMany
     {
         return $this->hasMany(Award::class);
+    }
+
+    public function supports(): HasMany
+    {
+        return $this->hasMany(Support::class);
     }
 
     /**
