@@ -19,10 +19,10 @@ class HackathonPolicy
     public function view(?User $user, Hackathon $hackathon): bool
     {
         if (!$user) {
-            return $hackathon->is_published;
+            return $hackathon->status !== Hackathon::STATUS_DRAFT;
         }
 
-        return $hackathon->is_published || $user->isHackathonStaff($hackathon);
+        return $hackathon->status === Hackathon::STATUS_PUBLISHED || $user->isHackathonStaff($hackathon);
     }
 
     public function viewTask(?User $user, Hackathon $hackathon): bool
@@ -31,7 +31,7 @@ class HackathonPolicy
             return false;
         }
 
-        $isHackathonPublish = $hackathon->is_published && $hackathon->event_start->lessThan(now());
+        $isHackathonPublish = $hackathon->status === Hackathon::STATUS_PUBLISHED && $hackathon->event_start->lessThan(now());
 
         return $isHackathonPublish || $user->isHackathonStaff($hackathon);
     }
@@ -48,7 +48,7 @@ class HackathonPolicy
 
     public function delete(User $user, Hackathon $hackathon): bool
     {
-        if ($hackathon->is_published) {
+        if ($hackathon->status === Hackathon::STATUS_PUBLISHED) {
             return false;
         }
 
@@ -70,7 +70,7 @@ class HackathonPolicy
         }
 
         if ($user->hasRole(Role::MEMBER)) {
-            return $hackathon->is_published;
+            return $hackathon->status === Hackathon::STATUS_PUBLISHED;
         }
 
         return false;
@@ -87,7 +87,7 @@ class HackathonPolicy
         }
 
         if ($user->hasRole(Role::MEMBER)) {
-            return $hackathon->is_published;
+            return $hackathon->status === Hackathon::STATUS_PUBLISHED;
         }
 
         return false;
@@ -112,7 +112,7 @@ class HackathonPolicy
         }
 
         if ($user->hasRole(Role::MEMBER)) {
-            return $hackathon->is_published;
+            return $hackathon->status === Hackathon::STATUS_PUBLISHED;
         }
 
         return false;
