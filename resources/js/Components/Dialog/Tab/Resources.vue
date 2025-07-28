@@ -1,6 +1,6 @@
 <script setup>
 import EditorField from "@/Components/EditorField.vue";
-import {ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 import DropPDFs from "@/Components/DropPDFs.vue";
 import {router, useForm} from "@inertiajs/vue3";
 
@@ -81,11 +81,31 @@ function cancel () {
     resetState()
     emit('cancel')
 }
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+const translations = ref({})
+
+const fetchTranslations = async (lang = 'ru') => {
+    try {
+        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
+        translations.value = response.data
+    } catch (error) {
+        console.error('Ошибка загрузки переводов:', error)
+    }
+}
+
+onMounted(async () => {
+    await fetchTranslations('ru')
+});
 </script>
 
 <template>
     <div class="dialog__component">
-        <p class="dialog__title">Ресурсы</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter() }}</p>
         <EditorField v-model="description" placeholder="Введите описание"/>
     </div>
     <div class="dialog__component">

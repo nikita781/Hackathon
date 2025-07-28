@@ -148,38 +148,58 @@ function cancel () {
     resetState()
     emit('cancel')
 }
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+const translations = ref({})
+
+const fetchTranslations = async (lang = 'ru') => {
+    try {
+        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
+        translations.value = response.data
+    } catch (error) {
+        console.error('Ошибка загрузки переводов:', error)
+    }
+}
+
+onMounted(async () => {
+    await fetchTranslations('ru')
+});
 </script>
 
 <template>
     <div class="dialog__component">
-        <p class="dialog__title">Время на выполнения заданий</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(translations.taskTime) }}</p>
         <div class="dialog__horizontal">
             <div class="dialog__info" style="width: 100%">
-                <p class="dialog__title">От</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(translations.from) }}</p>
                 <input type="datetime-local" v-model="taskStart" class="dialog__input" placeholder="Кол-во" style="width: 100%">
             </div>
             <div class="dialog__info" style="width: 100%">
-                <p class="dialog__title">До</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(translations.to) }}</p>
                 <input type="datetime-local" v-model="taskEnd" class="dialog__input" placeholder="Кол-во" style="width: 100%">
             </div>
         </div>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">Описание</p>
-        <EditorField v-model="description" placeholder="Введите описание"/>
+        <p class="dialog__title">{{ capitalizeFirstLetter(translations.description) }}</p>
+        <EditorField v-model="description" :placeholder="capitalizeFirstLetter(translations.enterDescription)"/>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">План проведения</p>
-        <EditorField v-model="plan" placeholder="Введите план проведения"/>
+        <p class="dialog__title">{{ capitalizeFirstLetter(translations.plan) }}</p>
+        <EditorField v-model="plan" :placeholder="capitalizeFirstLetter(translations.enterPlan)"/>
     </div>
     <div class="dialog__prize">
         <div class="dialog__title_header">
-            <p class="dialog__title">Призовой фонд</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(translations.prize_fund) }}</p>
             <div class="dialog__plus" @click="openAdd">
                 <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z" fill="#E80024"/>
                 </svg>
-                <p>Добавить еще</p>
+                <p>{{ capitalizeFirstLetter(translations.addMore) }}</p>
             </div>
         </div>
         <div class="dialog__prize_container" v-if="nominations?.length">
@@ -194,7 +214,7 @@ function cancel () {
                         </div>
                     </div>
                     <p class="dialog__prize_text">{{ n.prize || 'Без указания суммы' }}</p>
-                    <p class="dialog__prize_number">Кол-во победителей: {{ n.distribution.length }}</p>
+                    <p class="dialog__prize_number">{{ capitalizeFirstLetter(translations.winnersCount) }}: {{ n.distribution.length }}</p>
                 </div>
             </div>
         </div>
@@ -206,12 +226,12 @@ function cancel () {
         @saved="onSaved"
     />
     <div class="dialog__component">
-        <p class="dialog__title">Партнеры</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(translations.partners) }}</p>
         <DropFiles v-model:files="partnerLogos" />
     </div>
     <div class="dialog__btns">
-        <button class="main__btn main__btn_white" @click="cancel">Отменить</button>
-        <button class="main__btn" @click="save">Сохранить</button>
+        <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(translations.cansel) }}</button>
+        <button class="main__btn" @click="save">{{ capitalizeFirstLetter(translations.save) }}</button>
     </div>
 </template>
 

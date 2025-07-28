@@ -1,6 +1,6 @@
 <!-- DropImage.vue -->
 <script setup>
-import {ref, onBeforeUnmount, watch} from 'vue'
+import {ref, onBeforeUnmount, watch, onMounted} from 'vue'
 
 const props = defineProps({
     file: { type: [File, String, null], default: null }
@@ -54,6 +54,26 @@ function onDrop  (e)       { e.preventDefault(); dragging.value=false; handleFil
 function onDrag  (e)       { e.preventDefault(); dragging.value = e.type==='dragenter' || e.type==='dragover' }
 
 onBeforeUnmount(revoke)
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+const translations = ref({})
+
+const fetchTranslations = async (lang = 'ru') => {
+    try {
+        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
+        translations.value = response.data
+    } catch (error) {
+        console.error('Ошибка загрузки переводов:', error)
+    }
+}
+
+onMounted(async () => {
+    await fetchTranslations('ru')
+});
 </script>
 
 <template>
@@ -69,8 +89,7 @@ onBeforeUnmount(revoke)
 
         <template v-if="!previewSrc">
             <p class="hint">
-                Перетащите или выберите файл<br>
-                (JPG или PNG, 5 MB максимальный размер)
+                {{ capitalizeFirstLetter(translations.file_upload_hint) }}
             </p>
         </template>
 

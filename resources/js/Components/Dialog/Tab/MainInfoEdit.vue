@@ -152,7 +152,17 @@ async function save(){
         emit('dirty', false)
         emit('saved',{ slug:props.hackathonSlug })
     }catch(e){
-        console.error('hackathon-update',e?.response??e)
+        if (e.response?.status === 422) {
+            const errors = e.response.data.errors
+            Object.entries(errors).forEach(([field, messages]) => {
+                form.setError(field, messages.join(' '))
+            })
+
+            console.table(errors)
+        } else {
+
+            console.error('hackathon-update', e)
+        }
     }
 }
 
@@ -170,46 +180,71 @@ function cancel(){
 
 defineExpose({ save })
 onBeforeUnmount(revokePreview)
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+const translations = ref({})
+
+const fetchTranslations = async (lang = 'ru') => {
+    try {
+        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
+        translations.value = response.data
+    } catch (error) {
+        console.error('Ошибка загрузки переводов:', error)
+    }
+}
+
+onMounted(async () => {
+    await fetchTranslations('ru')
+});
 </script>
 
 <template>
     <div class="dialog__component">
-        <p class="dialog__title">Название хакатона</p>
-        <input v-model="form.title" type="text" class="dialog__input" placeholder="Введите название" :class="{ 'is-invalid': form.errors.title }">
+        <p class="dialog__title">{{ capitalizeFirstLetter(translations.hackathon_title) }}</p>
+        <input
+            v-model="form.title"
+            type="text"
+            class="dialog__input"
+            :placeholder="capitalizeFirstLetter(translations.enter_title)"
+        >
         <small v-if="form.errors.title" class="error">{{ form.errors.title }}</small>
     </div>
     <div class="dialog__block">
         <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
-            <p class="dialog__title">Формат хакатона</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(translations.hackathon_format) }}</p>
             <select class="main__cards_select dialog__select" v-model="form.format">
-                <option value="online">Онлайн</option>
-                <option value="offline">Офлайн</option>
-                <option value="hybrid">Смешанный</option>
+                <option value="online">{{ capitalizeFirstLetter(translations.online) }}</option>
+                <option value="offline">{{ capitalizeFirstLetter(translations.offline) }}</option>
+                <option value="hybrid">{{ capitalizeFirstLetter(translations.hybrid) }}</option>
             </select>
         </div>
         <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
-            <p class="dialog__title">Тип участия</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(translations.participation_type) }}</p>
             <select v-model="form.type" class="main__cards_select dialog__select">
-                <option value="team">Командный</option>
-                <option value="individual">Индивидуальный</option>
+                <option value="team">{{ capitalizeFirstLetter(translations.team_type) }}</option>
+                <option value="individual">{{ capitalizeFirstLetter(translations.individual_type) }}</option>
             </select>
         </div>
         <div v-if="form.type === 'team'" class="dialog__component">
-            <p class="dialog__title">Количество человек в команде</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(translations.team_size) }}</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
-                    <p class="dialog__title">От</p>
-                    <input v-model.number="form.min_team_size" type="number" class="dialog__input dialog__input_short" placeholder="Кол-во">
+                    <p class="dialog__title">{{ capitalizeFirstLetter(translations.from) }}</p>
+                    <input v-model.number="form.min_team_size" type="number" class="dialog__input dialog__input_short" :placeholder="capitalizeFirstLetter(translations.amount)">
                 </div>
                 <div class="dialog__info">
-                    <p class="dialog__title">До</p>
-                    <input v-model.number="form.max_team_size" type="number" class="dialog__input dialog__input_short" placeholder="Кол-во">
+                    <p class="dialog__title">{{ capitalizeFirstLetter(translations.to) }}</p>
+                    <input v-model.number="form.max_team_size" type="number" class="dialog__input dialog__input_short" :placeholder="capitalizeFirstLetter(translations.amount)">
                 </div>
             </div>
         </div>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">Направления</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(translations.categories_plural) }}</p>
         <div class="custom-container">
             <div class="custom-select" @click="toggleDropdownVisibility">
                 <div class="selected-option">
@@ -243,18 +278,18 @@ onBeforeUnmount(revokePreview)
     </div>
     <div class="dialog__block">
         <div class="dialog__component medium">
-            <p class="dialog__title">Последний день регистрации</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(translations.registration_deadline) }}</p>
             <input v-model="form.registration_end" type="datetime-local" id="datepicker" class="dialog__input" placeholder="Выберите дату" />
         </div>
         <div class="dialog__component large">
-            <p class="dialog__title">Дата проведения</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(translations.event_date) }}</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
-                    <p class="dialog__title">От</p>
+                    <p class="dialog__title">{{ capitalizeFirstLetter(translations.from) }}</p>
                     <input v-model="form.event_start" type="datetime-local" class="dialog__input dialog__input_medium" placeholder="Кол-во">
                 </div>
                 <div class="dialog__info">
-                    <p class="dialog__title">До</p>
+                    <p class="dialog__title">{{ capitalizeFirstLetter(translations.to) }}</p>
                     <input v-model="form.event_end" type="datetime-local" class="dialog__input dialog__input_medium" placeholder="Кол-во">
                 </div>
             </div>
@@ -262,24 +297,24 @@ onBeforeUnmount(revokePreview)
     </div>
     <div class="dialog__block">
         <div class="dialog__component medium">
-            <p class="dialog__title">Формат приза</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(translations.prize_format) }}</p>
             <select v-model="form.prize_type" class="main__cards_select dialog__select">
-                <option value="cash">Денежный приз</option>
-                <option value="non-cash">Призы</option>
+                <option value="cash">{{ capitalizeFirstLetter(translations.money_prize) }}</option>
+                <option value="non-cash">{{ capitalizeFirstLetter(translations.item_prize) }}</option>
             </select>
         </div>
         <div class="dialog__component medium">
-            <p class="dialog__title">Призовой фонд</p>
-            <input v-model="form.prize_pool" type="text" class="dialog__input" placeholder="Введите сумму или количество призов">
+            <p class="dialog__title">{{ capitalizeFirstLetter(translations.prize_fund) }}</p>
+            <input v-model="form.prize_pool" type="text" class="dialog__input" :placeholder="capitalizeFirstLetter(translations.enter_prize_hint)">
         </div>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">Превью карточки хакатона</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(translations.hackathon_card_preview) }}</p>
         <DropFile v-model:file="form.image_path"/>
     </div>
     <div class="dialog__btns">
-        <button class="main__btn main__btn_white" @click="cancel">Отменить</button>
-        <button class="main__btn" @click="save">Сохранить</button>
+        <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(translations.cansel) }}</button>
+        <button class="main__btn" @click="save">{{ capitalizeFirstLetter(translations.save) }}</button>
     </div>
 </template>
 

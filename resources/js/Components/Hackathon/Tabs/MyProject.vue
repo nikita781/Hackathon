@@ -7,6 +7,7 @@ const props = defineProps({
     positions : { type: Array,   default : () => [] },
     ownTeam : { type: Array,   default : () => [] },
     hackathon : { type: Array,   default : () => [] },
+    tabs: { type: Array,   default : () => [] },
 })
 
 const showInvitation = ref(false);
@@ -36,6 +37,7 @@ const showInvitation = ref(false);
                     <IconsPencilMyProject />
                 </button>
             </div>
+            <pre>{{props.ownTeam}}</pre>
             <div class="hackathon__my-project__list">
                 <div class="hackathon__my-project__list_item">
                     <div class="hackathon__my-project__list_container">

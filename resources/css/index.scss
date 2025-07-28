@@ -355,6 +355,9 @@ $x-big: 1829.98px;
             font-size: 16px;
             font-weight: 700;
             letter-spacing: 1px;
+            &::placeholder {
+                text-transform: uppercase;
+            }
             @media screen and (max-width: $small){
                 height: 29px;
                 font-size: 12px;

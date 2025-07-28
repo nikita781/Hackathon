@@ -1,8 +1,9 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import IconsArrow from '@/Components/Icons/Arrow.vue'
-import {computed, defineAsyncComponent, ref, watch} from "vue";
+import {computed, defineAsyncComponent, nextTick, onMounted, ref, watch} from "vue";
 import TakePart from "@/Components/Dialog/TakePart.vue";
+import { useToast } from 'vue-toastification';
 
 const props = defineProps({
     hackathon: Object,
@@ -11,8 +12,11 @@ const props = defineProps({
     team: Object,
     ownTeam: Object,
     positions: Array,
-    is_join: Boolean
+    is_join: Boolean,
+    flash: Object,
 })
+
+console.log(props.flash)
 
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
@@ -35,6 +39,34 @@ const availableTabs = computed(() => {
         {key: 'support', title: 'Техподдержка', blocked: false},
     ]
 })
+
+const toast = useToast();
+
+const showToast = () => {
+    if (props.flash?.error) {
+        toast.error(props.flash.error, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    } else if (props.flash?.status) {
+        toast.success(props.flash.status, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    }
+};
+
+watch(() => props.flash, (newFlash) => {
+    if (newFlash) {
+        showToast();
+    }
+});
+
+onMounted(() => {
+    nextTick(() => {
+        showToast();
+    });
+});
 
 const activeTab = ref(availableTabs.value[0]?.key ?? null)
 function openTab(tab) { if (!tab.blocked) activeTab.value = tab.key }
@@ -67,7 +99,6 @@ function formatDate(dateStr) {
 
 <template>
     <AuthenticatedLayout>
-<!--        <pre>{{props.ownTeam}}</pre>-->
         <div class="hackathon__header">
             <div class="hackathon__header_btn" @click="toggleHeader">
                 <h1 class="hackathon__title">{{props.hackathon.title}}</h1>
@@ -180,6 +211,7 @@ function formatDate(dateStr) {
                 :positions="props.positions"
                 :ownTeam="props.ownTeam"
                 :hackathon="props.hackathon"
+                :tabs="props.tabs"
             />
         </div>
     </AuthenticatedLayout>

@@ -1,5 +1,5 @@
 <script setup>
-import {defineAsyncComponent, reactive, ref} from 'vue'
+import {defineAsyncComponent, onMounted, reactive, ref} from 'vue'
 import ConfirmDialog from '@/Components/Dialog/ConfirmDialog.vue'
 import { useForm, router } from '@inertiajs/vue3'
 
@@ -28,7 +28,7 @@ const active = ref(0)
 const pendingTab     = ref(null)
 const showLeaveDlg   = ref(false)
 const hasUnsaved     = ref(false)
-const tabsRu = ['Основная информация','Обзор','Ресурсы','Правила','Контакты','Оценка','Награды']
+const tabsRu = ref(['Основная информация','Обзор','Ресурсы','Правила','Контакты','Оценка','Награды']);
 
 function onDirty (flag) { hasUnsaved.value = flag }
 
@@ -72,8 +72,37 @@ function onTabSaved({ slug }){
 
         tabs[0] = defineAsyncComponent(() => import('./Tab/MainInfoEdit.vue'))
     }
-    if (active.value < tabsRu.length-1) active.value++
+    if (active.value < tabsRu.value.length-1) active.value++
 }
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+const translations = ref({})
+
+const fetchTranslations = async (lang = 'ru') => {
+    try {
+        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
+        translations.value = response.data
+    } catch (error) {
+        console.error('Ошибка загрузки переводов:', error)
+    }
+}
+
+onMounted(async () => {
+    await fetchTranslations('ru')
+    tabsRu.value = [
+        capitalizeFirstLetter(translations.value.mainInfo),
+        capitalizeFirstLetter(translations.value.overview),
+        capitalizeFirstLetter(translations.value.resources),
+        capitalizeFirstLetter(translations.value.rules),
+        capitalizeFirstLetter(translations.value.contacts),
+        capitalizeFirstLetter(translations.value.evaluation),
+        capitalizeFirstLetter(translations.value.awards)
+    ];
+});
 </script>
 
 <template>
@@ -84,7 +113,7 @@ function onTabSaved({ slug }){
     >
         <div class="dialog__container" @click.stop>
             <div class="dialog__header">
-                <p>Создать хакатон</p>
+                <p>{{ capitalizeFirstLetter(translations.createHackathon) }}</p>
                 <div class="dialog__close" @click="$emit('update:modelValue',false)">
                     <svg width="13" height="12" viewBox="0 0 13 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path

@@ -218,8 +218,18 @@ $x-big: 1829.98px;
         border-radius: 8px;
         background-color: #f3f4f7;
         padding: 12px 16px;
-        outline: none;
         border: none;
+        &:focus {
+            outline: 1px solid #121212;
+        }
+        &.error {
+            background-color: #FEEFEC;
+            border: 1px solid #FF0000;
+            color: #FF0000;
+            &::placeholder {
+                color: #FF0000;
+            }
+        }
         @media screen and (max-width: $small){
             font-size: 14px;
         }

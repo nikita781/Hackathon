@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref, onBeforeUnmount, watch } from 'vue'
+import {reactive, ref, onBeforeUnmount, watch, onMounted} from 'vue'
 
 /** ===== props / emit ================================================== */
 defineProps({               // v-model:files
@@ -40,6 +40,26 @@ function onDrag(e)   { e.preventDefault(); dragging.value = (e.type==='dragenter
 
 /** ===== синхронизация извне (если нужно) ============================ */
 watch(() => items.length, n => { if (!n && inputEl.value) inputEl.value.value='' })
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+const translations = ref({})
+
+const fetchTranslations = async (lang = 'ru') => {
+    try {
+        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
+        translations.value = response.data
+    } catch (error) {
+        console.error('Ошибка загрузки переводов:', error)
+    }
+}
+
+onMounted(async () => {
+    await fetchTranslations('ru')
+});
 </script>
 
 <template>
@@ -62,7 +82,7 @@ watch(() => items.length, n => { if (!n && inputEl.value) inputEl.value.value=''
         />
 
         <template v-if="!items.length">
-            <p class="hint">Перетащите или выберите файлы<br>(JPG или PNG, 5 MB максимальный размер файла)</p>
+            <p class="hint">{{ capitalizeFirstLetter(translations.file_upload_hint) }}</p>
         </template>
 
         <!-- миниатюры -->

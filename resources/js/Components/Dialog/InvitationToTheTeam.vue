@@ -48,14 +48,15 @@ const removeUserField = (index) => {
 }
 
 const inviteUsers = async () => {
-    form.users = userIds.value
-    console.log(form.users)
     try {
-        await form.post(route('hackathons.teams.invite-by-id', {
-            hackathon: props.hackathon.slug,
-            team: props.ownTeam.id
-        }))
-        close()
+        await axios.post(
+            route('hackathons.teams.invite-by-id', {
+                hackathon: props.hackathon.slug,
+                team     : props.ownTeam.id,
+            }),
+            { users: userIds.value }      // тело запроса
+        )
+        close()                         // закрываем модалку после успеха
     } catch (error) {
         console.error(error)
     }

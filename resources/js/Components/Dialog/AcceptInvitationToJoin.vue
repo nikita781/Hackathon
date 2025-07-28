@@ -5,6 +5,7 @@ import {computed, ref} from "vue";
 
 const props = defineProps({
     modelValue : Boolean,
+    url : String,
 })
 const emit = defineEmits([
     'update:modelValue',
@@ -17,6 +18,12 @@ const pending = ref(false)
 const disabled = computed(() => !agree.value || pending.value)
 
 function toggleAgree () { agree.value = !agree.value }
+
+function acceptInvite() {
+    if (agree.value && props.url) {
+        window.location.href = props.url;
+    }
+}
 </script>
 
 <template>
@@ -59,6 +66,7 @@ function toggleAgree () { agree.value = !agree.value }
                     class="main__btn dialog__btn"
                     :class="{ blocked: disabled }"
                     :disabled="disabled"
+                    @click="acceptInvite"
                 >
                     Принять приглашение
                 </button>

@@ -6,6 +6,7 @@
 @import './hackathon.scss';
 @import './profile.scss';
 @import './notification.scss';
+@import './error.scss';
 
 /*@tailwind base;*/
 /*@tailwind components;*/

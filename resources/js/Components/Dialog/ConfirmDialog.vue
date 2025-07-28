@@ -1,4 +1,6 @@
 <script setup>
+import {onMounted, ref} from "vue";
+
 const props = defineProps({
     modelValue : Boolean,
     text       : { type:String, default:'Вы уверены?' }
@@ -8,6 +10,26 @@ const emit = defineEmits(['update:modelValue','confirm','cancel'])
 const close = () => emit('update:modelValue', false)
 const doConfirm = () => { emit('confirm'); close() }
 const doCancel  = () => { emit('cancel');  close() }
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+const translations = ref({})
+
+const fetchTranslations = async (lang = 'ru') => {
+    try {
+        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
+        translations.value = response.data
+    } catch (error) {
+        console.error('Ошибка загрузки переводов:', error)
+    }
+}
+
+onMounted(async () => {
+    await fetchTranslations('ru')
+});
 </script>
 
 <template>
@@ -19,7 +41,7 @@ const doCancel  = () => { emit('cancel');  close() }
                     Отмена
                 </button>
                 <button class="main__btn dialog__btn" @click="doConfirm">
-                    Подтвердить
+                    {{ capitalizeFirstLetter(translations.confirm) }}
                 </button>
             </div>
         </div>

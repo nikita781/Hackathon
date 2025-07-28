@@ -1,5 +1,17 @@
 <script setup>
+import {onMounted, ref} from "vue";
+import {useLangStore} from "@/store/lang.js";
 
+const langStore = useLangStore()
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
 </script>
 
 <template>
@@ -7,7 +19,7 @@
         <div class="footer__container">
             <div class="footer__header">
                 <div class="footer__header_info">
-                    <p class="footer__header_title">Политика конфиденциальности</p>
+                    <p class="footer__header_title">{{capitalizeFirstLetter(langStore.translations.privacy_policy)}}</p>
                     <p class="footer__header_text">ООО «ЦТБ» ИНН 9723191459</p>
                 </div>
                 <div class="footer__header_logo">
@@ -43,7 +55,7 @@
                     <img src="/logo.png" alt="Logo" class="footer__logo" />
                 </div>
             </div>
-            <p class="footer__header_text">© 2023-2025 г. Сайт не является публичной офертой и носит информационный характер. Все материалы данного сайта являются объектами авторского права (в том числе дизайн). Запрещается копирование, распространение (в том числе путем копирования на другие сайты и ресурсы в Интернете) или любое иное использование информации и объектов без предварительного согласия правообладателя.</p>
+            <p class="footer__header_text">{{langStore.translations.copyright_notice}}</p>
         </div>
     </footer>
 </template>
