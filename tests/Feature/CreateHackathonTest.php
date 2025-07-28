@@ -45,7 +45,7 @@ class CreateHackathonTest extends TestCase
             'event_end' => $eventEnd,
             'prize_type' => 'cash',
             'prize_pool' => 10000,
-            'is_published' => false,
+            'status' => Hackathon::STATUS_DRAFT,
             'tags' => $tags->pluck('id')->toArray(),
         ]);
 
@@ -58,7 +58,7 @@ class CreateHackathonTest extends TestCase
             'min_team_size' => 2,
             'max_team_size' => 5,
             'prize_pool' => 10000,
-            'is_published' => false,
+            'status' => Hackathon::STATUS_DRAFT,
         ]);
 
         $hackathon = Hackathon::where('title', 'Test Hackathon')->firstOrFail();

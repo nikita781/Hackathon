@@ -25,7 +25,7 @@ class TeamInviteTest extends TestCase
         $org->assignedRole(Role::ORGANIZER);
         $user = User::factory()->create();
         $user->assignedRole(Role::MEMBER);
-        $hackathon = Hackathon::factory()->create(['is_published' => true, 'max_team_size' => 2]);
+        $hackathon = Hackathon::factory()->create(['status' => Hackathon::STATUS_PUBLISHED, 'max_team_size' => 2]);
         $this->actingAs($user);
 
         $response = $this->postJson(route('hackathons.join', $hackathon));

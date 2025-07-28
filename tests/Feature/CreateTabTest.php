@@ -34,7 +34,7 @@ class CreateTabTest extends TestCase
 
         $user = User::factory()->create();
         $user->assignedRole(Role::ORGANIZER);
-        $h = Hackathon::factory()->create(['is_published' => false, 'user_id' => $user->id]);
+        $h = Hackathon::factory()->create(['status' => Hackathon::STATUS_DRAFT, 'user_id' => $user->id]);
 
         foreach (Tab::defaultStructure() as $tabTitle => $sections) {
             $tab = Tab::factory()->create(['title' => $tabTitle, 'hackathon_id' => $h->id]);
@@ -186,7 +186,7 @@ class CreateTabTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignedRole(Role::ORGANIZER);
-        $h = Hackathon::factory()->create(['is_published' => false, 'user_id' => $user->id]);
+        $h = Hackathon::factory()->create(['status' => Hackathon::STATUS_DRAFT, 'user_id' => $user->id]);
 
         foreach (Tab::defaultStructure() as $tabTitle => $sections) {
             $tab = Tab::factory()->create(['title' => $tabTitle, 'hackathon_id' => $h->id]);
@@ -216,7 +216,7 @@ class CreateTabTest extends TestCase
         $org = User::factory()->create(['id' => 3]);
         $user->assignedRole(Role::ORGANIZER);
         $org->assignedRole(Role::ORGANIZER);
-        $h = Hackathon::factory()->create(['is_published' => false]);
+        $h = Hackathon::factory()->create(['status' => Hackathon::STATUS_DRAFT]);
 
         foreach (Tab::defaultStructure() as $tabTitle => $sections) {
             $tab = Tab::factory()->create(['title' => $tabTitle, 'hackathon_id' => $h->id]);

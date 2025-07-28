@@ -39,7 +39,6 @@ class HackathonUpdateRequest extends FormRequest
             'work_time_end' => ['nullable', 'date'],
             'evaluation_start' => ['nullable', 'date'],
             'evaluation_end' => ['nullable', 'date'],
-            'is_published' => ['boolean'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
         ];

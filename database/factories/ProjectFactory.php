@@ -23,7 +23,7 @@ class ProjectFactory extends Factory
             'project_link' => $this->faker->word(),
 //            'presentation_path' => 'test/file.pdf',
             'video_link' => $this->faker->word(),
-            'is_published' => $this->faker->boolean(),
+            'status' => $this->faker->randomElement(Project::PROJECT_STATUS),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ];
