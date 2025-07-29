@@ -1,5 +1,5 @@
 <script setup>
-import {defineAsyncComponent, onMounted, reactive, ref} from 'vue'
+import {defineAsyncComponent, onMounted, reactive, ref, watch} from 'vue'
 import ConfirmDialog from '@/Components/Dialog/ConfirmDialog.vue'
 import { useForm, router } from '@inertiajs/vue3'
 
@@ -9,11 +9,14 @@ import RulesTab         from './Tab/Rules.vue'
 import ContactsTab      from './Tab/Contacts.vue'
 import EvaluationTab    from './Tab/Evaluation.vue'
 import AwardTab         from './Tab/Award.vue'
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     modelValue : Boolean,
     tags       : { type:Array, default:() => [] }
 })
+
+const langStore = useLangStore()
 
 const draft      = reactive({ slug:null })
 const created    = ref(false)
@@ -80,27 +83,30 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-const translations = ref({})
-
-const fetchTranslations = async (lang = 'ru') => {
-    try {
-        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
-        translations.value = response.data
-    } catch (error) {
-        console.error('Ошибка загрузки переводов:', error)
+watch(() => langStore.translations,
+    () => {
+        tabsRu.value = [
+            capitalizeFirstLetter(langStore.translations.mainInfo),
+            capitalizeFirstLetter(langStore.translations.overview),
+            capitalizeFirstLetter(langStore.translations.resources),
+            capitalizeFirstLetter(langStore.translations.rules),
+            capitalizeFirstLetter(langStore.translations.contacts),
+            capitalizeFirstLetter(langStore.translations.evaluation),
+            capitalizeFirstLetter(langStore.translations.awards)
+        ];
     }
-}
+)
 
 onMounted(async () => {
-    await fetchTranslations('ru')
+    await langStore.fetchTranslations()
     tabsRu.value = [
-        capitalizeFirstLetter(translations.value.mainInfo),
-        capitalizeFirstLetter(translations.value.overview),
-        capitalizeFirstLetter(translations.value.resources),
-        capitalizeFirstLetter(translations.value.rules),
-        capitalizeFirstLetter(translations.value.contacts),
-        capitalizeFirstLetter(translations.value.evaluation),
-        capitalizeFirstLetter(translations.value.awards)
+        capitalizeFirstLetter(langStore.translations.mainInfo),
+        capitalizeFirstLetter(langStore.translations.overview),
+        capitalizeFirstLetter(langStore.translations.resources),
+        capitalizeFirstLetter(langStore.translations.rules),
+        capitalizeFirstLetter(langStore.translations.contacts),
+        capitalizeFirstLetter(langStore.translations.evaluation),
+        capitalizeFirstLetter(langStore.translations.awards)
     ];
 });
 </script>
@@ -113,7 +119,7 @@ onMounted(async () => {
     >
         <div class="dialog__container" @click.stop>
             <div class="dialog__header">
-                <p>{{ capitalizeFirstLetter(translations.createHackathon) }}</p>
+                <p>{{ capitalizeFirstLetter(langStore.translations.createHackathon) }}</p>
                 <div class="dialog__close" @click="$emit('update:modelValue',false)">
                     <svg width="13" height="12" viewBox="0 0 13 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path

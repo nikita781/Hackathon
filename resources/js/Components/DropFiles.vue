@@ -1,5 +1,6 @@
 <script setup>
 import {reactive, ref, onBeforeUnmount, watch, onMounted} from 'vue'
+import {useLangStore} from "@/store/lang.js";
 
 /** ===== props / emit ================================================== */
 defineProps({               // v-model:files
@@ -10,6 +11,7 @@ const emit = defineEmits(['update:files'])
 /** ===== локальное состояние ========================================== */
 const dragging = ref(false)               // подсветка «рамки»
 const inputEl  = ref(null)
+const langStore = useLangStore()
 
 /* список { file, url }  */
 const items = reactive([])
@@ -46,19 +48,8 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-const translations = ref({})
-
-const fetchTranslations = async (lang = 'ru') => {
-    try {
-        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
-        translations.value = response.data
-    } catch (error) {
-        console.error('Ошибка загрузки переводов:', error)
-    }
-}
-
 onMounted(async () => {
-    await fetchTranslations('ru')
+    await langStore.fetchTranslations()
 });
 </script>
 
@@ -82,7 +73,7 @@ onMounted(async () => {
         />
 
         <template v-if="!items.length">
-            <p class="hint">{{ capitalizeFirstLetter(translations.file_upload_hint) }}</p>
+            <p class="hint">{{ capitalizeFirstLetter(langStore.translations.file_upload_hint) }}</p>
         </template>
 
         <!-- миниатюры -->

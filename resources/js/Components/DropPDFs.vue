@@ -1,6 +1,7 @@
 <!--  DropPDFs.vue  -->
 <script setup>
-import { reactive, ref, onBeforeUnmount, watch } from 'vue'
+import {reactive, ref, onBeforeUnmount, watch, onMounted} from 'vue'
+import {useLangStore} from "@/store/lang.js";
 
 /* ===== v-model ======================================================== */
 defineProps({
@@ -8,6 +9,8 @@ defineProps({
     modelValue: { type: Array, default: () => [] }
 })
 const emit = defineEmits(['update:files'])
+
+const langStore = useLangStore()
 
 /* ===== локальное состояние =========================================== */
 const dragging = ref(false)
@@ -46,6 +49,10 @@ function onDrag(e)   {
 
 /* сбрасываем <input> когда удалили всё */
 watch(() => items.length, n => { if (!n && inputEl.value) inputEl.value.value = '' })
+
+onMounted(async ()=>{
+    await langStore.fetchTranslations()
+})
 </script>
 
 <template>

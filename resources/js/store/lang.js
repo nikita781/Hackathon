@@ -17,18 +17,14 @@ const localeMap = {
 
 export const useLangStore = defineStore('lang', () => {
     const translations = ref({})
-    const currentLanguage = ref('ru')
+    const currentLanguage = ref(localStorage.getItem('language') || 'ru');
 
-    const fetchTranslations = async (lang = 'ru') => {
-        try {
-            const response = await axios.get(`${BASE_URL}/lang/${lang}.json`)
-            translations.value = response.data
-            currentLanguage.value = lang
-        } catch (error) {
-            console.error('Ошибка загрузки переводов:', error)
-        }
+    async function fetchTranslations (lang = currentLanguage.value) {
+        const { data } = await axios.get(`${BASE_URL}/lang/${lang}.json`)
+        translations.value     = data
+        currentLanguage.value  = lang
+        localStorage.setItem('language', lang)
     }
-
     async function switchLanguage(langShort = 'en') {
         try {
             const locale = localeMap[langShort] ?? langShort

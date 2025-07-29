@@ -4,6 +4,7 @@ import CreateEvaluation from '@/Components/Dialog/CreateEvaluation.vue'
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import IconsPencil from "@/Components/Icons/Pencil.vue";
 import {router} from "@inertiajs/vue3";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
@@ -11,6 +12,8 @@ const props = defineProps({
     allTags  : { type:Array, default:() => [] }
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const langStore = useLangStore()
 
 const loaded = ref(false)
 const dirty = ref(false)
@@ -97,28 +100,37 @@ const reset = () => {
 function cancel () { reset(); emit('cancel') }
 
 defineExpose({ save })
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+})
 </script>
 
 <template>
     <div class="dialog__component">
-        <p class="dialog__title">Время проверки</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.reviewTime) }}</p>
         <div class="dialog__horizontal">
             <div class="dialog__info" style="width: 100%">
-                <p class="dialog__title">От</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
                 <input type="datetime-local" v-model="evaluationStart" class="dialog__input" placeholder="Кол-во" style="width: 100%">
             </div>
             <div class="dialog__info" style="width: 100%">
-                <p class="dialog__title">До</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
                 <input type="datetime-local" v-model="evaluationEnd" class="dialog__input" placeholder="Кол-во" style="width: 100%">
             </div>
         </div>
     </div>
     <div class="dialog__prize">
         <div class="dialog__title_header">
-            <p class="dialog__title">Критерии оценки</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.evaluationCriteria) }}</p>
             <div class="dialog__plus" @click="openAdd">
                 <svg width="17" height="16" viewBox="0 0 17 16"><path d="M13.17 7.33H9.17V3.33a.67.67 0 0 0-1.34 0v4H3.83a.67.67 0 0 0 0 1.34h4v4a.67.67 0 0 0 1.34 0v-4h4a.67.67 0 0 0 0-1.34Z" fill="#E80024"/></svg>
-                <p>Добавить ещё</p>
+                <p>{{ capitalizeFirstLetter(langStore.translations.addMore) }}</p>
             </div>
         </div>
         <div class="dialog__prize" v-for="(grp,idx) in groups" :key="idx">
@@ -146,8 +158,8 @@ defineExpose({ save })
         @saved="onSaved"
     />
     <div class="dialog__btns">
-        <button class="main__btn main__btn_white" @click="cancel">Отменить</button>
-        <button class="main__btn" @click="save">Сохранить</button>
+        <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
+        <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>
 </template>
 

@@ -1,11 +1,14 @@
 <script setup>
-import { reactive, watch, toRaw } from 'vue'
+import {reactive, watch, toRaw, onMounted} from 'vue'
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     modelValue : Boolean,
     initial    : { type:Object, default:null }
 })
 const emit = defineEmits(['update:modelValue','add','update'])
+
+const langStore = useLangStore()
 
 const empty = { title:'', value:'' }
 const form  = reactive({ ...empty })
@@ -24,6 +27,15 @@ function submit(){
     Object.assign(form, empty)
     close()
 }
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted( async () => {
+    await langStore.fetchTranslations()
+})
 </script>
 
 <template>
@@ -40,19 +52,19 @@ function submit(){
             </div>
 
             <div class="dialog__component">
-                <p class="dialog__title">Название</p>
-                <input v-model="form.title" class="dialog__input" placeholder="Введите название контакта" />
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.contactTitle) }}</p>
+                <input v-model="form.title" class="dialog__input" :placeholder="capitalizeFirstLetter(langStore.translations.enterContactTitle)" />
             </div>
 
             <div class="dialog__component">
-                <p class="dialog__title">Контактная информация</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.contactInfo) }}</p>
                 <input v-model="form.value" class="dialog__input"
-                       placeholder="Введите номер телефона или ссылку" />
+                       :placeholder="capitalizeFirstLetter(langStore.translations.enterContactInfo)" />
             </div>
 
             <div class="dialog__btns">
                 <button class="main__btn main__btn_white dialog__btn" @click="close">
-                    Отменить
+                    {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                 </button>
                 <button class="main__btn dialog__btn" @click="submit">
                     {{ props.initial ? 'Изменить' : 'Добавить' }}

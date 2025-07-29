@@ -1,5 +1,6 @@
 <script setup>
 import {onMounted, ref} from "vue";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     modelValue : Boolean,
@@ -16,19 +17,10 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-const translations = ref({})
-
-const fetchTranslations = async (lang = 'ru') => {
-    try {
-        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
-        translations.value = response.data
-    } catch (error) {
-        console.error('Ошибка загрузки переводов:', error)
-    }
-}
+const langStore = useLangStore()
 
 onMounted(async () => {
-    await fetchTranslations('ru')
+    await langStore.fetchTranslations()
 });
 </script>
 
@@ -38,10 +30,10 @@ onMounted(async () => {
             <p style="font-size:20px;margin-bottom:20px">{{ text }}</p>
             <div class="dialog__btns" style="justify-content:center">
                 <button class="main__btn main__btn_white dialog__btn" @click="doCancel">
-                    Отмена
+                    {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                 </button>
                 <button class="main__btn dialog__btn" @click="doConfirm">
-                    {{ capitalizeFirstLetter(translations.confirm) }}
+                    {{ capitalizeFirstLetter(langStore.translations.confirm) }}
                 </button>
             </div>
         </div>

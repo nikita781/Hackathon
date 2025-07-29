@@ -50,6 +50,13 @@ function go(pageUrl) {
     router.get(pageUrl, {}, { preserveState: true, preserveScroll: true, replace: true });
     markNotificationsAsRead();
 }
+
+const currentUrl = ref("");
+
+function openModal(url) {
+    currentUrl.value = url;
+    showAcceptInvitationToJoin.value = true;
+}
 </script>
 
 <template>
@@ -74,18 +81,18 @@ function go(pageUrl) {
                                 type="button"
                                 class="main__btn dialog__btn notification__btn"
                                 style="max-width: fit-content"
-                                @click="showAcceptInvitationToJoin = true"
-                                :class="{ blocked: n.data.is_active }"
-                                :disabled="false"
+                                @click="openModal(n.data.url)"
+                                :class="{ blocked: !n.data.is_active }"
+                                :disabled="!n.data.is_active"
                             >
-                                {{ n.data.is_active ? 'Приглашение принято' : 'Подтвердить' }}
+                                {{ !n.data.is_active ? 'Приглашение принято' : 'Подтвердить' }}
                             </button>
                         </div>
                         <p class="profile__tabs_awards_item_date">Отправлено {{ formatDate(n.created_at) }}</p>
                     </div>
                     <AcceptInvitationToJoin
                         v-model="showAcceptInvitationToJoin"
-                        :url="n.data.url"
+                        :url="currentUrl"
                     />
                 </div>
             </div>

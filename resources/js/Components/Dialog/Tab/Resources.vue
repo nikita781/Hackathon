@@ -3,6 +3,7 @@ import EditorField from "@/Components/EditorField.vue";
 import {onMounted, ref, watch} from "vue";
 import DropPDFs from "@/Components/DropPDFs.vue";
 import {router, useForm} from "@inertiajs/vue3";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
@@ -10,6 +11,8 @@ const props = defineProps({
     allTags  : { type:Array, default:() => [] }
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const langStore = useLangStore()
 
 const dirty = ref(false)
 
@@ -87,34 +90,23 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-const translations = ref({})
-
-const fetchTranslations = async (lang = 'ru') => {
-    try {
-        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
-        translations.value = response.data
-    } catch (error) {
-        console.error('Ошибка загрузки переводов:', error)
-    }
-}
-
 onMounted(async () => {
-    await fetchTranslations('ru')
+    await langStore.fetchTranslations()
 });
 </script>
 
 <template>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter() }}</p>
-        <EditorField v-model="description" placeholder="Введите описание"/>
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.resources) }}</p>
+        <EditorField v-model="description" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">Файлы</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.files) }}</p>
         <DropPDFs v-model:files="resourcesFiles" />
     </div>
     <div class="dialog__btns">
-        <button class="main__btn main__btn_white" @click="cancel">Отменить</button>
-        <button class="main__btn" @click="save">Сохранить</button>
+        <button class="main__btn main__btn_white" @click="cancel">{{ langStore.translations.cansel }}</button>
+        <button class="main__btn" @click="save">{{ langStore.translations.save }}</button>
     </div>
 </template>
 

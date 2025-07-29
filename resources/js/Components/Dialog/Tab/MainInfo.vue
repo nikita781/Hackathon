@@ -3,12 +3,15 @@ import DropFile from '../../DropFile.vue';
 import {onMounted, ref, toRaw, watch} from "vue";
 import { useForm, router } from '@inertiajs/vue3'
 import logs from "../../../../../vendor/laravel/telescope/resources/js/screens/logs/index.vue";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     draft    : Object,
     allTags  : { type:Array, default:() => [] }
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const langStore = useLangStore()
 
 const form = useForm({
     title            : '',
@@ -145,30 +148,19 @@ function clearFieldError(field) {
     form.clearErrors(field)
 }
 
-const translations = ref({})
-
-const fetchTranslations = async (lang = 'ru') => {
-    try {
-        const response = await axios.get(`http://127.0.0.1:8000/lang/${lang}.json`)
-        translations.value = response.data
-    } catch (error) {
-        console.error('Ошибка загрузки переводов:', error)
-    }
-}
-
 onMounted(async () => {
-    await fetchTranslations('ru')
+    await langStore.fetchTranslations()
 });
 </script>
 
 <template>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(translations.hackathon_title) }}</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_title) }}</p>
         <input
             v-model="form.title"
             type="text"
             class="dialog__input"
-            :placeholder="capitalizeFirstLetter(translations.enter_title)"
+            :placeholder="capitalizeFirstLetter(langStore.translations.enter_title)"
             :class="{ 'error': form.errors.title }"
             @input="clearFieldError('title')"
         >
@@ -176,41 +168,41 @@ onMounted(async () => {
     </div>
     <div class="dialog__block">
         <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
-            <p class="dialog__title">{{ capitalizeFirstLetter(translations.hackathon_format) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_format) }}</p>
             <select class="main__cards_select dialog__select" v-model="form.format">
-                <option value="online">{{ capitalizeFirstLetter(translations.online) }}</option>
-                <option value="offline">{{ capitalizeFirstLetter(translations.offline) }}</option>
-                <option value="hybrid">{{ capitalizeFirstLetter(translations.hybrid) }}</option>
+                <option value="online">{{ capitalizeFirstLetter(langStore.translations.online) }}</option>
+                <option value="offline">{{ capitalizeFirstLetter(langStore.translations.offline) }}</option>
+                <option value="hybrid">{{ capitalizeFirstLetter(langStore.translations.hybrid) }}</option>
             </select>
         </div>
         <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
-            <p class="dialog__title">{{ capitalizeFirstLetter(translations.participation_type) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.participation_type) }}</p>
             <select v-model="form.type" class="main__cards_select dialog__select">
-                <option value="team">{{ capitalizeFirstLetter(translations.team_type) }}</option>
-                <option value="individual">{{ capitalizeFirstLetter(translations.individual_type) }}</option>
+                <option value="team">{{ capitalizeFirstLetter(langStore.translations.team_type) }}</option>
+                <option value="individual">{{ capitalizeFirstLetter(langStore.translations.individual_type) }}</option>
             </select>
         </div>
         <div v-if="form.type === 'team'" class="dialog__component">
-            <p class="dialog__title">{{ capitalizeFirstLetter(translations.team_size) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.team_size) }}</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
-                    <p class="dialog__title">{{ capitalizeFirstLetter(translations.from) }}</p>
+                    <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
                     <input
                         v-model.number="form.min_team_size"
                         type="number"
                         class="dialog__input dialog__input_short"
-                        :placeholder="capitalizeFirstLetter(translations.amount)"
+                        :placeholder="capitalizeFirstLetter(langStore.translations.amount)"
                         :class="{ 'error': form.errors.min_team_size }"
                         @input="clearFieldError('min_team_size')"
                     >
                 </div>
                 <div class="dialog__info">
-                    <p class="dialog__title">{{ capitalizeFirstLetter(translations.to) }}</p>
+                    <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
                     <input
                         v-model.number="form.max_team_size"
                         type="number"
                         class="dialog__input dialog__input_short"
-                        :placeholder="capitalizeFirstLetter(translations.amount)"
+                        :placeholder="capitalizeFirstLetter(langStore.translations.amount)"
                         :class="{ 'error': form.errors.max_team_size }"
                         @input="clearFieldError('max_team_size')"
                     >
@@ -225,7 +217,7 @@ onMounted(async () => {
         </div>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(translations.categories_plural) }}</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.categories_plural) }}</p>
         <div class="custom-container">
             <div class="custom-select" @click="toggleDropdownVisibility">
                 <div class="selected-option">
@@ -259,7 +251,7 @@ onMounted(async () => {
     </div>
     <div class="dialog__block">
         <div class="dialog__component medium">
-            <p class="dialog__title">{{ capitalizeFirstLetter(translations.registration_deadline) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.registration_deadline) }}</p>
             <input
                 v-model="form.registration_end"
                 type="datetime-local"
@@ -271,10 +263,10 @@ onMounted(async () => {
             <small v-if="form.errors.registration_end" class="error__text">{{ form.errors.registration_end }}</small>
         </div>
         <div class="dialog__component large">
-            <p class="dialog__title">{{ capitalizeFirstLetter(translations.event_date) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.event_date) }}</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
-                    <p class="dialog__title">{{ capitalizeFirstLetter(translations.from) }}</p>
+                    <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
                     <input
                         v-model="form.event_start"
                         type="datetime-local"
@@ -285,7 +277,7 @@ onMounted(async () => {
                     >
                 </div>
                 <div class="dialog__info">
-                    <p class="dialog__title">{{ capitalizeFirstLetter(translations.to) }}</p>
+                    <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
                     <input
                         v-model="form.event_end"
                         type="datetime-local"
@@ -306,18 +298,18 @@ onMounted(async () => {
     </div>
     <div class="dialog__block">
         <div class="dialog__component medium">
-            <p class="dialog__title">{{ capitalizeFirstLetter(translations.prize_format) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.prize_format) }}</p>
             <select v-model="form.prize_type" class="main__cards_select dialog__select">
-                <option value="cash">{{ capitalizeFirstLetter(translations.money_prize) }}</option>
-                <option value="non-cash">{{ capitalizeFirstLetter(translations.item_prize) }}</option>
+                <option value="cash">{{ capitalizeFirstLetter(langStore.translations.money_prize) }}</option>
+                <option value="non-cash">{{ capitalizeFirstLetter(langStore.translations.item_prize) }}</option>
             </select>
         </div>
         <div class="dialog__component medium">
-            <p class="dialog__title">{{ capitalizeFirstLetter(translations.prize_fund) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.prize_fund) }}</p>
             <input
                 v-model="form.prize_pool"
                 type="text" class="dialog__input"
-                :placeholder="capitalizeFirstLetter(translations.enter_prize_hint)"
+                :placeholder="capitalizeFirstLetter(langStore.translations.enter_prize_hint)"
                 :class="{ 'error': form.errors.prize_pool }"
                 @input="clearFieldError('prize_pool')"
             >
@@ -325,13 +317,13 @@ onMounted(async () => {
         </div>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(translations.hackathon_card_preview) }}</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_card_preview) }}</p>
         <DropFile v-model:file="form.image_path" />
         <small v-if="form.errors.image_path" class="error__text">{{ form.errors.image_path }}</small>
     </div>
     <div class="dialog__btns">
-        <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(translations.cansel) }}</button>
-        <button class="main__btn" @click="save">{{ capitalizeFirstLetter(translations.save) }}</button>
+        <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
+        <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>
 </template>
 

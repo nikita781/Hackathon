@@ -8,6 +8,7 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createPinia } from 'pinia'
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
+import { useLangStore } from '@/store/lang'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -15,12 +16,18 @@ createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
-        return createApp({ render: () => h(App, props) })
+        const pinia = createPinia()
+
+        const vue = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
             .use(Toast)
-            .use(createPinia())
-            .mount(el);
+            .use(pinia)
+
+        const lang = useLangStore(pinia)
+        lang.fetchTranslations(localStorage.getItem('language') || 'ru')
+
+        vue.mount(el)
     },
     progress: {
         color: '#4B5563',

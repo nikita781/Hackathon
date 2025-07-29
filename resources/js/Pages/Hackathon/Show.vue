@@ -82,8 +82,8 @@ const showTakePart  = ref(false)
 
 watch(() => props.is_join, v => (joined.value = v))
 
-function onJoined () { joined.value = true  }
-function onLeft   () { joined.value = false }
+function onJoined () { joined.value = true; window.location.reload();  }
+function onLeft   () { joined.value = false; window.location.reload(); }
 function toggleHeader() {
     isOpen.value = !isOpen.value
 }

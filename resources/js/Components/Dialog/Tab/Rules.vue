@@ -1,8 +1,9 @@
 <script setup>
 import EditorField from "@/Components/EditorField.vue";
-import {ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 import DropPDFs from "@/Components/DropPDFs.vue";
 import {router, useForm} from "@inertiajs/vue3";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
@@ -10,6 +11,8 @@ const props = defineProps({
     allTags  : { type:Array, default:() => [] }
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const langStore = useLangStore()
 
 const dirty = ref(false)
 
@@ -77,20 +80,29 @@ function cancel () {
     resetState()
     emit('cancel')
 }
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+})
 </script>
 
 <template>
     <div class="dialog__component">
-        <p class="dialog__title">Правила</p>
-        <EditorField v-model="rulesText" placeholder="Введите описание"/>
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rules) }}</p>
+        <EditorField v-model="rulesText" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">Файлы</p>
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.files) }}</p>
         <DropPDFs v-model:files="rulesFiles" />
     </div>
     <div class="dialog__btns">
-        <button class="main__btn main__btn_white" @click="cancel">Отменить</button>
-        <button class="main__btn" @click="save">Сохранить</button>
+        <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
+        <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>
 </template>
 
