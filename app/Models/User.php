@@ -178,4 +178,9 @@ class User extends Authenticatable
             ->withPivot('team_id')
             ->withTimestamps();
     }
+
+    public function support(): HasMany
+    {
+        return $this->hasMany(Support::class);
+    }
 }

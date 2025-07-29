@@ -9,6 +9,7 @@ use App\Http\Controllers\NominationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\SupportsController;
 use App\Http\Controllers\TabController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
@@ -99,13 +100,16 @@ Route::middleware('auth')->group(function () {
                     });
                 });
             });
-            Route::prefix('/projects/{project}')->name('projects.')->group(function () {
-                Route::patch('/', [ProjectsController::class, 'update'])->name('update');
-                Route::delete('/', [ProjectsController::class, 'destroy'])->name('destroy');
+            Route::prefix('/projects')->name('projects.')->group(function () {
+                Route::get('/', [ProjectsController::class, 'index'])->name('index');
+                Route::prefix('/{project}}')->group(function () {
+                    Route::patch('/', [ProjectsController::class, 'update'])->name('update');
+                    Route::delete('/', [ProjectsController::class, 'destroy'])->name('destroy');
+                });
             });
 
-            Route::prefix('/projects')->name('projects.')->group(function () {
-                Route::get('/all', [ProjectsController::class, 'index'])->name('index');
+            Route::prefix('/support')->name('support.')->group(function () {
+                Route::get('/', [SupportsController::class, 'index'])->name('index');
             });
         });
     });
