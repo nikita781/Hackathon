@@ -31,16 +31,29 @@ const closeConfirmDialog = () => {
 };
 
 const removeUser = async () => {
-    if (userToRemove.value !== null) {
-        try {
-            await axios.delete(route('teams.kick', { team: props.team.id, userId: userToRemove.value }));
-            props.team.users = props.team.users.filter(user => user.user.id !== userToRemove.value);
-            closeConfirmDialog();
-        } catch (error) {
-            console.error("Ошибка при удалении пользователя", error);
-        }
+    if (!userToRemove.value) return
+
+    const url = route('hackathons.teams.kick', [
+        props.hackathon.slug,
+        props.team.id
+    ])
+
+    console.log('DELETE to:', url)
+
+    try {
+        await axios.delete(url, {
+            data: { members: [userToRemove.value] },
+            headers: { 'Content-Type': 'application/json' }
+        })
+
+        props.team.users = props.team.users.filter(
+            u => u.user.id !== userToRemove.value
+        )
+        closeConfirmDialog()
+    } catch (err) {
+        console.error('Ошибка при удалении пользователя', err)
     }
-};
+}
 
 
 const saveChanges = async () => {
