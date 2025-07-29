@@ -11,8 +11,8 @@ class UpdateTeamRequest extends FormRequest
         return [
             'title' => ['required', 'max:255'],
             'members' => ['required','array'],
-            'members.*.member_id' => ['required_with:members', 'exists:team_user.user_id'],
-            'members.*.position_id' => ['required_with:members', 'exists:team_user.position_id'],
+            'members.*.member_id' => ['required_with:members', 'exists:users,id'],
+            'members.*.position_id' => ['required_with:members', 'exists:positions,id'],
         ];
     }
 

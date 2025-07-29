@@ -42,7 +42,7 @@ class TeamController extends Controller
         $data = $request->validated();
 
         foreach ($data['members'] as $member) {
-            if ($team->users->contains('user_id', $member['member_id'])) {
+            if ($team->users->contains('id', $member['member_id'])) {
                 $team->users()->updateExistingPivot($member['member_id'], [
                     'position_id' => $member['position_id'],
                 ]);
