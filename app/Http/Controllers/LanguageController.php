@@ -11,7 +11,7 @@ class LanguageController extends Controller
 {
     public function switchLang($locale): RedirectResponse
     {
-        if (!in_array($locale, ['en_US', 'ru_RU', 'es', 'zh_CH', 'fr_FR', 'de_DE', 'pt_PT'])) {
+        if (!in_array($locale, ['en_US', 'ru_RU', 'es', 'zh_CN', 'fr_FR', 'de_DE', 'pt_PT'])) {
             abort(400);
         }
 
@@ -24,6 +24,9 @@ class LanguageController extends Controller
 
     public function json(string $locale): BinaryFileResponse
     {
+        if (!in_array($locale, ['en', 'ru', 'es', 'zh_CN', 'fr', 'de', 'pt'])) {
+            abort(400);
+        }
         return response()->file(lang_path("$locale.json"));
     }
 }
