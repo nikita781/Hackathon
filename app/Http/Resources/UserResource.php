@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Position;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,8 +21,7 @@ class UserResource extends JsonResource
             'remember_token' => $this->remember_token,
 
             'hackathons' => HackathonResource::collection($this->whenLoaded('hackathons')),
-//            'position' => new PositionResource(optional($this->pivot)->position),
-
+            'position' => new RoleResource(Role::find($this->pivot?->role_id)),
         ];
     }
 }

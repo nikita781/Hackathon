@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
 {
@@ -15,6 +13,9 @@ class Role extends Model
     public const JUDGE = 4;
     public const MENTOR = 5;
     public const MEMBER = 6;
+
+    public const STAFF_WITH_ORGANIZER = [self::SUPER_ADMIN, self::ADMIN, self::ORGANIZER, self::JUDGE, self::MENTOR];
+    public const STAFF = [self::SUPER_ADMIN, self::ADMIN, self::JUDGE, self::MENTOR];
 
     protected $fillable = [
         'title',

@@ -46,6 +46,8 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignIdFor(Hackathon::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignIdFor(Role::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+
+            $table->unique(['user_id', 'hackathon_id']);
         });
     }
 

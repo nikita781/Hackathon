@@ -112,7 +112,7 @@ class User extends Authenticatable
             return true;
         }
 
-        if ($this->hackathons()->where('hackathon_id', $hackathon->id)->whereIn('role_id', [Role::JUDGE, Role::MENTOR])->exists()) {
+        if ($this->hackathons()->where('hackathon_id', $hackathon->id)->whereIn('role_id', Role::STAFF)->exists()) {
             return true;
         }
 

@@ -10,6 +10,7 @@ use App\Http\Resources\PositionResource;
 use App\Http\Resources\TabResource;
 use App\Http\Resources\TagResource;
 use App\Http\Resources\TeamResource;
+use App\Http\Resources\UserResource;
 use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Project;
@@ -180,6 +181,7 @@ class HackathonController extends Controller
         $teamsResource = $teams->isNotEmpty() ? TeamResource::collection($teams) : null;
         $ownTeamResource = $ownTeam ? new TeamResource($ownTeam) : null;
         $positionsResource = PositionResource::collection($positions);
+        $hackathonStaff = UserResource::collection($hackathon->getAllHackathonStaff());
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -197,6 +199,7 @@ class HackathonController extends Controller
             'teams' => $teamsResource,
             'ownTeam' => $ownTeamResource,
             'positions' => $positionsResource,
+            'hackathonStaff' => $hackathonStaff,
             'is_join' => $user ? $user->onHackathonAsMember($hackathon) : false,
             'can' => [
                 'hackathon' => [
