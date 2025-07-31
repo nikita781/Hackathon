@@ -3,6 +3,7 @@
 use App\Http\Controllers\AwardsController;
 use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\HackathonController;
+use App\Http\Controllers\HackathonStaffController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NominationController;
@@ -110,6 +111,13 @@ Route::middleware('auth')->group(function () {
 
             Route::prefix('/support')->name('support.')->group(function () {
                 Route::get('/', [SupportsController::class, 'index'])->name('index');
+            });
+
+            Route::prefix('/staff')->name('staff.')->group(function () {
+                Route::delete('/kick', [HackathonStaffController::class, 'kick'])->name('kick');
+                Route::post('/invite', [HackathonStaffController::class, 'createInvite'])->name('create-invite');
+                Route::get('/invite/{token}', [HackathonStaffController::class, 'acceptInvite'])->name('accept-invite');
+                Route::post('/inviteById', [HackathonStaffController::class, 'inviteUserById'])->name('invite-by-id');
             });
         });
     });
