@@ -14,4 +14,9 @@ class UpdateHackathonStaffRequest extends FormRequest
             'staff.*.role_id' => ['required_with:staff', 'exists:roles,id'],
         ];
     }
+
+    public function messages()
+    {
+        return trans('validations/hackathon_staff');
+    }
 }

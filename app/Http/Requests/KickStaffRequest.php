@@ -10,7 +10,12 @@ class KickStaffRequest extends FormRequest
     {
         return [
             'staff' => ['required','array'],
-            'staff.*.user_id' => ['required_with:staff', 'exists:users,id'],
+            'staff.*' => ['required_with:staff', 'exists:users,id'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return trans('validations/kick_staff');
     }
 }

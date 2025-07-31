@@ -50,7 +50,7 @@ class HackathonStaffController extends Controller
 
         $user = auth()->user();
 
-        if ($invite->hackathon->getAllHackathonStaff()->has($user->id)) {
+        if ($invite->hackathon->getAllHackathonStaff()->contains($user->id)) {
             abort(400, 'Вы уже персонал хакатона');
         }
 
@@ -85,7 +85,7 @@ class HackathonStaffController extends Controller
             $invitedUser = User::findOrFail($invitedUserId);
             $invitedUserRole = Role::findOrFail($invitedRoleId);
 
-            if ($hackathon->getAllHackathonStaff()->has($invitedUser->id)->exists()) {
+            if ($hackathon->getAllHackathonStaff()->contains($invitedUser->id)) {
                 return response()->json(['message' => 'Пользователь «'. $invitedUser->nickname .'» уже в команде'], 400);
             }
 
