@@ -9,13 +9,16 @@ class Role extends Model
 {
     public const SUPER_ADMIN = 1;
     public const ADMIN = 2;
-    public const ORGANIZER = 3;
-    public const JUDGE = 4;
-    public const MENTOR = 5;
-    public const MEMBER = 6;
+    public const MODERATOR = 3;
+    public const ORGANIZER = 4;
+    public const JUDGE = 5;
+    public const MENTOR = 6;
+    public const MEMBER = 7;
 
-    public const STAFF_WITH_ORGANIZER = [self::SUPER_ADMIN, self::ADMIN, self::ORGANIZER, self::JUDGE, self::MENTOR];
-    public const STAFF = [self::SUPER_ADMIN, self::ADMIN, self::JUDGE, self::MENTOR];
+    public const MODERATORS = [self::SUPER_ADMIN, self::ADMIN, self::MODERATOR];
+    public const ADMINS = [self::SUPER_ADMIN, self::ADMIN];
+    public const STAFF_WITH_ORGANIZER = [self::SUPER_ADMIN, self::ADMIN, self::MODERATOR, self::ORGANIZER, self::JUDGE, self::MENTOR];
+    public const STAFF = [self::SUPER_ADMIN, self::ADMIN, self::MODERATOR, self::JUDGE, self::MENTOR];
 
     protected $fillable = [
         'title',

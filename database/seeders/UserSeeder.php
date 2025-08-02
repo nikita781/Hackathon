@@ -24,6 +24,12 @@ class UserSeeder extends Seeder
             'email' => 'admin@admin.com',
         ]);
 
+        $moderator = User::create([
+            'name' => 'Moderator',
+            'nickname' => 'moderator',
+            'email' => 'moderator@moderator.com',
+        ]);
+
         $org = User::create([
             'name' => 'Organizer',
             'nickname' => 'org',
@@ -50,10 +56,11 @@ class UserSeeder extends Seeder
 
         $superAdmin->assignedRole(Role::SUPER_ADMIN);
         $admin->assignedRole(Role::ADMIN);
+        $moderator->assignedRole(Role::MODERATOR);
         $org->assignedRole(Role::ORGANIZER);
         $judge->assignedRole(Role::JUDGE);
-        $judge->assignedRole(Role::MEMBER);
         $mentor->assignedRole(Role::MENTOR);
+        $judge->assignedRole(Role::MEMBER);
         $mentor->assignedRole(Role::MEMBER);
         $member->assignedRole(Role::MEMBER);
     }
