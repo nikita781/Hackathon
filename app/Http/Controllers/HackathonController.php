@@ -7,6 +7,7 @@ use App\Http\Requests\HackathonUpdateRequest;
 use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\PositionResource;
+use App\Http\Resources\ProjectResource;
 use App\Http\Resources\TabResource;
 use App\Http\Resources\TagResource;
 use App\Http\Resources\TeamResource;
@@ -153,6 +154,7 @@ class HackathonController extends Controller
         $hackathon->load([
             'tags',
             'awards',
+            'allProjects',
             'nominations.distribution',
             'criteriaGroups.criteria',
         ]);
@@ -180,6 +182,8 @@ class HackathonController extends Controller
         $tabsResource = TabResource::collection($tabs)->additional(['hackathon' => $hackathon->id]);
         $teamsResource = $teams->isNotEmpty() ? TeamResource::collection($teams) : null;
         $ownTeamResource = $ownTeam ? new TeamResource($ownTeam) : null;
+        $projects = $ownTeam ? ProjectResource::collection($hackathon->allProjects()->where('team_id', $ownTeam->id)->get()) : null;
+        $allProjects = $teams->isNotEmpty() ? ProjectResource::collection($hackathon->allProjects()) : null;
         $positionsResource = PositionResource::collection($positions);
         $hackathonStaff = UserResource::collection($hackathon->getAllHackathonStaff());
 
@@ -189,6 +193,8 @@ class HackathonController extends Controller
                 "tabs" => $tabsResource->response(),
                 "teams" => optional($teamsResource)->response(),
                 "ownTeam" => optional($ownTeamResource)->response(),
+                "allProjects" => optional($allProjects)->response(),
+                "projects" => optional($projects)->response(),
                 "positions" => $positionsResource->response(),
             ]);
         }
@@ -200,6 +206,8 @@ class HackathonController extends Controller
             'ownTeam' => $ownTeamResource,
             'positions' => $positionsResource,
             'hackathonStaff' => $hackathonStaff,
+            'allProjects' => $allProjects,
+            'projects' => $projects,
             'is_join' => $user ? $user->onHackathonAsMember($hackathon) : false,
             'can' => [
                 'hackathon' => [
