@@ -39,7 +39,7 @@ class ProjectsController extends Controller
      */
     public function store(StoreProjectRequest $request, Hackathon $hackathon, Team $team): JsonResponse
     {
-        if(!Gate::check('createProject', Project::class)) {
+        if(!Gate::check('createProject', [Project::class, $hackathon])) {
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для создания проекта');
         }
 
