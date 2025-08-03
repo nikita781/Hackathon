@@ -15,11 +15,11 @@ class ProjectResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'preview_path' => route('hackathons.projects.image', $this->resource),
+            'preview_path' => optional($this->getFirstMedia('preview'))->getFullUrl(),
             'about' => $this->about,
             'stack' => $this->stack,
             'project_link' => $this->project_link,
-            'presentation_path' => route('hackathons.projects.presentation', $this->resource),
+            'presentation_path' => optional($this->getFirstMedia('presentation'))->getFullUrl(),
             'video_link' => $this->video_link,
             'status' => $this->status,
             'moderated_time' => $this->moderated_time,
@@ -28,8 +28,11 @@ class ProjectResource extends JsonResource
             'comment' => $this->comment,
             'slug' => $this->slug,
             'avg_score' => $this->avg_score,
-            'gallery' => route('hackathons.projects.gallery', $this->resource),
-
+            'gallery' => $this->getMedia('gallery')->map(fn ($media) => [
+                'id' => $media->id,
+                'url' => $media->getFullUrl(),
+                'name' => $media->name,
+            ]),
             'hackathon' => $this->whenLoaded('hackathon', new HackathonResource($this->hackathon)),
             'team' => $this->whenLoaded('team', new TeamResource($this->team)),
         ];
