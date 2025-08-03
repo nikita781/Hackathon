@@ -124,7 +124,7 @@ class Hackathon extends Model implements HasMedia
         return $this->hasMany(Award::class);
     }
 
-    public function supports(): HasMany
+    public function support(): HasMany
     {
         return $this->hasMany(Support::class);
     }

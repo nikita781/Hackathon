@@ -13,6 +13,33 @@ class SupportsController extends Controller
     {
         $user = auth()->user();
 
+        if ($user->isHackathonStaff($hackathon)) {
+            $receivedSupportIds = $hackathon->support()->select('supports.id');
+            $supportIds = $user->support()->where('hackathon_id', $hackathon->id)->select('supports.id');
+
+            $receivedSupportGoing = Support::query();
+            $receivedSupportCompleted = Support::query();
+
+            $going = Support::query()
+                ->whereIn('id', $supportIds)
+                ->where('is_completed', false)
+                ->with('messages')
+                ->latest()
+                ->paginate(6);
+
+            $completed = Support::query()
+                ->whereIn('id', $supportIds)
+                ->where('is_completed', true)
+                ->with('messages')
+                ->latest()
+                ->paginate(6);
+
+            return response()->json([
+                'going' => $going,
+                'completed' => $completed,
+            ]);
+        }
+
         $supportIds = $user->support()->where('hackathon_id', $hackathon->id)->select('supports.id');
 
         $going = Support::query()

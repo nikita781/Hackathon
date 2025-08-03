@@ -82,7 +82,7 @@ class ProjectsController extends Controller
      */
     public function update(UpdateProjectRequest $request, Hackathon $hackathon, Project $project): RedirectResponse
     {
-        if(!Gate::check('update', Project::class)) {
+        if(!Gate::check('update', $project)) {
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для обновления проекта');
         }
 
@@ -102,11 +102,8 @@ class ProjectsController extends Controller
             $project->addMediaFromRequest('presentation')->toMediaCollection('presentation');
         }
 
-        if ($request->has('galley')) {
-            foreach ($request->get('gallery') as $galleryImage) {
-                if ($project->hasMedia('gallery')) {
-                    $project->clearMediaCollection('gallery');
-                }
+        if ($request->hasFile('gallery')) {
+            foreach ($request->file('gallery') as $galleryImage) {
                 $project->addMedia($galleryImage)->toMediaCollection('gallery');
             }
         }
