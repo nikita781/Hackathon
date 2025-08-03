@@ -97,17 +97,13 @@ class User extends Authenticatable
         return $this->hackathons()->where('hackathons.id', $hackathon->id)->where('role_id', Role::MEMBER)->exists();
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->hasAnyRole(Role::ADMINS)->exists();
+    }
+
     public function isHackathonStaff(Hackathon $hackathon): bool
     {
-        $isAdmin = $this->hasAnyRole([
-            Role::SUPER_ADMIN,
-            Role::ADMIN,
-        ]);
-
-        if ($isAdmin) {
-            return true;
-        }
-
         if ($this->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists()) {
             return true;
         }

@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Hackathon;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -18,6 +19,10 @@ class ProjectPolicy
 
     public function viewAll(User $user, Hackathon $hackathon): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         return $user->isHackathonStaff($hackathon);
     }
 
@@ -29,6 +34,10 @@ class ProjectPolicy
 
         if (!$user) {
             return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
         }
 
         if ($user->isHackathonStaff(Hackathon::find($project->hackathon_id))) {
@@ -45,7 +54,7 @@ class ProjectPolicy
 
     public function update(User $user, Project $project): bool
     {
-        if ($user->isHackathonStaff(Hackathon::find($project->hackathon_id))) {
+        if ($user->isAdmin()) {
             return true;
         }
 
