@@ -33,7 +33,8 @@ class ProjectResource extends JsonResource
                 'url' => $media->getFullUrl(),
                 'name' => $media->name,
             ]),
-            'team' => $this->whenLoaded('team', new TeamResource($this->team)),
-        ];
+            'hackathon' => $this->whenLoaded('hackathon', fn () => new HackathonResource($this->hackathon)),
+            'team' => $this->whenLoaded('team', fn () => new TeamResource($this->team)),
+            ];
     }
 }
