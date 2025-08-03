@@ -29,7 +29,7 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $user = $request->user()->load('roles');
+        $user = $request->user()?->load('roles');
         return array_merge(parent::share($request), [
             'flash' => function () use ($request) {
                 return [
@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware
             },
             'auth' => [
                 'user' => $user,
-                'roles' => $user->roles->pluck('title'),
+                'roles' => $user?->roles?->pluck('title'),
             ],
             'notifications' => [
                 'unread' => $request->user()?->unreadNotifications()->exists(),
