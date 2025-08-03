@@ -99,7 +99,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->hasAnyRole(Role::ADMINS)->exists();
+        return $this->hasAnyRole(Role::ADMINS);
     }
 
     public function isHackathonStaff(Hackathon $hackathon): bool
