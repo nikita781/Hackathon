@@ -98,13 +98,15 @@ class MediaController extends Controller
             abort(404);
         }
 
-        $media = $project->getFirstMedia('main_image');
+        $media = $project->getFirstMedia('preview');
 
         if (!$media) {
             abort(404);
         }
 
-        return response()->file($media->getPath());
+        return response()->file($media->getPath(), [
+            'Content-Type' => $media->mime_type,
+        ]);
     }
 
     public function showProjectPresentation(Hackathon $hackathon, Project $project): JsonResponse
@@ -113,7 +115,7 @@ class MediaController extends Controller
             abort(404);
         }
 
-        $media = $project->getFirstMedia('main_image');
+        $media = $project->getFirstMedia('presentation');
 
         if (!$media) {
             abort(404);
@@ -126,7 +128,7 @@ class MediaController extends Controller
         ]);
     }
 
-    public function showProjectGallery(Request $request, Hackathon $hackathon, Project $project)
+    public function showProjectGallery(Request $request, Hackathon $hackathon, Project $project): JsonResponse
     {
         $user = $request->user();
 
