@@ -17,8 +17,19 @@ class SupportsController extends Controller
             $receivedSupportIds = $hackathon->support()->select('supports.id');
             $supportIds = $user->support()->where('hackathon_id', $hackathon->id)->select('supports.id');
 
-            $receivedSupportGoing = Support::query();
-            $receivedSupportCompleted = Support::query();
+            $receivedSupportGoing = Support::query()
+                ->whereIn('id', $receivedSupportIds)
+                ->where('is_completed', false)
+                ->with('messages')
+                ->latest()
+                ->paginate(6);
+
+            $receivedSupportCompleted = Support::query()
+                ->whereIn('id', $receivedSupportIds)
+                ->where('is_completed', true)
+                ->with('messages')
+                ->latest()
+                ->paginate(6);
 
             $going = Support::query()
                 ->whereIn('id', $supportIds)
@@ -35,12 +46,16 @@ class SupportsController extends Controller
                 ->paginate(6);
 
             return response()->json([
+                'receivedSupportGoing' => $receivedSupportGoing,
+                'receivedSupportCompleted' => $receivedSupportCompleted,
                 'going' => $going,
                 'completed' => $completed,
             ]);
         }
 
-        $supportIds = $user->support()->where('hackathon_id', $hackathon->id)->select('supports.id');
+        $supportIds = $user->support()
+            ->where('hackathon_id', $hackathon->id)
+            ->select('supports.id');
 
         $going = Support::query()
             ->whereIn('id', $supportIds)
@@ -64,6 +79,7 @@ class SupportsController extends Controller
 
     public function store(Request $request)
     {
+
     }
 
     public function show(Support $support)
