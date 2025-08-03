@@ -104,9 +104,7 @@ class MediaController extends Controller
             abort(404);
         }
 
-        return response()->file($media->getPath(), [
-            'Content-Type' => $media->mime_type,
-        ]);
+        return response()->file($media->getPath());
     }
 
     public function showProjectPresentation(Hackathon $hackathon, Project $project): JsonResponse

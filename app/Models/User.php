@@ -149,7 +149,7 @@ class User extends Authenticatable
 
     public function isMemberOfProject(Project $project): bool
     {
-        return $this->teams()->where('id', $project->team_id)->exists();
+        return $this->teams()->where('teams.id', $project->team_id)->exists();
     }
 
     public function isCapitanOfHackathon(Hackathon $hackathon): bool
