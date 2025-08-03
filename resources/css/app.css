@@ -7,6 +7,7 @@
 @import './profile.scss';
 @import './notification.scss';
 @import './error.scss';
+@import './project.scss';
 
 /*@tailwind base;*/
 /*@tailwind components;*/

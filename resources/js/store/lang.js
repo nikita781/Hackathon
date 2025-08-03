@@ -9,7 +9,7 @@ const localeMap = {
     ru: 'ru_RU',
     en: 'en_US',
     es: 'es',
-    zh: 'zh_CH',
+    zh: 'zh_CN',
     fr: 'fr_FR',
     de: 'de_DE',
     pt: 'pt_PT'

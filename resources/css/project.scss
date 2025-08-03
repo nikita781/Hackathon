@@ -1,0 +1,69 @@
+.project {
+    &__title {
+        font-size: 34px;
+        font-family: "Cera Black";
+        text-transform: uppercase;
+    }
+    &__container {
+        margin-top: 30px;
+        display: grid;
+        grid-template-columns: 157px 1fr;
+        gap: 60px;
+    }
+    &__menu {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        &_item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        &_text {
+            font-size: 16px;
+        }
+        &_btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: not-allowed;
+            &.active {
+                background-color: #E80024;
+                cursor: pointer;
+            }
+            &.completed {
+                cursor: pointer;
+            }
+        }
+        &_line {
+            width: 4px;
+            height: 92px;
+            margin-right: 18px;
+            background-color: #999;
+            &.active {
+                background-color: #E80024;
+            }
+            &_container {
+                display: flex;
+                justify-content: flex-end;
+            }
+        }
+    }
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        &_btns {
+            display: flex;
+            gap: 20px;
+        }
+        &_preview {
+            margin-top: 10px;
+            max-width: 305px;
+        }
+    }
+}
