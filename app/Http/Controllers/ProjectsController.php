@@ -57,6 +57,7 @@ class ProjectsController extends Controller
             'project' => [
                 'id' => $project->id,
                 'title' => $project->title,
+                'description' => $project->description,
                 'slug' => $project->slug,
             ],
             'message' => "Проект '". $project->title ."' успешно создан",
