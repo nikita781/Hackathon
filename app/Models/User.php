@@ -144,7 +144,7 @@ class User extends Authenticatable
 
     public function isCapitan(Project $project): bool
     {
-        return $this->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('id', $project->team_id)->exists();
+        return $this->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('teams.id', $project->team_id)->exists();
     }
 
     public function isMemberOfProject(Project $project): bool
