@@ -73,4 +73,10 @@ class ProjectPolicy
 
         return $user->isCapitan($project);
     }
+
+    public function publish(User $user, Project $project): bool
+    {
+        $publishedProjects = $project->team->projects()->whereIn('status', [Project::PUBLISHED, Project::MODERATION])->exists();
+        return $user->isCapitan($project) && !$publishedProjects;
+    }
 }

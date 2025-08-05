@@ -33,6 +33,17 @@ class ProjectsController extends Controller
         ]);
     }
 
+    public function showTeamProjects(Request $request, Hackathon $hackathon, Team $team): JsonResponse
+    {
+        if ($request->header->get('Accept') !== "application/json") {
+            abort(404);
+        }
+
+        return response()->json([
+            'projects' => ProjectResource::collection($team->projects()->with(['team.teamUsers.position', 'team.teamUsers.user'])->get()),
+        ]);
+    }
+
     /**
      * @throws FileIsTooBig
      * @throws FileDoesNotExist
@@ -141,5 +152,17 @@ class ProjectsController extends Controller
         $project->delete();
 
         return back()->with('status', 'Проект успешно удален!');
+    }
+
+    public function publish(Hackathon $hackathon, Project $project): RedirectResponse
+    {
+        if (!Gate::check('publish', $project)) {
+            abort(403);
+        }
+
+        $project->status = Project::MODERATION;
+        $project->save();
+
+        return back()->with('status', 'Проект успешно отправлен на модерацию!');
     }
 }

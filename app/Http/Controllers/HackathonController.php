@@ -154,7 +154,8 @@ class HackathonController extends Controller
         $hackathon->load([
             'tags',
             'awards',
-            'allProjects',
+            'allProjects.team.teamUsers.position',
+            'allProjects.team.teamUsers.user',
             'nominations.distribution',
             'criteriaGroups.criteria',
         ]);
