@@ -35,7 +35,7 @@ class ProjectsController extends Controller
 
     public function showTeamProjects(Request $request, Hackathon $hackathon, Team $team): JsonResponse
     {
-        if ($request->header->get('Accept') !== "application/json") {
+        if (!$request->wantsJson()) {
             abort(404);
         }
 
