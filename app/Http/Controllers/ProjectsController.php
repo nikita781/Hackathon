@@ -161,6 +161,7 @@ class ProjectsController extends Controller
         }
 
         $project->status = Project::MODERATION;
+        $project->moderated_time = now();
         $project->save();
 
         return back()->with('status', 'Проект успешно отправлен на модерацию!');

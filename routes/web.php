@@ -112,6 +112,10 @@ Route::middleware('auth')->group(function () {
 
             Route::prefix('/support')->name('support.')->group(function () {
                 Route::get('/', [SupportsController::class, 'index'])->name('index');
+                Route::post('/', [SupportsController::class, 'store'])->name('store');
+                Route::prefix('/{support}')->group(function () {
+                    Route::post('/answer', [SupportsController::class, 'answer'])->name('answer');
+                });
             });
 
             Route::prefix('/staff')->name('staff.')->group(function () {

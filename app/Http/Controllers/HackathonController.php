@@ -8,6 +8,7 @@ use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\PositionResource;
 use App\Http\Resources\ProjectResource;
+use App\Http\Resources\SupportResource;
 use App\Http\Resources\TabResource;
 use App\Http\Resources\TagResource;
 use App\Http\Resources\TeamResource;
@@ -16,6 +17,7 @@ use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Project;
 use App\Models\Role;
+use App\Models\Support;
 use App\Models\Tab;
 use App\Models\Tag;
 use App\Models\Team;
@@ -150,7 +152,6 @@ class HackathonController extends Controller
         if (!Gate::check('view', [$hackathon])) {
             abort(404);
         }
-
         $hackathon->load([
             'tags',
             'awards',
@@ -158,16 +159,18 @@ class HackathonController extends Controller
             'allProjects.team.teamUsers.user',
             'nominations.distribution',
             'criteriaGroups.criteria',
+            'support.messages.user',
         ]);
 
         $user = auth()->user();
+        $isStaffHackathon = $user?->isHackathonStaff($hackathon);
 
         $teams = collect();
         $ownTeam = null;
 
         if (!isset($user)) {
             $teams = collect();
-        } else if ($user->isHackathonStaff($hackathon)) {
+        } else if ($isStaffHackathon) {
             $teams = $hackathon->teams()
                 ->with(['projects', 'users.positions'])
                 ->get();
@@ -183,10 +186,10 @@ class HackathonController extends Controller
         $tabsResource = TabResource::collection($tabs)->additional(['hackathon' => $hackathon->id]);
         $teamsResource = $teams->isNotEmpty() ? TeamResource::collection($teams) : null;
         $ownTeamResource = $ownTeam ? new TeamResource($ownTeam) : null;
-        $projects = $ownTeam ? ProjectResource::collection($hackathon->allProjects()->where('team_id', $ownTeam->id)->get()) : null;
         $allProjects = $teams->isNotEmpty() ? ProjectResource::collection($hackathon->allProjects()) : null;
         $positionsResource = PositionResource::collection($positions);
         $hackathonStaff = UserResource::collection($hackathon->getAllHackathonStaff());
+        $supports = SupportResource::collection($hackathon->support()->where('type', Support::QUESTION)->orWhere('type', Support::SUGGESTION)->orderBy('created_at')->with('messages.user')->get());
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -195,7 +198,6 @@ class HackathonController extends Controller
                 "teams" => optional($teamsResource)->response(),
                 "ownTeam" => optional($ownTeamResource)->response(),
                 "allProjects" => optional($allProjects)->response(),
-                "projects" => optional($projects)->response(),
                 "positions" => $positionsResource->response(),
             ]);
         }
@@ -208,7 +210,7 @@ class HackathonController extends Controller
             'positions' => $positionsResource,
             'hackathonStaff' => $hackathonStaff,
             'allProjects' => $allProjects,
-            'projects' => $projects,
+            'supports' => $supports,
             'is_join' => $user ? $user->onHackathonAsMember($hackathon) : false,
             'can' => [
                 'hackathon' => [
@@ -224,8 +226,13 @@ class HackathonController extends Controller
                     'invite' => Gate::check('invite', $ownTeam),
                 ],
                 'project' => [
-                    'viewAny' => Gate::check('viewAny', Project::class),
+                    'viewAll' => Gate::check('viewAll', [Project::class, $hackathon]),
                     'createProject' => Gate::check('createProject', [Project::class, $hackathon]),
+                ],
+                'support' => [
+                    'viewAny' => Gate::check('viewAny', [Support::class, $hackathon]),
+                    'create' => Gate::check('createSupport', [Support::class, $hackathon]),
+                    'answer' => $isStaffHackathon,
                 ],
             ],
         ]);

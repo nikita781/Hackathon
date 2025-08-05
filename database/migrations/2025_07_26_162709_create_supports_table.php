@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignIdFor(Hackathon::class)->index()->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->enum('type', ['question', 'suggestion', 'bug', 'other'])->default('question')->index();
+            $table->enum('type', ['question', 'suggestion', 'bug'])->default('question')->index();
             $table->boolean('is_completed')->default(false)->index();
             $table->foreignId('closed_by')->nullable()->index()->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->dateTime('closed_at')->nullable();

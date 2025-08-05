@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 /** @mixin \App\Models\Project */
@@ -33,6 +34,11 @@ class ProjectResource extends JsonResource
                 'url' => $media->getFullUrl(),
                 'name' => $media->name,
             ]),
+            'can' => [
+                'update' => $request->user()?->can('update', $this->resource),
+                'delete' => $request->user()?->can('delete', $this->resource),
+                'publish' => $request->user()?->can('publish', $this->resource),
+            ],
             'hackathon' => $this->whenLoaded('hackathon', fn () => new HackathonResource($this->hackathon)),
             'team' => $this->whenLoaded('team', fn () => new TeamResource($this->team)),
             ];
