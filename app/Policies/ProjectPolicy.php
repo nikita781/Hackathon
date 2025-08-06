@@ -62,6 +62,11 @@ class ProjectPolicy
             return false;
         }
 
+        $hackathon = Hackathon::findOrFail($project->hackathon_id);
+        if ($hackathon->work_time_start > now() && $hackathon->work_time_end < now()) {
+            return false;
+        }
+
         return $user->isCapitan($project);
     }
 
@@ -76,7 +81,23 @@ class ProjectPolicy
 
     public function publish(User $user, Project $project): bool
     {
+        $hackathon = Hackathon::findOrFail($project->hackathon_id);
+        if ($hackathon->work_time_start > now() && $hackathon->work_time_end < now()) {
+            return false;
+        }
+
         $publishedProjects = $project->team->projects()->whereIn('status', [Project::PUBLISHED, Project::MODERATION])->exists();
         return $user->isCapitan($project) && !$publishedProjects;
+    }
+
+    public function rate(User $user, Project $project):bool
+    {
+        $hackathon = Hackathon::findOrFail($project->hackathon_id);
+
+        if ($hackathon->evaluation_start > now() && $hackathon->evaluation_end < now()) {
+            return false;
+        }
+
+        return $user->isHackathonJudge($hackathon);
     }
 }

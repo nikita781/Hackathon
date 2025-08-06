@@ -56,7 +56,7 @@ Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.sh
 Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
 
 Route::get('/notification', [NotificationController::class, 'index'])->name('notification.index');
-Route::patch('/notification/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notification.mark-as-read');
+Route::patch('/notification/mark-as-read', [NotificationController::class, 'markAsRead'])->middleware('auth')->name('notification.mark-as-read');
 
 Route::middleware('auth')->group(function () {
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');

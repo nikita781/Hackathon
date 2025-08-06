@@ -41,11 +41,13 @@ class HackathonController extends Controller
      */
     public function index(Request $request): Response
     {
+        $perPage = min($request->get('per_page', 6), 10);
+
         $hackathons = Hackathon::filter($request)
             ->with('tags')
             ->where('status', Hackathon::STATUS_PUBLISHED)
             ->latest()
-            ->paginate($request->per_page ?? 6)
+            ->paginate($perPage)
             ->withQueryString();
 
         return Inertia::render('Hackathon/Index', [
@@ -64,7 +66,7 @@ class HackathonController extends Controller
     {
 
         $user = auth()->user();
-        $perPage = $request->per_page ?? 6;
+        $perPage = min($request->get('per_page', 6), 10);
 
         $hackathonIds = $user->hackathons()->select('hackathons.id');
 
@@ -162,6 +164,8 @@ class HackathonController extends Controller
             'support.messages.user',
         ]);
 
+        $perPageProject = min($request->get('per_page', 6), 10);
+        $perPageTeam = min($request->get('per_page', 6), 10);
         $user = auth()->user();
         $isStaffHackathon = $user?->isHackathonStaff($hackathon);
 
@@ -173,7 +177,7 @@ class HackathonController extends Controller
         } else if ($isStaffHackathon) {
             $teams = $hackathon->teams()
                 ->with(['projects', 'users.positions'])
-                ->get();
+                ->paginate($perPageTeam);
         } else {
             $ownTeam = $hackathon->ownTeam($user);
         }
@@ -186,7 +190,7 @@ class HackathonController extends Controller
         $tabsResource = TabResource::collection($tabs)->additional(['hackathon' => $hackathon->id]);
         $teamsResource = $teams->isNotEmpty() ? TeamResource::collection($teams) : null;
         $ownTeamResource = $ownTeam ? new TeamResource($ownTeam) : null;
-        $allProjects = $teams->isNotEmpty() ? ProjectResource::collection($hackathon->allProjects()) : null;
+        $allProjects = $teams->isNotEmpty() ? ProjectResource::collection($hackathon->allProjects()->paginate($perPageProject)) : null;
         $positionsResource = PositionResource::collection($positions);
         $hackathonStaff = UserResource::collection($hackathon->getAllHackathonStaff());
         $supports = SupportResource::collection($hackathon->support()->where('type', Support::QUESTION)->orWhere('type', Support::SUGGESTION)->orderBy('created_at')->with('messages.user')->get());

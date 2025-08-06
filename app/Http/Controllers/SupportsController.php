@@ -6,8 +6,11 @@ use App\Http\Requests\AnswerSupportRequest;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\StoreSupportRequest;
 use App\Models\Hackathon;
+use App\Models\Role;
 use App\Models\Support;
 use App\Models\SupportMessage;
+use App\Models\User;
+use App\Notifications\NewSupportNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -113,6 +116,29 @@ class SupportsController extends Controller
             'message' => $message,
         ]);
 
+        switch ($type) {
+            case Support::BUG:
+                $admins = User::whereHas('roles', function ($query) {
+                    $query->whereIn('role_id', Role::ADMINS);
+                })->get();
+
+                foreach ($admins as $admin) {
+                    $admin->notify(new NewSupportNotification($support));
+                }
+                break;
+
+            case Support::QUESTION:
+            case Support::SUGGESTION:
+                $staff = $hackathon->users()
+                    ->wherePivotIn('role_id', Role::STAFF)
+                    ->get();
+
+                foreach ($staff as $staffMember) {
+                    $staffMember->notify(new NewSupportNotification($support));
+                }
+                break;
+        }
+
         return back()->with('status', 'Обращение создано');
     }
 
@@ -133,33 +159,12 @@ class SupportsController extends Controller
             'message' => $message,
         ]);
 
-        return back()->with('status', 'Ответ отправлен');
-    }
-
-    public function close(Request $request, Hackathon $hackathon): RedirectResponse
-    {
-        $support = Support::findOrFail($request->input('support_id'));
-
-        $user = auth()->user();
-
-        if (!Gate::check('answer', $support)) {
-            abort(404);
-        }
-
         $support->update([
             'is_completed' => true,
             'closed_by' => $user->id,
             'closed_at' => now(),
         ]);
 
-        return back()->with('status', 'Обращение закрыто');
-    }
-
-    public function update(Request $request, Support $support)
-    {
-    }
-
-    public function destroy(Support $support)
-    {
+        return back()->with('status', 'Вопрос закрыт');
     }
 }

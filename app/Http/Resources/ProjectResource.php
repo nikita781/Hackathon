@@ -38,6 +38,7 @@ class ProjectResource extends JsonResource
                 'update' => $request->user()?->can('update', $this->resource),
                 'delete' => $request->user()?->can('delete', $this->resource),
                 'publish' => $request->user()?->can('publish', $this->resource),
+                'rate' => $request->user()?->can('rate', $this->resource),
             ],
             'hackathon' => $this->whenLoaded('hackathon', fn () => new HackathonResource($this->hackathon)),
             'team' => $this->whenLoaded('team', fn () => new TeamResource($this->team)),

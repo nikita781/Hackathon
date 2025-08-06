@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Resources\ProjectResource;
+use App\Models\Evaluation;
 use App\Models\Hackathon;
 use App\Models\Project;
 use App\Models\Team;
@@ -165,5 +166,35 @@ class ProjectsController extends Controller
         $project->save();
 
         return back()->with('status', 'Проект успешно отправлен на модерацию!');
+    }
+
+    public function rate(Request $request, Project $project): RedirectResponse
+    {
+        if (!Gate::check('rate', $project)) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'evaluations' => ['required', 'array'],
+            'evaluations.*.criterion_id' => ['required', 'exists:criteria,id'],
+            'evaluations.*.score' => ['required', 'integer', 'min:0'],
+        ]);
+
+        foreach ($data['evaluations'] as $evaluation) {
+            Evaluation::updateOrCreate(
+                [
+                    'user_id' => auth()->id(),
+                    'project_id' => $project->id,
+                    'criterion_id' => $evaluation['criterion_id'],
+                ],
+                [
+                    'score' => $evaluation['score'],
+                ]
+            );
+        }
+
+        $project->updateAvgScore();
+
+        return back()->with('status', 'Оценки сохранены');
     }
 }

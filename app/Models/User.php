@@ -115,6 +115,15 @@ class User extends Authenticatable
         return false;
     }
 
+    public function isHackathonJudge(Hackathon $hackathon): bool
+    {
+        if ($this->hackathons()->where('hackathon_id', $hackathon->id)->where('role_id', Role::JUDGE)->exists()) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * @param  int  $role_id
      * @return void
