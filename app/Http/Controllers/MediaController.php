@@ -156,7 +156,7 @@ class MediaController extends Controller
         }
 
         $media = $project->media()->where('id', $mediaId)->first();
-
+        return dd($media);
         return response()->file($media->getPath());
     }
 
