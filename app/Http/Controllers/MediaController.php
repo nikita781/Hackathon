@@ -116,7 +116,7 @@ class MediaController extends Controller
         $media = $project->getFirstMedia('presentation');
 
         if (!$media) {
-            abort(404);
+            abort(403);
         }
 
         return response()->json([
@@ -131,7 +131,7 @@ class MediaController extends Controller
         $user = $request->user();
 
         if (! $user->can('view', $project)) {
-            abort(404);
+            abort(403);
         }
 
         $mediaItems = $project->getMedia('gallery')->map(fn ($media) => [
@@ -149,11 +149,13 @@ class MediaController extends Controller
         ]);
     }
 
-    public function showProjectGalleryImage(Hackathon $hackathon, Project $project, Media $media): BinaryFileResponse
+    public function showProjectGalleryImage(Hackathon $hackathon, Project $project, int $mediaId): BinaryFileResponse
     {
         if (!Gate::check('view', $project)) {
-            abort(404);
+            abort(403);
         }
+
+        $media = $project->media()->where('id', $mediaId)->firstOrFail();
 
         return response()->file($media->getPath());
     }
