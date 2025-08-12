@@ -103,7 +103,14 @@ async function save () {
     fd.append('title', 'Обзор')
     form.sections.forEach((s, si) => {
         fd.append(`sections[${si}][title]`,   s.title)
-        fd.append(`sections[${si}][content]`, s.content ?? '')
+        const content =
+            s.content == null
+                ? ''
+                : (typeof s.content === 'object'
+                    ? JSON.stringify(s.content)
+                    : String(s.content))
+
+        fd.append(`sections[${si}][content]`, content)
     })
     partnerLogos.value.forEach((f,i)=>fd.append(`partners[${i}]`,f))
     fd.append('_method', 'PATCH')

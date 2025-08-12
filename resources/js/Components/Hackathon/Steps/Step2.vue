@@ -1,10 +1,11 @@
 <script setup>
-import { ref }  from 'vue'
+import {onMounted, ref, watch} from 'vue'
 import axios    from 'axios'
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
-    project:       { type: Object, required: true }, // { id, slug, title }
+    project:       { type: Object, required: true },
+    oneProject: { type: Object, required: true },
 })
 
 const emit = defineEmits(['success', 'cancel'])
@@ -13,8 +14,37 @@ const about        = ref('')
 const stack        = ref('')
 const projectLink  = ref('')
 
+watch(() => props.oneProject, () => {
+    if (props.oneProject.slug) {
+        about.value = props.oneProject.about
+        stack.value = props.oneProject.stack
+        projectLink.value = props.oneProject.project_link
+    }
+});
+
 const pending = ref(false)
 const errors  = ref({})
+
+function cancel () {
+    resetState()
+    emit('cancel')
+}
+
+const resetState = () => {
+    about.value       = ''
+    stack.value       = ''
+    projectLink.value = ''
+    errors.value      = {}
+    pending.value     = false
+}
+
+onMounted(() => {
+    if (props.oneProject.slug) {
+        about.value = props.oneProject.about
+        stack.value = props.oneProject.stack
+        projectLink.value = props.oneProject.project_link
+    }
+})
 
 async function submit () {
     pending.value = true
@@ -89,7 +119,7 @@ async function submit () {
             <button
                 class="main__btn main__btn_white dialog__btn"
                 type="button"
-                @click="emit('cancel')"
+                @click="cancel"
             >
                 Отменить
             </button>

@@ -1,21 +1,78 @@
 <script setup>
 import DropFile from "@/Components/DropFile.vue";
-import {ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import axios    from 'axios'
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
+    project: { type: Object, required: true },
+    oneProject: { type: Object, required: true },
     teamId:        { type: Number, required: true },
 })
 
-const emit = defineEmits(['success', 'cancel'])
+const emit = defineEmits(['success', 'project', 'cancel'])
 
 const title       = ref('')
 const description = ref('')
 const preview     = ref(null)
+const isEdit      = ref(false)
+
+watch(() => props.oneProject, () => {
+    if (props.oneProject.slug) {
+        isEdit.value = true
+        title.value = props.oneProject.title
+        description.value = props.oneProject.description
+        getPreview(props.oneProject.slug)
+    }
+});
+
+watch(() => props.project, () => {
+    if (!!props.project) {
+        isEdit.value = true
+    }
+});
 
 const pending = ref(false)
 const errors  = ref({})
+
+function cancel () {
+    resetState()
+    emit('cancel')
+}
+
+const resetState = () => {
+    title.value       = ''
+    description.value = ''
+    preview.value     = null
+    errors.value      = {}
+    pending.value     = false
+}
+
+onMounted(() => {
+    if (props.oneProject.slug) {
+        isEdit.value = true
+        title.value = props.oneProject.title
+        description.value = props.oneProject.description
+        getPreview(props.oneProject.slug)
+    }
+    if (!!props.project) {
+        isEdit.value = true
+    }
+})
+
+async function getPreview(slugId) {
+    try {
+        const { data: blob } = await axios.get(
+            route('hackathons.projects.image', { hackathon: props.hackathonSlug, project: slugId }),
+            { responseType: 'blob' }
+        )
+        console.log(blob)
+        preview.value = URL.createObjectURL(blob);
+        console.log(preview.value)
+    } catch (e) {
+        console.error('hackathon-load', e?.response ?? e);
+    }
+}
 
 async function submit () {
     pending.value = true
@@ -25,20 +82,86 @@ async function submit () {
         const fd = new FormData()
         fd.append('title',       title.value)
         fd.append('description', description.value)
-        if (preview.value) fd.append('preview', preview.value)
+        if (preview.value && preview.value instanceof File) {
+            fd.append('preview', preview.value)
+        }
 
-        const { data } = await axios.post(
-            route('hackathons.teams.projects.store', {
+        let url, method
+        let slug
+
+        if (props.project) {
+            slug = props.project.slug
+        } else {
+            slug = props.oneProject.slug
+        }
+
+        if (isEdit.value) {
+            fd.append('_method', 'PATCH')
+            url    = route('hackathons.projects.update', {
+                hackathon: props.hackathonSlug,
+                project:   slug,
+            })
+            method = 'post'
+        } else {
+            url    = route('hackathons.teams.projects.store', {
                 hackathon: props.hackathonSlug,
                 team:      props.teamId,
-            }),
-            fd,
-            { headers: { 'Content-Type': 'multipart/form-data' } },
-        )
+            })
+            method = 'post'
+        }
 
-        emit('success', data.project)
-        title.value = description.value = ''
-        preview.value = null
+        const { data } = await axios[method](url, fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        const projectData = ref([])
+        if (isEdit.value) {
+            // console.log(data.projects.original)
+            // console.log(data)
+
+            const projects = ref({});
+
+            try {
+                const response = await axios.get(
+                    route('hackathons.teams.projects.show-team-projects', {
+                        hackathon: props.hackathonSlug,
+                        team: props.teamId
+                    }),
+                    {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    }
+                );
+                projects.value = response.data.projects;
+            } catch (error) {
+                console.error("Ошибка при получении проектов:", error);
+            }
+
+            const updatedProject = projects.value.find(project => project.slug === slug);
+            //
+            // console.log(updatedProject)
+
+            if (updatedProject) {
+                if (preview.value !== null) {
+                    updatedProject.updated_at = new Date().toISOString();
+                }
+                projectData.value = {
+                    description: updatedProject.description,
+                    id: updatedProject.id,
+                    slug: updatedProject.slug,
+                    title: updatedProject.title,
+                    updated_at: updatedProject.updated_at,
+                };
+
+                // console.log(projectData.value);
+            } else {
+                console.error('Проект не найден');
+            }
+        }
+        isEdit.value = false
+        slug = '';
+        console.log(data?.project ?? projectData.value)
+        emit('success', data?.project ?? projectData.value)
     } catch (e) {
         if (e.response?.status === 422) {
             errors.value = e.response.data.errors
@@ -86,7 +209,7 @@ async function submit () {
             >
                 Далее
             </button>
-            <button class="main__btn main__btn_white dialog__btn" @click="$emit('cancel')">
+            <button class="main__btn main__btn_white dialog__btn" @click="cancel">
                 Отменить
             </button>
         </div>

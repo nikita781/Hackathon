@@ -2,6 +2,7 @@
 <script setup>
 import {ref, onBeforeUnmount, watch, onMounted} from 'vue'
 import {useLangStore} from "@/store/lang.js";
+import logs from "../../../vendor/laravel/telescope/resources/js/screens/logs/index.vue";
 
 const props = defineProps({
     file: { type: [File, String, null], default: null }

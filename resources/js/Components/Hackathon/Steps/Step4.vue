@@ -1,12 +1,13 @@
 <script setup>
-import IconsPencilMyProject from "@/Components/Icons/PencilMyProject.vue";
 import IconsCheck from "@/Components/Icons/Check.vue";
-import {computed, nextTick, onMounted, ref} from "vue";
+import {computed, nextTick, onMounted, ref, watch} from "vue";
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
     project: { type: Object, required: true },
 })
+
+const emit = defineEmits(['cancel'])
 
 const previewUrl = ref(null);
 
@@ -15,18 +16,34 @@ const pending = ref(false)
 const disabled = computed(() => !agree.value || pending.value)
 function toggleAgree () { agree.value = !agree.value }
 
-onMounted(async () => {
+function cancel () {
+    agree.value = false
+    pending.value = false
+    emit('cancel')
+}
+
+async function getPreview() {
     try{
         const { data: blob } = await axios.get(
             route('hackathons.projects.image', { hackathon: props.hackathonSlug, project: props.project.slug }),
             { responseType: 'blob' }
         )
-        console.log(blob)
         previewUrl.value = URL.createObjectURL(blob)
     }catch(e){
         console.error('hackathon-load',e?.response??e)
     }
-})
+}
+onMounted(() => {
+    nextTick(() => {
+        previewUrl.value = null;
+        getPreview();
+    });
+});
+
+watch(() => props.project, () => {
+    previewUrl.value = null;
+    getPreview();
+});
 </script>
 
 <template>
@@ -36,7 +53,8 @@ onMounted(async () => {
             <div class="project__form_preview">
                 <div class="hackathon__my-project__item">
                     <div class="hackathon__my-project__item_header">
-                        <img src="/project.jpg" alt="">
+                        <div class="skeleton-loader" v-if="!previewUrl"></div>
+                        <img v-if="previewUrl" :src="previewUrl" alt="Превью проекта" />
                     </div>
                     <div class="hackathon__my-project__item_content">
                         <div>
@@ -70,7 +88,7 @@ onMounted(async () => {
             >
                 Отправить
             </button>
-            <button class="main__btn main__btn_white dialog__btn">
+            <button class="main__btn main__btn_white dialog__btn" @click="cancel">
                 Отменить
             </button>
         </div>
@@ -78,5 +96,23 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.skeleton-loader {
+    width: 100%;
+    height: 200px;
+    background-color: #e0e0e0;
+    animation: skeleton 1.2s ease-in-out infinite;
+    border-radius: 4px;
+}
 
+@keyframes skeleton {
+    0% {
+        background-color: #e0e0e0;
+    }
+    50% {
+        background-color: #f0f0f0;
+    }
+    100% {
+        background-color: #e0e0e0;
+    }
+}
 </style>

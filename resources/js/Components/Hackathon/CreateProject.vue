@@ -1,6 +1,6 @@
 <script setup>
 import CheckMenu from "@/Components/Icons/CheckMenu.vue";
-import { ref } from 'vue';
+import {defineAsyncComponent, ref} from 'vue';
 import Step1 from "@/Components/Hackathon/Steps/Step1.vue";
 import Step2 from "@/Components/Hackathon/Steps/Step2.vue";
 import Step3 from "@/Components/Hackathon/Steps/Step3.vue";
@@ -9,6 +9,8 @@ import Step4 from "@/Components/Hackathon/Steps/Step4.vue";
 const props = defineProps({
     hackathonSlug: String,
     teamId:        Number,
+    modelValue: Boolean,
+    oneProject:    { type: Object, default: null },
 })
 
 const step = ref(1);
@@ -27,6 +29,18 @@ const goToStep = (targetStep) => {
     }
 };
 
+const emit  = defineEmits(['update:modelValue'])
+
+function close () {
+    resetDialog()
+    emit('update:modelValue', false)
+}
+
+function resetDialog () {
+    step.value = 1;
+    project.value = null;
+}
+
 const handleSuccess = (data) => {
     if (step.value === 1) {
         onStep1Success(data);
@@ -42,7 +56,8 @@ const onStep2Success = ()      => { nextStep() }
 </script>
 
 <template>
-    <div class="project__title">EduGame</div>
+    <div class="project__title">{{ project ? project.title : 'Название проекта' }}</div>
+<!--    <pre>{{oneProject}}</pre>-->
     <div class="project__container">
         <div class="project__menu">
             <div class="project__menu_item" @click="goToStep(1)">
@@ -96,7 +111,9 @@ const onStep2Success = ()      => { nextStep() }
                     :hackathon-slug="props.hackathonSlug"
                     :team-id="props.teamId"
                     :project="project"
+                    :oneProject="oneProject"
                     @success="handleSuccess"
+                    @cancel="close"
                 />
             </keep-alive>
 
