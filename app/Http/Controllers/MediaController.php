@@ -136,13 +136,26 @@ class MediaController extends Controller
 
         $mediaItems = $project->getMedia('gallery')->map(fn ($media) => [
             'id' => $media->id,
-            'url' => $media->getPath(),
             'name' => $media->name,
+            'url' => route('hackathons.projects.gallery.image', [
+                'hackathon' => $hackathon->id,
+                'project' => $project->id,
+                'media' => $media->id,
+            ]),
         ]);
 
         return response()->json([
             'gallery' => $mediaItems,
         ]);
+    }
+
+    public function showProjectGalleryImage(Hackathon $hackathon, Project $project, Media $media): BinaryFileResponse
+    {
+        if (!Gate::check('view', $project)) {
+            abort(404);
+        }
+
+        return response()->file($media->getPath());
     }
 
 //    public function downloadProjectPresentation(Hackathon $hackathon, Project $project): BinaryFileResponse

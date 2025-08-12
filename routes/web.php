@@ -139,6 +139,7 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
         Route::get('/preview', [MediaController::class, 'showProjectPreview'])->name('image');
         Route::get('/presentation', [MediaController::class, 'showProjectPresentation'])->name('presentation');
         Route::get('/gallery', [MediaController::class, 'showProjectGallery'])->name('gallery');
+        Route::get('/gallery/{media}', [MediaController::class, 'showProjectGalleryImage'])->name('gallery.image');
     });
 });
 
