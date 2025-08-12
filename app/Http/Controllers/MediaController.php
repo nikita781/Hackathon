@@ -122,7 +122,7 @@ class MediaController extends Controller
         return response()->json([
             'id' => $media->id,
             'name' => $media->file_name,
-            'url' => $media->getFullUrl(),
+            'url' => $media->getPath(),
         ]);
     }
 
@@ -136,7 +136,7 @@ class MediaController extends Controller
 
         $mediaItems = $project->getMedia('gallery')->map(fn ($media) => [
             'id' => $media->id,
-            'url' => $media->getFullUrl(),
+            'url' => $media->getPath(),
             'name' => $media->name,
         ]);
 
