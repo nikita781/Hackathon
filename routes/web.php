@@ -104,7 +104,7 @@ Route::middleware('auth')->group(function () {
             });
             Route::prefix('/projects')->name('projects.')->group(function () {
                 Route::get('/', [ProjectsController::class, 'index'])->name('index');
-                Route::prefix('/{project}}')->group(function () {
+                Route::prefix('/{project}')->group(function () {
                     Route::patch('/', [ProjectsController::class, 'update'])->name('update');
                     Route::delete('/', [ProjectsController::class, 'destroy'])->name('destroy');
                 });

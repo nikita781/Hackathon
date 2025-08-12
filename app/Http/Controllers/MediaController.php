@@ -130,7 +130,7 @@ class MediaController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->can('view', $project)) {
+        if (!$user->can('view', $project)) {
             abort(403);
         }
 
@@ -138,8 +138,8 @@ class MediaController extends Controller
             'id' => $media->id,
             'name' => $media->name,
             'url' => route('hackathons.projects.gallery.image', [
-                'hackathon' => $hackathon->id,
-                'project' => $project->id,
+                'hackathon' => $hackathon->slug,
+                'project' => $project->slug,
                 'mediaId' => $media->id,
             ]),
         ]);
@@ -156,7 +156,6 @@ class MediaController extends Controller
         }
 
         $media = $project->media()->where('id', $mediaId)->first();
-        return dd($media);
         return response()->file($media->getPath());
     }
 
