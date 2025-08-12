@@ -155,7 +155,7 @@ class MediaController extends Controller
             abort(403);
         }
 
-        $media = $project->media()->where('id', $mediaId)->firstOrFail();
+        $media = $project->media()->where('id', $mediaId)->first();
 
         return response()->file($media->getPath());
     }

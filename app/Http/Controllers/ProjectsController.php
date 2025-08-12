@@ -100,6 +100,7 @@ class ProjectsController extends Controller
         }
 
         $data = Arr::except($request->validated(), ['preview', 'presentation', 'gallery', 'delete_media_ids']);
+        $gallery = $request->validated('gallery');
 
         if ($request->hasFile('preview')) {
             if ($project->hasMedia('preview')) {
@@ -115,8 +116,8 @@ class ProjectsController extends Controller
             $project->addMediaFromRequest('presentation')->toMediaCollection('presentation');
         }
 
-        if ($request->hasFile('gallery')) {
-            foreach ($request->file('gallery') as $galleryImage) {
+        if (!empty($gallery)) {
+            foreach ($gallery as $galleryImage) {
                 $project->addMedia($galleryImage)->toMediaCollection('gallery');
             }
         }
