@@ -140,7 +140,7 @@ class MediaController extends Controller
             'url' => route('hackathons.projects.gallery.image', [
                 'hackathon' => $hackathon->id,
                 'project' => $project->id,
-                'media' => $media->id,
+                'mediaId' => $media->id,
             ]),
         ]);
 
