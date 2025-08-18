@@ -21,7 +21,7 @@ class Hackathon extends Model implements HasMedia
         'user_id', 'title', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
         'registration_end', 'event_start', 'event_end', 'prize_type', 'prize_pool', 'work_time_start', 'work_time_end',
         'evaluation_start', 'evaluation_end', 'slug', 'status', 'moderated_time', 'published_time', 'blocked_time',
-        'comment'
+        'comment', 'is_finished',
     ];
 
     public const STATUSES = ['draft', 'moderation', 'published', 'blocked'];
@@ -109,6 +109,11 @@ class Hackathon extends Model implements HasMedia
             ->withPivot('role_id');
     }
 
+    public function members(): BelongsToMany
+    {
+        return $this->users()->wherePivot('role_id', Role::MEMBER);
+    }
+
     public function nominations(): HasMany
     {
         return $this->hasMany(Nomination::class);
@@ -124,7 +129,7 @@ class Hackathon extends Model implements HasMedia
         return $this->hasMany(Award::class);
     }
 
-    public function supports(): HasMany
+    public function support(): HasMany
     {
         return $this->hasMany(Support::class);
     }

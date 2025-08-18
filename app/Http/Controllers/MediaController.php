@@ -18,7 +18,7 @@ class MediaController extends Controller
     public function showHackathonMedia(Hackathon $hackathon): BinaryFileResponse
     {
         if (!Gate::check('view', $hackathon)) {
-            abort(404);
+            abort(403);
         }
 
         $media = $hackathon->getFirstMedia('main_image');
@@ -46,7 +46,7 @@ class MediaController extends Controller
     public function showHackathonPartners(Hackathon $hackathon, $tab_id): BinaryFileResponse
     {
         if (!Gate::check('view', $hackathon)) {
-            abort(404);
+            abort(403);
         }
         $tab = $hackathon->tabs()->where('id', $tab_id)->firstOrFail();
 
@@ -75,7 +75,7 @@ class MediaController extends Controller
         $hackathon = Hackathon::findOrFail($hackathon_id);
 
         if (!Gate::check('view', $hackathon)) {
-            abort(404);
+            abort(403);
         }
 
         return response()->download($media->getPath(), $media->file_name);
@@ -86,7 +86,7 @@ class MediaController extends Controller
         $media = $award->getFirstMedia('main_image');
 
         if (!$media) {
-            abort(404);
+            abort(403);
         }
 
         return response()->file($media->getPath());
@@ -95,13 +95,13 @@ class MediaController extends Controller
     public function showProjectPreview(Hackathon $hackathon, Project $project): BinaryFileResponse
     {
         if (!Gate::check('view', $hackathon) || !Gate::check('view', $project)) {
-            abort(404);
+            abort(403);
         }
 
-        $media = $project->getFirstMedia('main_image');
+        $media = $project->getFirstMedia('preview');
 
         if (!$media) {
-            abort(404);
+            abort(403);
         }
 
         return response()->file($media->getPath());
@@ -110,34 +110,38 @@ class MediaController extends Controller
     public function showProjectPresentation(Hackathon $hackathon, Project $project): JsonResponse
     {
         if (!Gate::check('view', $hackathon) || !Gate::check('view', $project)) {
-            abort(404);
+            abort(403);
         }
 
-        $media = $project->getFirstMedia('main_image');
+        $media = $project->getFirstMedia('presentation');
 
         if (!$media) {
-            abort(404);
+            abort(403);
         }
 
         return response()->json([
             'id' => $media->id,
             'name' => $media->file_name,
-            'url' => $media->getFullUrl(),
+            'url' => $media->getPath(),
         ]);
     }
 
-    public function showProjectGallery(Request $request, Hackathon $hackathon, Project $project)
+    public function showProjectGallery(Request $request, Hackathon $hackathon, Project $project): JsonResponse
     {
         $user = $request->user();
 
-        if (! $user->can('view', $project)) {
-            abort(404);
+        if (!$user->can('view', $project)) {
+            abort(403);
         }
 
         $mediaItems = $project->getMedia('gallery')->map(fn ($media) => [
             'id' => $media->id,
-            'url' => $media->getFullUrl(),
             'name' => $media->name,
+            'url' => route('hackathons.projects.gallery.image', [
+                'hackathon' => $hackathon->slug,
+                'project' => $project->slug,
+                'mediaId' => $media->id,
+            ]),
         ]);
 
         return response()->json([
@@ -145,16 +149,26 @@ class MediaController extends Controller
         ]);
     }
 
+    public function showProjectGalleryImage(Hackathon $hackathon, Project $project, int $mediaId): BinaryFileResponse
+    {
+        if (!Gate::check('view', $project)) {
+            abort(403);
+        }
+
+        $media = $project->media()->where('id', $mediaId)->first();
+        return response()->file($media->getPath());
+    }
+
 //    public function downloadProjectPresentation(Hackathon $hackathon, Project $project): BinaryFileResponse
 //    {
 //        if (!Gate::check('view', $hackathon) || !Gate::check('view', $project)) {
-//            abort(404);
+//            abort(403);
 //        }
 //
 //        $media = $project->getFirstMedia('main_image');
 //
 //        if (!$media) {
-//            abort(404);
+//            abort(403);
 //        }
 //
 //        return response()->download($media->getPath(), $media->file_name);

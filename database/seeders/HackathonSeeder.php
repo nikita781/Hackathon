@@ -31,12 +31,10 @@ class HackathonSeeder extends Seeder
             }
         });
         $hackathons = Hackathon::all();
-        $user = User::find(2);
         foreach ($hackathons as $h) {
             for ($i = 0; $i < random_int(1, 5); $i++) {
                 $h->tags()->syncWithoutDetaching(Tag::inRandomOrder()->first()->id);
             }
-            $h->users()->syncWithoutDetaching([$user->id => ['role_id' => Role::MEMBER]]);
             foreach (Tab::defaultStructure() as $tabTitle => $sections) {
                 $tab = Tab::factory()->create(['title' => $tabTitle, 'hackathon_id' => $h->id]);
                 if (file_exists($imagePath)) {

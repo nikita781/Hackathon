@@ -3,8 +3,8 @@ import {reactive, ref, onBeforeUnmount, watch, onMounted} from 'vue'
 import {useLangStore} from "@/store/lang.js";
 
 /** ===== props / emit ================================================== */
-defineProps({               // v-model:files
-    modelValue: { type: Array, default: () => [] }   // массив File
+const props = defineProps({               // v-model:files
+    files: { type: Array, default: () => [] }   // массив File
 })
 const emit = defineEmits(['update:files'])
 
@@ -14,26 +14,26 @@ const inputEl  = ref(null)
 const langStore = useLangStore()
 
 /* список { file, url }  */
-const items = reactive([])
+const items = ref([])
 
 /** ===== служебное ---------------------------------------------------- */
 function addFiles(fileList) {
     ;[...fileList].forEach(f => {
         if (!f.type.startsWith('image/')) return         // только картинки
         const url = URL.createObjectURL(f)
-        items.push({ file: f, url })
+        items.value.push({ file: f, url })
     })
-    emit('update:files', items.map(i => i.file))       // наружу
+    emit('update:files', items.value.map(i => i.file))       // наружу
 }
 
 function remove(idx) {
-    URL.revokeObjectURL(items[idx].url)
-    items.splice(idx, 1)
-    emit('update:files', items.map(i => i.file))
+    URL.revokeObjectURL(items.value[idx].url)
+    items.value.splice(idx, 1)
+    emit('update:files', items.value.map(i => i.file))
 }
 
 /* убрать все objectURL при уничтожении */
-onBeforeUnmount(() => items.forEach(i => URL.revokeObjectURL(i.url)))
+onBeforeUnmount(() => items.value.forEach(i => URL.revokeObjectURL(i.url)))
 
 /** ===== события ------------------------------------------------------ */
 function onInput(e)  { addFiles(e.target.files) }
@@ -41,7 +41,23 @@ function onDrop(e)   { e.preventDefault(); dragging.value=false; addFiles(e.data
 function onDrag(e)   { e.preventDefault(); dragging.value = (e.type==='dragenter'||e.type==='dragover') }
 
 /** ===== синхронизация извне (если нужно) ============================ */
-watch(() => items.length, n => { if (!n && inputEl.value) inputEl.value.value='' })
+watch(() => items.value.length, n => { if (!n && inputEl.value) inputEl.value.value='' })
+
+/** ===== синхронизация с пропсом files =============================== */
+watch(() => props.files, (newFiles) => {
+    items.value.splice(0, items.value.length);  // Очистить текущие элементы
+    // Проходим по новым файлам и создаем их
+    newFiles.forEach(file => {
+        if (typeof file === 'object' && file.url) {
+            // Если это объект с URL, то просто добавляем в items
+            items.value.push({ file, url: file.url });
+        } else {
+            // Если это файл, то создаем URL
+            const url = URL.createObjectURL(file);
+            items.value.push({ file, url });
+        }
+    });
+}, { immediate: true });
 
 function capitalizeFirstLetter(str) {
     if (!str) return str;
@@ -54,6 +70,7 @@ onMounted(async () => {
 </script>
 
 <template>
+    <pre>{{files}}</pre>
     <!-- зона добавления -->
     <label
         class="dropzone"
@@ -79,7 +96,7 @@ onMounted(async () => {
         <!-- миниатюры -->
         <template v-else>
             <div class="thumb" v-for="(it,idx) in items" :key="idx">
-                <img :src="it.url" :alt="it.file.name" />
+                <img :src="it.url" alt="Photo" />
                 <div class="mask" @click.stop="remove(idx)"/>
             </div>
         </template>

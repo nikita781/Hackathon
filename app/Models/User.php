@@ -97,22 +97,27 @@ class User extends Authenticatable
         return $this->hackathons()->where('hackathons.id', $hackathon->id)->where('role_id', Role::MEMBER)->exists();
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->hasAnyRole(Role::ADMINS);
+    }
+
     public function isHackathonStaff(Hackathon $hackathon): bool
     {
-        $isAdmin = $this->hasAnyRole([
-            Role::SUPER_ADMIN,
-            Role::ADMIN,
-        ]);
-
-        if ($isAdmin) {
-            return true;
-        }
-
         if ($this->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists()) {
             return true;
         }
 
         if ($this->hackathons()->where('hackathon_id', $hackathon->id)->whereIn('role_id', Role::STAFF)->exists()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isHackathonJudge(Hackathon $hackathon): bool
+    {
+        if ($this->hackathons()->where('hackathon_id', $hackathon->id)->where('role_id', Role::JUDGE)->exists()) {
             return true;
         }
 
@@ -148,12 +153,12 @@ class User extends Authenticatable
 
     public function isCapitan(Project $project): bool
     {
-        return $this->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('id', $project->team_id)->exists();
+        return $this->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('teams.id', $project->team_id)->exists();
     }
 
     public function isMemberOfProject(Project $project): bool
     {
-        return $this->teams()->where('id', $project->team_id)->exists();
+        return $this->teams()->where('teams.id', $project->team_id)->exists();
     }
 
     public function isCapitanOfHackathon(Hackathon $hackathon): bool
@@ -182,5 +187,11 @@ class User extends Authenticatable
     public function support(): HasMany
     {
         return $this->hasMany(Support::class);
+    }
+
+    public function awards(): BelongsToMany
+    {
+        return $this->BelongsToMany(Award::class)
+            ->withPivot('awarded_at');
     }
 }

@@ -28,11 +28,20 @@ return new class extends Migration
         Role::insert([
             ['id' => Role::SUPER_ADMIN, 'title' => 'Главный админ'],
             ['id' => Role::ADMIN, 'title' => 'Админ'],
+            ['id' => Role::MODERATOR, 'title' => 'Модератор'],
             ['id' => Role::ORGANIZER, 'title' => 'Организатор'],
             ['id' => Role::JUDGE, 'title' => 'Судья'],
             ['id' => Role::MENTOR, 'title' => 'Ментор'],
             ['id' => Role::MEMBER, 'title' => 'Участник'],
         ]);
+
+        $superAdmin = User::create([
+            'name' => 'Главный Админ',
+            'nickname' => 'SuperAdmin',
+            'email' => 'SuperAdmin@SuperAdmin.com',
+        ]);
+
+        $superAdmin->assignedRole(Role::SUPER_ADMIN);
     }
 
     /**

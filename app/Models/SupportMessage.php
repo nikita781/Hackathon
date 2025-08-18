@@ -12,6 +12,10 @@ class SupportMessage extends Model
         'user_id', 'support_id', 'message', 'message_type'
     ];
 
+    public const TYPES = ['support', 'user'];
+    public const USER = 'user';
+    public const SUPPORT = 'support';
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(Hackathon::class);

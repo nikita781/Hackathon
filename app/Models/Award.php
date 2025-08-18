@@ -22,6 +22,9 @@ class Award extends Model implements HasMedia
         'system' => 'boolean',
     ];
 
+    public const SYSTEM_AWARD_FIRST = 1;
+    public const SYSTEM_AWARD_TEN = 2;
+
     public function hackathon(): BelongsTo
     {
         return $this->belongsTo(Hackathon::class);

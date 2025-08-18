@@ -1,5 +1,4 @@
 <script setup>
-import edjsHTML from 'editorjs-html'
 import {computed, ref} from 'vue'
 import { renderEdjs } from '@/utils/renderEdjs'
 

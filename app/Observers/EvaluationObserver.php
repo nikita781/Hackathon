@@ -11,11 +11,6 @@ class EvaluationObserver
         $evaluation->project->updateAvgScore();
     }
 
-    public function updated(Evaluation $evaluation): void
-    {
-        $evaluation->project->updateAvgScore();
-    }
-
     public function deleted(Evaluation $evaluation): void
     {
         $evaluation->project->updateAvgScore();

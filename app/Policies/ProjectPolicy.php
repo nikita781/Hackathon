@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Hackathon;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -18,6 +19,10 @@ class ProjectPolicy
 
     public function viewAll(User $user, Hackathon $hackathon): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         return $user->isHackathonStaff($hackathon);
     }
 
@@ -29,6 +34,10 @@ class ProjectPolicy
 
         if (!$user) {
             return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
         }
 
         if ($user->isHackathonStaff(Hackathon::find($project->hackathon_id))) {
@@ -45,11 +54,16 @@ class ProjectPolicy
 
     public function update(User $user, Project $project): bool
     {
-        if ($user->isHackathonStaff(Hackathon::find($project->hackathon_id))) {
+        if ($user->isAdmin()) {
             return true;
         }
 
         if ($project->status === Project::PUBLISHED || $project->status === Project::MODERATION) {
+            return false;
+        }
+
+        $hackathon = Hackathon::findOrFail($project->hackathon_id);
+        if ($hackathon->work_time_start > now() && $hackathon->work_time_end < now()) {
             return false;
         }
 
@@ -63,5 +77,27 @@ class ProjectPolicy
         }
 
         return $user->isCapitan($project);
+    }
+
+    public function publish(User $user, Project $project): bool
+    {
+        $hackathon = Hackathon::findOrFail($project->hackathon_id);
+        if ($hackathon->work_time_start > now() && $hackathon->work_time_end < now()) {
+            return false;
+        }
+
+        $publishedProjects = $project->team->projects()->whereIn('status', [Project::PUBLISHED, Project::MODERATION])->exists();
+        return $user->isCapitan($project) && !$publishedProjects;
+    }
+
+    public function rate(User $user, Project $project):bool
+    {
+        $hackathon = Hackathon::findOrFail($project->hackathon_id);
+
+        if ($hackathon->evaluation_start > now() && $hackathon->evaluation_end < now()) {
+            return false;
+        }
+
+        return $user->isHackathonJudge($hackathon);
     }
 }

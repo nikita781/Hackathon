@@ -26,8 +26,10 @@ class TeamController extends Controller
             abort(404);
         }
 
+        $perPage = min($request->get('per_page', 2), 10);
+
         return response()->json([
-            'teams' => TeamResource::collection($hackathon->allTeams()->filter($request)->get()),
+            'teams' => TeamResource::collection($hackathon->allTeams()->filter($request)->paginate($perPage)),
             'count' => $hackathon->countTeams(),
         ]);
     }
@@ -66,26 +68,6 @@ class TeamController extends Controller
 
         return back()->with('status', 'Участник команды успешно исключен');
     }
-//
-//    public function showInvite($token): Response
-//    {
-//        $invite = TeamInvite::where('token', $token)->firstOrFail();
-//
-//        if ($invite->isExpired()) {
-//            abort(410, 'Срок действия приглашения истёк');
-//        }
-//
-//        $team = $invite->team->load('users');
-//        $hackathon = $team->hackathon->load(['tags', 'media']);
-//
-//        return Inertia::render('Invites/Show', [
-//            'token' => $token,
-//            'team' => new TeamResource($team),
-//            'hackathon' => new HackathonResource($hackathon),
-//            'expires_at' => $invite->expires_at,
-//        ]);
-//    }
-
 
     public function createInvite(Hackathon $hackathon, Team $team): JsonResponse
     {

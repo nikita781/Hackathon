@@ -13,6 +13,7 @@ const props = defineProps({
     ownTeam: Object,
     positions: Array,
     is_join: Boolean,
+    allProjects: Object,
     flash: Object,
 })
 

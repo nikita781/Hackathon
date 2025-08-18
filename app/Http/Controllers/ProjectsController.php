@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Resources\ProjectResource;
+use App\Models\Evaluation;
 use App\Models\Hackathon;
 use App\Models\Project;
 use App\Models\Team;
@@ -33,13 +34,24 @@ class ProjectsController extends Controller
         ]);
     }
 
+    public function showTeamProjects(Request $request, Hackathon $hackathon, Team $team): JsonResponse
+    {
+        if (!$request->wantsJson()) {
+            abort(404);
+        }
+
+        return response()->json([
+            'projects' => ProjectResource::collection($team->projects()->with(['team.teamUsers.position', 'team.teamUsers.user'])->get()),
+        ]);
+    }
+
     /**
      * @throws FileIsTooBig
      * @throws FileDoesNotExist
      */
     public function store(StoreProjectRequest $request, Hackathon $hackathon, Team $team): JsonResponse
     {
-        if(!Gate::check('createProject', Project::class)) {
+        if(!Gate::check('createProject', [Project::class, $hackathon])) {
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для создания проекта');
         }
 
@@ -57,6 +69,7 @@ class ProjectsController extends Controller
             'project' => [
                 'id' => $project->id,
                 'title' => $project->title,
+                'description' => $project->description,
                 'slug' => $project->slug,
             ],
             'message' => "Проект '". $project->title ."' успешно создан",
@@ -82,11 +95,12 @@ class ProjectsController extends Controller
      */
     public function update(UpdateProjectRequest $request, Hackathon $hackathon, Project $project): RedirectResponse
     {
-        if(!Gate::check('update', Project::class)) {
+        if(!Gate::check('update', $project)) {
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для обновления проекта');
         }
 
         $data = Arr::except($request->validated(), ['preview', 'presentation', 'gallery', 'delete_media_ids']);
+        $gallery = $request->validated('gallery');
 
         if ($request->hasFile('preview')) {
             if ($project->hasMedia('preview')) {
@@ -102,11 +116,8 @@ class ProjectsController extends Controller
             $project->addMediaFromRequest('presentation')->toMediaCollection('presentation');
         }
 
-        if ($request->has('galley')) {
-            foreach ($request->get('gallery') as $galleryImage) {
-                if ($project->hasMedia('gallery')) {
-                    $project->clearMediaCollection('gallery');
-                }
+        if (!empty($gallery)) {
+            foreach ($gallery as $galleryImage) {
                 $project->addMedia($galleryImage)->toMediaCollection('gallery');
             }
         }
@@ -143,5 +154,48 @@ class ProjectsController extends Controller
         $project->delete();
 
         return back()->with('status', 'Проект успешно удален!');
+    }
+
+    public function publish(Hackathon $hackathon, Project $project): RedirectResponse
+    {
+        if (!Gate::check('publish', $project)) {
+            abort(403);
+        }
+
+        $project->status = Project::MODERATION;
+        $project->moderated_time = now();
+        $project->save();
+
+        return back()->with('status', 'Проект успешно отправлен на модерацию!');
+    }
+
+    public function rate(Request $request, Project $project): RedirectResponse
+    {
+        if (!Gate::check('rate', $project)) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'evaluations' => ['required', 'array'],
+            'evaluations.*.criterion_id' => ['required', 'exists:criteria,id'],
+            'evaluations.*.score' => ['required', 'integer', 'min:0'],
+        ]);
+
+        foreach ($data['evaluations'] as $evaluation) {
+            Evaluation::updateOrCreate(
+                [
+                    'user_id' => auth()->id(),
+                    'project_id' => $project->id,
+                    'criterion_id' => $evaluation['criterion_id'],
+                ],
+                [
+                    'score' => $evaluation['score'],
+                ]
+            );
+        }
+
+        $project->updateAvgScore();
+
+        return back()->with('status', 'Оценки сохранены');
     }
 }

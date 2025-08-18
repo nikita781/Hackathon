@@ -3,6 +3,7 @@
 use App\Http\Controllers\AwardsController;
 use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\HackathonController;
+use App\Http\Controllers\HackathonStaffController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NominationController;
@@ -52,12 +53,12 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
 });
 
 Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.show');
-Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
 
 Route::get('/notification', [NotificationController::class, 'index'])->name('notification.index');
-Route::patch('/notification/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notification.mark-as-read');
+Route::patch('/notification/mark-as-read', [NotificationController::class, 'markAsRead'])->middleware('auth')->name('notification.mark-as-read');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');
     Route::get('/my-hackathons', [HackathonController::class, 'myHackathons'])->name('my-hackathons');
     Route::prefix('hackathons')->name('hackathons.')->group(function () {
@@ -94,6 +95,7 @@ Route::middleware('auth')->group(function () {
                     Route::post('/inviteById', [TeamController::class, 'inviteUserById'])->name('invite-by-id');
                     Route::prefix('/projects')->name('projects.')->group(function () {
                         Route::post('/', [ProjectsController::class, 'store'])->name('store');
+                        Route::get('/showTeamProjects', [ProjectsController::class, 'showTeamProjects'])->name('show-team-projects');
                         Route::prefix('/{project}')->group(function () {
                             Route::post('/publish', [ProjectsController::class, 'publish'])->name('publish');
                         });
@@ -102,7 +104,7 @@ Route::middleware('auth')->group(function () {
             });
             Route::prefix('/projects')->name('projects.')->group(function () {
                 Route::get('/', [ProjectsController::class, 'index'])->name('index');
-                Route::prefix('/{project}}')->group(function () {
+                Route::prefix('/{project}')->group(function () {
                     Route::patch('/', [ProjectsController::class, 'update'])->name('update');
                     Route::delete('/', [ProjectsController::class, 'destroy'])->name('destroy');
                 });
@@ -110,6 +112,17 @@ Route::middleware('auth')->group(function () {
 
             Route::prefix('/support')->name('support.')->group(function () {
                 Route::get('/', [SupportsController::class, 'index'])->name('index');
+                Route::post('/', [SupportsController::class, 'store'])->name('store');
+                Route::prefix('/{support}')->group(function () {
+                    Route::post('/answer', [SupportsController::class, 'answer'])->name('answer');
+                });
+            });
+
+            Route::prefix('/staff')->name('staff.')->group(function () {
+                Route::delete('/kick', [HackathonStaffController::class, 'kick'])->name('kick');
+                Route::post('/invite', [HackathonStaffController::class, 'createInvite'])->name('create-invite');
+                Route::get('/invite/{token}', [HackathonStaffController::class, 'acceptInvite'])->name('accept-invite');
+                Route::post('/inviteById', [HackathonStaffController::class, 'inviteUserById'])->name('invite-by-id');
             });
         });
     });
@@ -126,6 +139,7 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
         Route::get('/preview', [MediaController::class, 'showProjectPreview'])->name('image');
         Route::get('/presentation', [MediaController::class, 'showProjectPresentation'])->name('presentation');
         Route::get('/gallery', [MediaController::class, 'showProjectGallery'])->name('gallery');
+        Route::get('/gallery/{mediaId}', [MediaController::class, 'showProjectGalleryImage'])->name('gallery.image');
     });
 });
 

@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Hackathon;
+use App\Models\Support;
+use App\Models\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class SupportPolicy
+{
+    use HandlesAuthorization;
+
+    public function viewAny(User $user, Hackathon $hackathon): bool
+    {
+        $isMember = $user->hackathons()->where('hackathons.id', $hackathon->id)->exists();
+        $isOrganizer = $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
+
+        return $isMember || $isOrganizer;
+    }
+
+    public function createSupport(User $user, Hackathon $hackathon): bool
+    {
+        $isMember = $user->hackathons()->where('hackathons.id', $hackathon->id)->exists();
+        $isOrganizer = $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
+
+        return $isMember || $isOrganizer;
+    }
+
+    public function answer(User $user, Support $support): bool
+    {
+        if ($support->is_completed) {
+            return false;
+        }
+
+        $hackathon = $support?->hackathon;
+        return match ($support->type) {
+            Support::BUG => $user->isAdmin(),
+            Support::SUGGESTION, Support::QUESTION => $user->isHackathonStaff($hackathon),
+            default => false,
+        };
+    }
+}

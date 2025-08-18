@@ -22,7 +22,7 @@ class HackathonPolicy
             return $hackathon->status !== Hackathon::STATUS_DRAFT;
         }
 
-        return $hackathon->status === Hackathon::STATUS_PUBLISHED || $user->isHackathonStaff($hackathon);
+        return $hackathon->status === Hackathon::STATUS_PUBLISHED || $user->isHackathonStaff($hackathon) || $user->isAdmin();
     }
 
     public function viewTask(?User $user, Hackathon $hackathon): bool
@@ -33,7 +33,7 @@ class HackathonPolicy
 
         $isHackathonPublish = $hackathon->status === Hackathon::STATUS_PUBLISHED && $hackathon->event_start->lessThan(now());
 
-        return $isHackathonPublish || $user->isHackathonStaff($hackathon);
+        return $isHackathonPublish || $user->isHackathonStaff($hackathon) || $user->isAdmin();
     }
 
     public function create(User $user): bool

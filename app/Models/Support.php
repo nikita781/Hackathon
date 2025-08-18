@@ -13,12 +13,15 @@ class Support extends Model
         'user_id', 'hackathon_id', 'type', 'is_completed', 'closed_by', 'closed_at',
     ];
 
-    const TYPES = ['question', 'suggestion', 'bug', 'other'];
+    const TYPES = ['question', 'suggestion', 'bug'];
 
     const QUESTION = 'question';
     const SUGGESTION = 'suggestion';
     const BUG = 'bug';
-    const OTHER = 'other';
+
+    protected $casts = [
+        'is_completed' => 'boolean',
+    ];
 
     public function creator(): BelongsTo
     {

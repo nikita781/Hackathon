@@ -7,6 +7,8 @@ use App\Http\Requests\HackathonUpdateRequest;
 use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\PositionResource;
+use App\Http\Resources\ProjectResource;
+use App\Http\Resources\SupportResource;
 use App\Http\Resources\TabResource;
 use App\Http\Resources\TagResource;
 use App\Http\Resources\TeamResource;
@@ -15,6 +17,7 @@ use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Project;
 use App\Models\Role;
+use App\Models\Support;
 use App\Models\Tab;
 use App\Models\Tag;
 use App\Models\Team;
@@ -38,11 +41,13 @@ class HackathonController extends Controller
      */
     public function index(Request $request): Response
     {
+        $perPage = min($request->get('per_page', 6), 10);
+
         $hackathons = Hackathon::filter($request)
             ->with('tags')
             ->where('status', Hackathon::STATUS_PUBLISHED)
             ->latest()
-            ->paginate($request->per_page ?? 6)
+            ->paginate($perPage)
             ->withQueryString();
 
         return Inertia::render('Hackathon/Index', [
@@ -61,7 +66,7 @@ class HackathonController extends Controller
     {
 
         $user = auth()->user();
-        $perPage = $request->per_page ?? 6;
+        $perPage = min($request->get('per_page', 6), 10);
 
         $hackathonIds = $user->hackathons()->select('hackathons.id');
 
@@ -149,25 +154,30 @@ class HackathonController extends Controller
         if (!Gate::check('view', [$hackathon])) {
             abort(404);
         }
-
         $hackathon->load([
             'tags',
             'awards',
+            'allProjects.team.teamUsers.position',
+            'allProjects.team.teamUsers.user',
             'nominations.distribution',
             'criteriaGroups.criteria',
+            'support.messages.user',
         ]);
 
+        $perPageProject = min($request->get('per_page', 6), 10);
+        $perPageTeam = min($request->get('per_page', 6), 10);
         $user = auth()->user();
+        $isStaffHackathon = $user?->isHackathonStaff($hackathon);
 
         $teams = collect();
         $ownTeam = null;
 
         if (!isset($user)) {
             $teams = collect();
-        } else if ($user->isHackathonStaff($hackathon)) {
+        } else if ($isStaffHackathon) {
             $teams = $hackathon->teams()
                 ->with(['projects', 'users.positions'])
-                ->get();
+                ->paginate($perPageTeam);
         } else {
             $ownTeam = $hackathon->ownTeam($user);
         }
@@ -180,8 +190,10 @@ class HackathonController extends Controller
         $tabsResource = TabResource::collection($tabs)->additional(['hackathon' => $hackathon->id]);
         $teamsResource = $teams->isNotEmpty() ? TeamResource::collection($teams) : null;
         $ownTeamResource = $ownTeam ? new TeamResource($ownTeam) : null;
+        $allProjects = $teams->isNotEmpty() ? ProjectResource::collection($hackathon->allProjects()->paginate($perPageProject)) : null;
         $positionsResource = PositionResource::collection($positions);
         $hackathonStaff = UserResource::collection($hackathon->getAllHackathonStaff());
+        $supports = SupportResource::collection($hackathon->support()->where('type', Support::QUESTION)->orWhere('type', Support::SUGGESTION)->orderBy('created_at')->with('messages.user')->get());
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -189,6 +201,7 @@ class HackathonController extends Controller
                 "tabs" => $tabsResource->response(),
                 "teams" => optional($teamsResource)->response(),
                 "ownTeam" => optional($ownTeamResource)->response(),
+                "allProjects" => optional($allProjects)->response(),
                 "positions" => $positionsResource->response(),
             ]);
         }
@@ -200,6 +213,8 @@ class HackathonController extends Controller
             'ownTeam' => $ownTeamResource,
             'positions' => $positionsResource,
             'hackathonStaff' => $hackathonStaff,
+            'allProjects' => $allProjects,
+            'supports' => $supports,
             'is_join' => $user ? $user->onHackathonAsMember($hackathon) : false,
             'can' => [
                 'hackathon' => [
@@ -215,8 +230,13 @@ class HackathonController extends Controller
                     'invite' => Gate::check('invite', $ownTeam),
                 ],
                 'project' => [
-                    'viewAny' => Gate::check('viewAny', Project::class),
+                    'viewAll' => Gate::check('viewAll', [Project::class, $hackathon]),
                     'createProject' => Gate::check('createProject', [Project::class, $hackathon]),
+                ],
+                'support' => [
+                    'viewAny' => Gate::check('viewAny', [Support::class, $hackathon]),
+                    'create' => Gate::check('createSupport', [Support::class, $hackathon]),
+                    'answer' => $isStaffHackathon,
                 ],
             ],
         ]);
