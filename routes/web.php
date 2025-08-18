@@ -124,6 +124,8 @@ Route::middleware('auth')->group(function () {
                 Route::get('/invite/{token}', [HackathonStaffController::class, 'acceptInvite'])->name('accept-invite');
                 Route::post('/inviteById', [HackathonStaffController::class, 'inviteUserById'])->name('invite-by-id');
             });
+
+            Route::post('/download-users', [HackathonController::class, 'downloadUsers'])->name('download-users');
         });
     });
 });
