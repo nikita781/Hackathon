@@ -17,6 +17,7 @@ class AwardResource extends JsonResource
             'place' => $this->place,
             'for_all' => $this->for_all,
             'system' => $this->system,
+            'awarded_at' => $this->pivot?->awarded_at,
             'image' => route('awards.image', $this->resource),
         ];
     }

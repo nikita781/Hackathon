@@ -12,12 +12,6 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $superAdmin = User::create([
-            'name' => 'Главный Админ',
-            'nickname' => 'SAdmin',
-            'email' => 'SAdmin@SAdmin.com',
-        ]);
-
         $admin = User::create([
             'name' => 'Admin',
             'nickname' => 'admin',
@@ -54,7 +48,6 @@ class UserSeeder extends Seeder
             'email' => 'member@member.com',
         ]);
 
-        $superAdmin->assignedRole(Role::SUPER_ADMIN);
         $admin->assignedRole(Role::ADMIN);
         $moderator->assignedRole(Role::MODERATOR);
         $org->assignedRole(Role::ORGANIZER);

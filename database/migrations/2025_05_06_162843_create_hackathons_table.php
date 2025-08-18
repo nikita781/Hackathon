@@ -38,6 +38,7 @@ return new class extends Migration
             $table->dateTime('published_time')->nullable();
             $table->dateTime('blocked_time')->nullable();
             $table->string('comment')->nullable();
+            $table->boolean('is_finished')->default(false);
             $table->timestamps();
         });
 

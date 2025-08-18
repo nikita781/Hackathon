@@ -31,6 +31,18 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamp('awarded_at')->nullable();
         });
+
+        Award::create([
+            'title' => 'Первый хакатон',
+            'description' => 'Первый хакатон, в котором вы участвовали',
+            'system' => true,
+        ]);
+
+        Award::create([
+            'title' => '10-й хакатон',
+            'description' => '10-й хакатон, в котором вы участвовали',
+            'system' => true,
+        ]);
     }
 
     /**

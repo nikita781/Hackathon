@@ -53,12 +53,12 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
 });
 
 Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.show');
-Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
 
 Route::get('/notification', [NotificationController::class, 'index'])->name('notification.index');
 Route::patch('/notification/mark-as-read', [NotificationController::class, 'markAsRead'])->middleware('auth')->name('notification.mark-as-read');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');
     Route::get('/my-hackathons', [HackathonController::class, 'myHackathons'])->name('my-hackathons');
     Route::prefix('hackathons')->name('hackathons.')->group(function () {

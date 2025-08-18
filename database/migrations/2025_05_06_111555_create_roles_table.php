@@ -34,6 +34,14 @@ return new class extends Migration
             ['id' => Role::MENTOR, 'title' => 'Ментор'],
             ['id' => Role::MEMBER, 'title' => 'Участник'],
         ]);
+
+        $superAdmin = User::create([
+            'name' => 'Главный Админ',
+            'nickname' => 'SuperAdmin',
+            'email' => 'SuperAdmin@SuperAdmin.com',
+        ]);
+
+        $superAdmin->assignedRole(Role::SUPER_ADMIN);
     }
 
     /**

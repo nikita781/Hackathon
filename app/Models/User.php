@@ -188,4 +188,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Support::class);
     }
+
+    public function awards(): BelongsToMany
+    {
+        return $this->BelongsToMany(Award::class)
+            ->withPivot('awarded_at');
+    }
 }
