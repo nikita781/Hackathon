@@ -184,7 +184,7 @@ class HackathonController extends Controller
             $ownTeam = $hackathon->ownTeam($user);
         }
 
-        $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();
+        $tabs = $hackathon->tabs()->with(['sections.items', 'media', 'hackathon'])->get();
 
         $positions = Position::getAllPositionExceptCapitan();
 

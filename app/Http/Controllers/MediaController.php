@@ -54,7 +54,7 @@ class MediaController extends Controller
         $mediaItems = $tab->getMedia('partner_images')->map(fn ($media) => [
             'id' => $media->id,
             'name' => $media->file_name,
-            'url' => route('hackathons.tabs.partner-image', [$hackathon->id, $tab->id, $media->id]),
+            'url' => route('hackathons.tabs.partner-image', [$hackathon, $tab, $media]),
         ]);
 
         return response()->json(['partners' => $mediaItems]);
@@ -69,21 +69,19 @@ class MediaController extends Controller
         return response()->file($media->getPath());
     }
 
-    public function getAllHackathonFiles(Tab $tab, $hackathon_id): Collection
+    public function getAllHackathonFiles(Tab $tab, Hackathon $hackathon): Collection
     {
-        return $tab->getMedia('files')->map(function ($media) use($hackathon_id) {
+        return $tab->getMedia('files')->map(function ($media) use($hackathon) {
             return [
                 'id' => $media->id,
                 'name' => $media->file_name,
-                'url' => route('hackathons.files.download', [$hackathon_id, $media]),
+                'url' => route('hackathons.files.download', [$hackathon, $media]),
             ];
         });
     }
 
-    public function showHackathonFile($hackathon_id, Media $media): BinaryFileResponse
+    public function showHackathonFile(Hackathon $hackathon, Media $media): BinaryFileResponse
     {
-        $hackathon = Hackathon::findOrFail($hackathon_id);
-
         if (!Gate::check('view', $hackathon)) {
             abort(403);
         }

@@ -136,7 +136,7 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
     Route::get('/files/{media}', [MediaController::class, 'showHackathonFile'])->name('files.download');
     Route::prefix('/tabs/{tab}')->name('tabs.')->group(function () {
         Route::get('/partner-images', [MediaController::class, 'showHackathonPartners'])->name('partner-images');
-        Route::get('/partner-image', [MediaController::class, 'showHackathonPartnerImage'])->name('partner-image');
+        Route::get('/partner-image/{media}', [MediaController::class, 'showHackathonPartnerImage'])->name('partner-image');
     });
     Route::prefix('/projects/{project}')->name('projects.')->group(function () {
         Route::get('/preview', [MediaController::class, 'showProjectPreview'])->name('image');

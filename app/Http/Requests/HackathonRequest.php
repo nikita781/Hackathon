@@ -13,7 +13,7 @@ class HackathonRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255', 'min:5'],
             'image_path' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
             'format' => ['required', 'in:online,offline,hybrid'],
             'type' => ['required', 'in:individual,team'],
