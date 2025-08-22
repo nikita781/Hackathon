@@ -39,7 +39,7 @@ $x-big: 1829.98px;
         font-size: 34px;
         text-transform: uppercase;
         letter-spacing: 2px;
-        font-family: 'Cera Bold';
+        font-family: 'Cera Black';
     }
     &__btn {
         width: fit-content;
@@ -182,8 +182,8 @@ $x-big: 1829.98px;
             color: #121212;
             font-size: 34px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-family: 'Cera Bold';
+            letter-spacing: 1px;
+            font-family: 'Cera Black';
             font-weight: 700;
         }
         &__list {
@@ -210,6 +210,88 @@ $x-big: 1829.98px;
                 font-size: 22px;
                 font-family: "Cera";
             }
+        }
+    }
+    &__article {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        h2 {
+            font-size: 22px;
+        }
+        h3 {
+            font-size: 20px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        h5, h6 {
+            font-size: 18px;
+        }
+        p {
+            font-size: 16px;
+        }
+        ol, ul {
+            margin-left: 18px;
+        }
+    }
+    &__prizes {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        &_title {
+            color: #E80024;
+            font-size: 22px;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        &_container {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+        }
+        &_item {
+            display: flex;
+            gap: 8px;
+        }
+        &_content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        &_name {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        &_prize {
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        &_count {
+            color: #999;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+    }
+    &__gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        &_filter {
+            display: flex;
+            justify-content: space-between;
+            gap: 60px;
+        }
+        &_sort {
+            flex-wrap: nowrap;
+        }
+        &_container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 60px 20px;
         }
     }
 }

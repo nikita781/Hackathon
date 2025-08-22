@@ -17,7 +17,8 @@ const props = defineProps({
     flash: Object,
 })
 
-console.log(props.flash)
+console.log(props.can)
+console.log(props.allProjects)
 
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
@@ -32,8 +33,8 @@ const tabComponents = {
 const availableTabs = computed(() => {
     return [
         {key: 'overview', title: 'Обзор', blocked: false},
-        {key: 'project', title: 'Мой проект', blocked: false},
-        {key: 'gallery', title: 'Галерея проектов', blocked: !props.can?.project?.viewAny},
+        {key: 'project', title: 'Мой проект', blocked: !props.can?.team.joinTeam},
+        {key: 'gallery', title: 'Галерея проектов', blocked: !props.can?.project?.viewAll},
         {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
         {key: 'rules', title: 'Правила', blocked: false},
         {key: 'contacts', title: 'Контакты', blocked: false},
@@ -70,7 +71,7 @@ onMounted(() => {
 });
 
 const activeTab = ref(availableTabs.value[0]?.key ?? null)
-function openTab(tab) { if (!tab.blocked) activeTab.value = tab.key }
+function openTab(tab) { if (!tab.blocked) activeTab.value = tab?.key }
 
 const CurrentTab = computed(() => tabComponents[activeTab.value] ?? null)
 
@@ -213,6 +214,7 @@ function formatDate(dateStr) {
                 :ownTeam="props.ownTeam"
                 :hackathon="props.hackathon"
                 :tabs="props.tabs"
+                :allProjects="props.allProjects"
             />
         </div>
     </AuthenticatedLayout>

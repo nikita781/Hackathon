@@ -22,7 +22,18 @@ onMounted(async () => {
     editor = new EditorJS({
         holder: holder.value,
         placeholder: props.placeholder,
-        tools : { header: Header, list: List, vkvideo: VkVideoTool },
+        tools : {
+            header: Header,
+            list: {
+                class: List,
+                inlineToolbar: true,
+                config: {
+                    defaultStyle: 'unordered', // только маркированные списки
+                },
+                toolbar: ['unorderedList', 'checklist'] // Убираем orderedList
+            },
+            vkvideo: VkVideoTool
+        },
         data  : props.modelValue ?? {},    // ← только один раз!
         async onChange() {                 // ← отдаём наружу
             const data = await editor.save()
@@ -47,9 +58,7 @@ onBeforeUnmount(() => { editor?.destroy() })
     background:#f3f4f7;
     overflow-y:auto;
 }
-//:deep(.codex-editor--empty) {
-//    padding-bottom: 250px !important;
-//}
+
 :deep(.codex-editor__redactor) {
     padding-bottom: 140px !important;
 }

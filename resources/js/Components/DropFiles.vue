@@ -6,7 +6,7 @@ import {useLangStore} from "@/store/lang.js";
 const props = defineProps({               // v-model:files
     files: { type: Array, default: () => [] }   // массив File
 })
-const emit = defineEmits(['update:files'])
+const emit = defineEmits(['update:files', 'deleting-ids'])
 
 /** ===== локальное состояние ========================================== */
 const dragging = ref(false)               // подсветка «рамки»
@@ -15,6 +15,7 @@ const langStore = useLangStore()
 
 /* список { file, url }  */
 const items = ref([])
+const deletedFiles = ref([]);
 
 /** ===== служебное ---------------------------------------------------- */
 function addFiles(fileList) {
@@ -27,21 +28,50 @@ function addFiles(fileList) {
 }
 
 function remove(idx) {
-    URL.revokeObjectURL(items.value[idx].url)
-    items.value.splice(idx, 1)
-    emit('update:files', items.value.map(i => i.file))
+    const item = items.value[idx];
+    item.isDeleted = true; // флаг, что изображение удалено
+    deletedFiles.value.push(item.file.id); // добавляем id удалённого файла
+    items.value.splice(idx, 1); // удаляем файл из отображения
+
+    emit('update:files', items.value.map(i => i.file)); // отправляем родителю обновленный список
+    emit('deleting-ids', deletedFiles.value); // отправляем список удалённых ID
 }
 
 /* убрать все objectURL при уничтожении */
 onBeforeUnmount(() => items.value.forEach(i => URL.revokeObjectURL(i.url)))
 
 /** ===== события ------------------------------------------------------ */
-function onInput(e)  { addFiles(e.target.files) }
-function onDrop(e)   { e.preventDefault(); dragging.value=false; addFiles(e.dataTransfer.files) }
+function onInput(e) {
+    const fileList = e.target.files;
+    ;[...fileList].forEach(f => {
+        if (!f.type.startsWith('image/')) return; // только изображения
+        const url = URL.createObjectURL(f); // создаём URL для локального отображения
+        items.value.push({ file: f, url, isDeleted: false });
+    });
+
+    emit('update:files', items.value.map(i => i.file)); // отправляем родителю обновленный список
+}
+function onDrop(e) {
+    e.preventDefault();
+    const fileList = e.dataTransfer.files;
+    ;[...fileList].forEach(f => {
+        if (!f.type.startsWith('image/')) return;
+        const url = URL.createObjectURL(f);
+        items.value.push({ file: f, url, isDeleted: false });
+    });
+
+    emit('update:files', items.value.map(i => i.file));
+}
 function onDrag(e)   { e.preventDefault(); dragging.value = (e.type==='dragenter'||e.type==='dragover') }
 
 /** ===== синхронизация извне (если нужно) ============================ */
 watch(() => items.value.length, n => { if (!n && inputEl.value) inputEl.value.value='' })
+
+watch(() => props.files, (newFiles) => {
+    items.value = newFiles.map((file) => {
+        return { file, isDeleted: false }; // флаг для отслеживания удалённых
+    });
+}, { immediate: true });
 
 /** ===== синхронизация с пропсом files =============================== */
 watch(() => props.files, (newFiles) => {
@@ -67,10 +97,14 @@ function capitalizeFirstLetter(str) {
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
+
+onBeforeUnmount(() => {
+    items.value.forEach(i => URL.revokeObjectURL(i.url)); // очищаем URL при удалении компонента
+});
 </script>
 
 <template>
-    <pre>{{files}}</pre>
+<!--    <pre>{{files}}</pre>-->
     <!-- зона добавления -->
     <label
         class="dropzone"

@@ -44,9 +44,19 @@ async function getGallery(slugId) {
 const pptx = ref(null);
 const projectImages = ref([])
 const videoLink = ref('')
+const deletedMediaIds = ref([]);
 
 const pending = ref(false)
 const errors = ref({})
+
+
+const handleFilesUpdate = (newFiles) => {
+    projectImages.value = newFiles;
+};
+
+const handleDeletingIds = (deletedIds) => {
+    deletedMediaIds.value = deletedIds;
+};
 
 function cancel () {
     resetState()
@@ -79,7 +89,21 @@ async function submit() {
         if (pptx.value && pptx.value instanceof File) {
             fd.append('presentation', pptx.value)
         }
-        projectImages.value.forEach(file => fd.append('gallery[]', file));
+        projectImages.value.forEach(file => {
+            if (file instanceof File) {
+                fd.append('gallery[]', file);
+            }
+        });
+        // Если есть удалённые медиафайлы, передаём их
+        // if (deletedMediaIds.value.length) {
+        //     fd.append('delete_media_ids', deletedMediaIds.value); // передаем массив удалённых файлов
+        //     console.log(deletedMediaIds.value)
+        // }
+        if (deletedMediaIds.value.length) {
+            deletedMediaIds.value.forEach(id => {
+                fd.append('delete_media_ids[]', id);
+            });
+        }
         fd.append('video_link', videoLink.value)
 
         const { data } = await axios.post(
@@ -111,7 +135,7 @@ async function submit() {
         </div>
         <div class="dialog__component">
             <p class="dialog__title">Галерея проекта</p>
-            <DropFiles v-model:files="projectImages" />
+            <DropFiles :files="projectImages" @update:files="handleFilesUpdate" @deleting-ids="handleDeletingIds" />
             <span v-if="errors.gallery" class="error">{{ errors.gallery[0] }}</span>
         </div>
         <div class="dialog__component">
