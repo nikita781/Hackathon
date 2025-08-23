@@ -6,7 +6,6 @@ use App\Models\Hackathon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
-use Lang;
 
 class HackathonRequest extends FormRequest
 {
@@ -41,6 +40,6 @@ class HackathonRequest extends FormRequest
 
     public function messages(): array
     {
-        return Lang::get('validations/hackathon');
+        return trans('validations/hackathon');
     }
 }

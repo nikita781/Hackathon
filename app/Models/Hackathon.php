@@ -192,6 +192,35 @@ class Hackathon extends Model implements HasMedia
         return $query;
     }
 
+    /**
+     * @param  Builder  $query
+     * @param $request
+     * @return Builder
+     */
+    public function scopeAdminFilter(Builder $query, $request): Builder
+    {
+        $query->when($request->q, function ($q, $search) {
+            $q->where('title', 'ILIKE', '%' . $search . '%');
+        });
+
+        $query->when($request->status, function ($q, $status) {
+            $status = is_array($status) ? $status : explode(',', $status);
+            $q->whereIn('status', $status);
+        });
+
+        $query->when($request->order, function ($q, $order) {
+            return match ($order) {
+                'dateA' => $q->orderBy('created_at', 'asc'),
+                'dateD' => $q->orderBy('created_at', 'desc'),
+                'titleA' => $q->orderBy('title', 'asc'),
+                'titleD' => $q->orderBy('title', 'desc'),
+                default => $q,
+            };
+        });
+
+        return $query;
+    }
+
     public static function generateUniqueSlug(string $title): string
     {
         $slug = Str::slug($title);

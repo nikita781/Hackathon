@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AwardsController;
 use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\HackathonController;
@@ -147,3 +148,10 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
 });
 
 Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])->name('awards.image');
+
+Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+    Route::prefix('/moderation')->name('moderation.')->group(function () {
+        Route::get('/hackathons', [AdminController::class, 'moderationHackathon'])->name('hackathons');
+        Route::get('/projects', [AdminController::class, 'moderationProject'])->name('projects');
+    });
+});
