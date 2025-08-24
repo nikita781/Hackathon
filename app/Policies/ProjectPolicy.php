@@ -100,4 +100,9 @@ class ProjectPolicy
 
         return $user->isHackathonJudge($hackathon);
     }
+
+    public function moderate(User $user): bool
+    {
+        return $user->isAdmin();
+    }
 }

@@ -9,6 +9,7 @@ use App\Models\Evaluation;
 use App\Models\Hackathon;
 use App\Models\Project;
 use App\Models\Team;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -162,11 +163,12 @@ class ProjectsController extends Controller
             abort(403);
         }
 
-        $project->status = Project::MODERATION;
-        $project->moderated_time = now();
-        $project->save();
+        $project->update([
+            'status' => Project::MODERATION,
+            'moderated_time' => Carbon::now()
+        ]);
 
-        return back()->with('status', 'Проект успешно отправлен на модерацию!');
+        return back()->with('status', 'Проект отправлен на модерацию!');
     }
 
     public function rate(Request $request, Project $project): RedirectResponse

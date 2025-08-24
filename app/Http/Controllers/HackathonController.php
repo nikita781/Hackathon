@@ -22,6 +22,7 @@ use App\Models\Support;
 use App\Models\Tab;
 use App\Models\Tag;
 use App\Models\Team;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -277,6 +278,18 @@ class HackathonController extends Controller
             $hackathon->tags()->sync($request->tags);
         }
         return back()->with('status', 'Хакатон обновлен');
+    }
+
+    public function publish(Hackathon $hackathon): RedirectResponse
+    {
+        Gate::authorize('publish', $hackathon);
+
+        $hackathon->update([
+            'status' => Hackathon::STATUS_MODERATION,
+            'moderated_time' => Carbon::now(),
+        ]);
+
+        return back()->with('status', 'Хакатон отправлен на модерацию');
     }
 
     public function destroy(Hackathon $hackathon): void

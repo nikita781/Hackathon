@@ -33,6 +33,11 @@ class Team extends Model
         return $this->hasMany(TeamUser::class);
     }
 
+    public function captain(): BelongsTo
+    {
+        return $this->users()->wherePivot('position_id', Position::CAPITAN_POSITION)->first();
+    }
+
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);

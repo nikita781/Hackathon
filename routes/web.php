@@ -66,6 +66,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [HackathonController::class, 'store'])->name('store');
         Route::prefix('/{hackathon}')->group(function () {
             Route::patch('/', [HackathonController::class, 'update'])->name('update');
+            Route::post('/publish', [HackathonController::class, 'publish'])->name('publish');
             Route::post('/join', [HackathonController::class, 'joinHackathon'])->name('join');
             Route::post('/leave', [HackathonController::class, 'leaveHackathon'])->name('leave');
             Route::prefix('/tabs')->name('tabs.')->group(function () {
@@ -151,7 +152,19 @@ Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])-
 
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::prefix('/moderation')->name('moderation.')->group(function () {
-        Route::get('/hackathons', [AdminController::class, 'moderationHackathon'])->name('hackathons');
-        Route::get('/projects', [AdminController::class, 'moderationProject'])->name('projects');
+        Route::prefix('/hackathons')->name('hackathons')->group(function () {
+            Route::get('/', [AdminController::class, 'moderationHackathon'])->name('index');
+            Route::prefix('/{hackathon}')->group(function () {
+                Route::post('/{hackathon}/accept', [AdminController::class, 'acceptHackathon'])->name('accept');
+                Route::post('/{hackathon}/reject', [AdminController::class, 'rejectHackathon'])->name('reject');
+            });
+        });
+        Route::prefix('/projects')->name('projects')->group(function () {
+            Route::get('/', [AdminController::class, 'moderationProject'])->name('index');
+            Route::prefix('/{project}')->group(function () {
+                Route::post('/{project}/accept', [AdminController::class, 'acceptProject'])->name('accept');
+                Route::post('/{project}/reject', [AdminController::class, 'rejectProject'])->name('reject');
+            });
+        });
     });
 });
