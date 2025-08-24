@@ -155,15 +155,15 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::prefix('/hackathons')->name('hackathons')->group(function () {
             Route::get('/', [AdminController::class, 'moderationHackathon'])->name('index');
             Route::prefix('/{hackathon}')->group(function () {
-                Route::post('/{hackathon}/accept', [AdminController::class, 'acceptHackathon'])->name('accept');
-                Route::post('/{hackathon}/reject', [AdminController::class, 'rejectHackathon'])->name('reject');
+                Route::post('/accept', [AdminController::class, 'acceptHackathon'])->name('accept');
+                Route::post('/reject', [AdminController::class, 'rejectHackathon'])->name('reject');
             });
         });
         Route::prefix('/projects')->name('projects')->group(function () {
             Route::get('/', [AdminController::class, 'moderationProject'])->name('index');
             Route::prefix('/{project}')->group(function () {
-                Route::post('/{project}/accept', [AdminController::class, 'acceptProject'])->name('accept');
-                Route::post('/{project}/reject', [AdminController::class, 'rejectProject'])->name('reject');
+                Route::post('/accept', [AdminController::class, 'acceptProject'])->name('accept');
+                Route::post('/reject', [AdminController::class, 'rejectProject'])->name('reject');
             });
         });
     });
