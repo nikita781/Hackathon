@@ -22,6 +22,7 @@ console.log(props.allProjects)
 
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
+    oneProject : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/OneProject.vue')),
     project  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/MyProject.vue')),
     gallery  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Gallery.vue')),
     resources: defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Resources.vue')),
@@ -33,7 +34,8 @@ const tabComponents = {
 const availableTabs = computed(() => {
     return [
         {key: 'overview', title: 'Обзор', blocked: false},
-        {key: 'project', title: 'Мой проект', blocked: !props.can?.team.joinTeam},
+        {key: 'oneProject', title: 'Обзор', blocked: false},
+        {key: 'project', title: 'Мой проект', blocked: !props.can?.project.createProject},
         {key: 'gallery', title: 'Галерея проектов', blocked: !props.can?.project?.viewAll},
         {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
         {key: 'rules', title: 'Правила', blocked: false},

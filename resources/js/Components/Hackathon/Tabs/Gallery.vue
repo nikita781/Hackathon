@@ -1,7 +1,8 @@
 <script setup>
-import {nextTick, onMounted, ref} from "vue";
+import {computed, nextTick, onMounted, ref} from "vue";
 import {useLangStore} from "@/store/lang.js";
-import IconsPencilMyProject from "@/Components/Icons/PencilMyProject.vue";
+import IconsStar from "@/Components/Icons/Star.vue";
+import Pagination from "@/Components/Pagination.vue";
 
 const props = defineProps({
     positions : { type: Array,   default : () => [] },
@@ -50,8 +51,110 @@ function capitalizeFirstLetter(str) {
                 </div>
             </div>
             <div class="hackathon__gallery_container">
+                <div class="hackathon__my-project__item">
+                    <div class="hackathon__my-project__item_header">
+                        <img src="/project.jpg" alt="">
+<!--                        <div class="skeleton-loader" v-if="!previews[project.slug]"></div>-->
+                        <div
+                            class="hackathon__gallery_place hackathon__gallery_place-first"
+                        >
+                            <div style="position: relative">
+                                <IconsStar />
+                                <p class="hackathon__gallery_place-text">1</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hackathon__my-project__item_content">
+                        <div>
+                            <p class="hackathon__my-project__item_title">EduGame</p>
+                            <p class="hackathon__my-project__item_text">Образовательная игра для детей, которая сочетает в себе веселье и обучение. Игра включает в себя различные уровни, где дети могут изучать математику, науку и языки в интерактивной форме.</p>
+                        </div>
+                        <ul class="hackathon__my-project__item_avatar">
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="hackathon__my-project__item">
+                    <div class="hackathon__my-project__item_header">
+                        <img src="/project.jpg" alt="">
+                        <!--                        <div class="skeleton-loader" v-if="!previews[project.slug]"></div>-->
+                        <div
+                            class="hackathon__gallery_place hackathon__gallery_place-first"
+                        >
+                            <div style="position: relative">
+                                <IconsStar />
+                                <p class="hackathon__gallery_place-text">2</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hackathon__my-project__item_content">
+                        <div>
+                            <p class="hackathon__my-project__item_title">EduGame</p>
+                            <p class="hackathon__my-project__item_text">Образовательная игра для детей, которая сочетает в себе веселье и обучение. Игра включает в себя различные уровни, где дети могут изучать математику, науку и языки в интерактивной форме.</p>
+                        </div>
+                        <ul class="hackathon__my-project__item_avatar">
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="hackathon__my-project__item">
+                    <div class="hackathon__my-project__item_header">
+                        <img src="/project.jpg" alt="">
+                        <!--                        <div class="skeleton-loader" v-if="!previews[project.slug]"></div>-->
+                        <div
+                            class="hackathon__gallery_place hackathon__gallery_place-first"
+                        >
+                            <div style="position: relative">
+                                <IconsStar />
+                                <p class="hackathon__gallery_place-text">3</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hackathon__my-project__item_content">
+                        <div>
+                            <p class="hackathon__my-project__item_title">EduGame</p>
+                            <p class="hackathon__my-project__item_text">Образовательная игра для детей, которая сочетает в себе веселье и обучение. Игра включает в себя различные уровни, где дети могут изучать математику, науку и языки в интерактивной форме.</p>
+                        </div>
+                        <ul class="hackathon__my-project__item_avatar">
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="hackathon__my-project__item">
+                    <div class="hackathon__my-project__item_header">
+                        <img src="/project.jpg" alt="">
+                        <!--                        <div class="skeleton-loader" v-if="!previews[project.slug]"></div>-->
+                        <div
+                            class="hackathon__gallery_place hackathon__gallery_place-first"
+                        >
+                            <div style="position: relative">
+<!--                                <IconsStar />-->
+                                <div class="hackathon__gallery_place-circle"></div>
+                                <p class="hackathon__gallery_place-text">4</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hackathon__my-project__item_content">
+                        <div>
+                            <p class="hackathon__my-project__item_title">EduGame</p>
+                            <p class="hackathon__my-project__item_text">Образовательная игра для детей, которая сочетает в себе веселье и обучение. Игра включает в себя различные уровни, где дети могут изучать математику, науку и языки в интерактивной форме.</p>
+                        </div>
+                        <ul class="hackathon__my-project__item_avatar">
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                        </ul>
+                    </div>
+                </div>
                 <pre>{{props.allProjects}}</pre>
             </div>
+<!--            <Pagination style="margin-top: 40px;" :links="links" @navigate="go" />-->
         </div>
     </div>
 </template>

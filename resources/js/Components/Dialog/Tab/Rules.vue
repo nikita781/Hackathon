@@ -45,8 +45,17 @@ async function save () {
 
         const fd = new FormData()
         fd.append('title', 'Правила')
-        fd.append('sections[0][title]',   form.sections[0].title)
-        fd.append('sections[0][content]', form.sections[0].content)
+
+        form.sections.forEach((s, si) => {
+            fd.append(`sections[${si}][title]`, s.title)
+            const content =
+                s.content == null
+                    ? ''
+                    : (typeof s.content === 'object'
+                        ? JSON.stringify(s.content)
+                        : String(s.content))
+            fd.append(`sections[${si}][content]`, content)
+        })
 
         form.files.forEach((f,i)        => fd.append(`files[${i}]`, f))
         form.delete_media_ids.forEach((id,i)=> fd.append(`delete_media_ids[${i}]`, id))

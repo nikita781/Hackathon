@@ -132,6 +132,11 @@ $x-big: 1829.98px;
                     top: 12px;
                     right: 12px;
                 }
+                .hackathon__gallery_place {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                }
             }
             &_content {
                 padding: 20px 12px;
@@ -276,6 +281,23 @@ $x-big: 1829.98px;
             margin-bottom: 4px;
         }
     }
+    &__partners {
+        display: flex;
+        gap: 128px;
+        align-items: center;
+        flex-wrap: wrap;
+        &_item {
+            max-width: 200px;
+            max-height: 100px;
+            img {
+                width: 100%;
+                height: 100%;
+                max-width: 200px;
+                max-height: 100px;
+                object-fit: contain;
+            }
+        }
+    }
     &__gallery {
         display: flex;
         flex-direction: column;
@@ -292,6 +314,123 @@ $x-big: 1829.98px;
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 1fr;
             gap: 60px 20px;
+        }
+        &_place {
+            &-circle {
+                width: 45px;
+                height: 45px;
+                border-radius: 50%;
+                background-color: #FFCD4A;
+            }
+            &-text {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%) translateX(-50%);
+                left: 50%;
+                font-size: 20px;
+                font-weight: bold;
+            }
+        }
+    }
+    &__oneProject {
+        &_image {
+            width: 100%;
+            max-width: 740px;
+            img {
+                height: 100%;
+                width: 100%;
+                max-width: 740px;
+                object-fit: contain;
+                border-radius: 10px;
+            }
+        }
+        &_gallery {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 20px;
+            img {
+                width: 100%;
+                max-height: 275px;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 10px;
+            }
+        }
+        &_media {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            &-title {
+                font-size: 30px;
+                font-weight: 600;
+            }
+            &-item {
+                display: flex;
+                gap: 6px;
+                align-items: center;
+                a {
+                    font-size: 16px;
+                    color: #E80024;
+                    text-decoration: none;
+                }
+            }
+        }
+    }
+    &__files {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: -20px;
+        &_item {
+            padding: 10px 25px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            border-radius: 100px;
+            background-color: #E80024;
+            text-decoration: none;
+            p {
+                color: #fff;
+                text-transform: uppercase;
+                font-family: "Cera Bold";
+                font-size: 16px;
+            }
+        }
+    }
+    &__contact {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        &_title {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        &_links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            &-item {
+                padding: 10px 12px;
+                border-radius: 100px;
+                border: 2px solid #E80024;
+                text-decoration: none;
+                color: #E80024;
+                font-size: 14px;
+            }
+        }
+    }
+    &__support {
+        &_item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #999;
+        }
+        &_title {
+            font-size: 22px;
+            font-weight: bold;
         }
     }
 }

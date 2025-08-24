@@ -30,7 +30,7 @@ async function getPartner() {
             }
         );
 
-        partners.value = response.data.gallery
+        partners.value = response.data
         console.log(partners.value)
     } catch (e) {
         console.error('hackathon-load', e?.response ?? e);
@@ -78,10 +78,16 @@ onMounted(() => {
                     </div>
                 </div>
             </div>
-            <div class="hackathon__tab_container">
+            <div class="hackathon__tab_container" v-if="partners.partners">
                 <p class="hackathon__my-project__title">Партнеры</p>
+                <div class="hackathon__partners">
+                    <div class="hackathon__partners_item" v-for="(partner, idx) in partners.partners" :key="idx">
+                        <img :src="partner.url" alt="">
+                    </div>
+                </div>
             </div>
-            <pre>{{ props.tabs.data[0] }}</pre>
+<!--            <pre>{{ partners.partners }}</pre>-->
+<!--            <pre>{{ props.tabs.data[0] }}</pre>-->
         </div>
     </div>
 </template>
