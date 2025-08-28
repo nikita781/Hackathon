@@ -36,7 +36,7 @@ class SupportPolicy
         $hackathon = $support?->hackathon;
         return match ($support->type) {
             Support::BUG => $user->isAdmin(),
-            Support::SUGGESTION, Support::QUESTION => $user->isHackathonStaff($hackathon),
+            Support::SUGGESTION, Support::QUESTION => $hackathon && $user->isHackathonStaff($hackathon),
             default => false,
         };
     }
