@@ -43,37 +43,45 @@ class MediaController extends Controller
         return response()->file($media->getPath('preview'));
     }
 
-    public function showHackathonPartners(Hackathon $hackathon, $tab_id): BinaryFileResponse
+    public function showHackathonPartners(Hackathon $hackathon, $tab_id): JsonResponse
     {
         if (!Gate::check('view', $hackathon)) {
             abort(403);
         }
+
         $tab = $hackathon->tabs()->where('id', $tab_id)->firstOrFail();
 
-        $media = $tab->getFirstMedia('partner_images');
+        $mediaItems = $tab->getMedia('partner_images')->map(fn ($media) => [
+            'id' => $media->id,
+            'name' => $media->file_name,
+            'url' => route('hackathons.tabs.partner-image', [$hackathon, $tab, $media]),
+        ]);
 
-        if (!$media) {
-            abort(404);
+        return response()->json(['partners' => $mediaItems]);
+    }
+
+    public function showHackathonPartnerImage(Hackathon $hackathon, Tab $tab, Media $media): BinaryFileResponse
+    {
+        if (!Gate::check('view', $hackathon)) {
+            abort(403);
         }
 
         return response()->file($media->getPath());
     }
 
-    public function getAllHackathonFiles(Tab $tab, $hackathon_id): Collection
+    public function getAllHackathonFiles(Tab $tab, Hackathon $hackathon): Collection
     {
-        return $tab->getMedia('files')->map(function ($media) use($hackathon_id) {
+        return $tab->getMedia('files')->map(function ($media) use($hackathon) {
             return [
                 'id' => $media->id,
                 'name' => $media->file_name,
-                'url' => route('hackathons.files.download', [$hackathon_id, $media]),
+                'url' => route('hackathons.files.download', [$hackathon, $media]),
             ];
         });
     }
 
-    public function showHackathonFile($hackathon_id, Media $media): BinaryFileResponse
+    public function showHackathonFile(Hackathon $hackathon, Media $media): BinaryFileResponse
     {
-        $hackathon = Hackathon::findOrFail($hackathon_id);
-
         if (!Gate::check('view', $hackathon)) {
             abort(403);
         }

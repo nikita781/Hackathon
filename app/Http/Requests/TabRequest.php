@@ -31,7 +31,7 @@ class TabRequest extends FormRequest
             'sections.*.items.*.image_path' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
 
             'partners' => ['nullable', 'array'],
-            'partners.*' => ['image', 'max:2048'],
+            'partners.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
             'files' => ['nullable', 'array'],
             'files.*' => ['file', 'max:2048'],
             'delete_media_ids' => ['nullable', 'array'],

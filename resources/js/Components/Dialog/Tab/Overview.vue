@@ -78,6 +78,10 @@ const form = useForm({
     delete_media_ids: []
 })
 
+const handleFilesUpdate = (newFiles) => {
+    partnerLogos.value = newFiles;
+};
+
 watch(
     [description, plan, partnerLogos, taskStart, taskEnd],
     () => {
@@ -226,7 +230,7 @@ onMounted(async () => {
     />
     <div class="dialog__component">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.partners) }}</p>
-        <DropFiles v-model:files="partnerLogos" />
+        <DropFiles @update:files="handleFilesUpdate" />
     </div>
     <div class="dialog__btns">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>

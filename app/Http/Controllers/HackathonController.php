@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\HackathonUsersExport;
 use App\Http\Requests\HackathonRequest;
 use App\Http\Requests\HackathonUpdateRequest;
 use App\Http\Resources\AwardResource;
@@ -21,6 +22,7 @@ use App\Models\Support;
 use App\Models\Tab;
 use App\Models\Tag;
 use App\Models\Team;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,6 +31,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -182,7 +185,7 @@ class HackathonController extends Controller
             $ownTeam = $hackathon->ownTeam($user);
         }
 
-        $tabs = $hackathon->tabs()->with(['sections.items', 'media'])->get();
+        $tabs = $hackathon->tabs()->with(['sections.items', 'media', 'hackathon'])->get();
 
         $positions = Position::getAllPositionExceptCapitan();
 
@@ -277,6 +280,18 @@ class HackathonController extends Controller
         return back()->with('status', 'Хакатон обновлен');
     }
 
+    public function publish(Hackathon $hackathon): RedirectResponse
+    {
+        Gate::authorize('publish', $hackathon);
+
+        $hackathon->update([
+            'status' => Hackathon::STATUS_MODERATION,
+            'moderated_time' => Carbon::now(),
+        ]);
+
+        return back()->with('status', 'Хакатон отправлен на модерацию');
+    }
+
     public function destroy(Hackathon $hackathon): void
     {
     }
@@ -313,5 +328,46 @@ class HackathonController extends Controller
         $user->hackathons()->detach($hackathon->id);
 
         return back()->with('status', 'Вы успешно покинули хакатон!');
+    }
+
+    public function downloadUsers(Hackathon $hackathon): BinaryFileResponse
+    {
+        $users = $hackathon->members()->with('teams.projects')->get();
+
+        $rows = collect();
+        $total = $users->count();
+        $submitted = 0;
+
+        $rows->push([
+            'nickname' => 'Участник',
+            'status'   => 'Статус',
+        ]);
+
+        foreach ($users as $user) {
+            $hasProject = $user->teams()
+                ->where('hackathon_id', $hackathon->id)
+                ->whereHas('projects', fn($q) => $q->where('status', Project::PUBLISHED))
+                ->exists();
+
+            if ($hasProject) {
+                $submitted++;
+            }
+
+            $rows->push([
+                'nickname' => $user->nickname,
+                'status' => $hasProject ? '✅ Сдал' : '❌ Не сдал',
+
+            ]);
+        }
+
+        $percent = $total > 0 ? round($submitted / $total * 100) : 0;
+
+        $rows->prepend([
+            'nickname' => 'Сдали / Всего',
+            'status'   => "$submitted / $total ($percent%)",
+        ]);
+
+        return Excel::download(new HackathonUsersExport($rows), "hackathon_users_{$hackathon->slug}.xlsx");
+
     }
 }

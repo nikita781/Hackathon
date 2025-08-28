@@ -6,8 +6,9 @@ const escapeHtml = (s = '') =>
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
 
-function renderList(items = [], style = 'unordered') {
+function renderList(items = [], style = 'unordered', start = 1) {
     const tag = style === 'ordered' ? 'ol' : 'ul'
+    const startAttr = style === 'ordered' && start ? ` start="${start}"` : '' // Добавляем атрибут start для ordered
 
     const renderItem = (item) => {
         // Старый формат: просто строка
@@ -16,20 +17,20 @@ function renderList(items = [], style = 'unordered') {
         }
         // Новый/вложенный формат: объект { content, items }
         if (item && typeof item === 'object') {
-            const inner = item.items?.length ? renderList(item.items, style) : ''
+            const inner = item.items?.length ? renderList(item.items, style, start) : ''
             return `<li>${item.content ?? ''}${inner}</li>`
         }
         // На всякий случай
         return `<li>${String(item ?? '')}</li>`
     }
 
-    return `<${tag}>${items.map(renderItem).join('')}</${tag}>`
+    return `<${tag}${startAttr}>${items.map(renderItem).join('')}</${tag}>`
 }
 
 const parser = edjsHTML({
     header    : ({ data }) => `<h${data.level}>${data.text}</h${data.level}>`,
     paragraph : ({ data }) => `<p>${data.text ?? ''}</p>`,
-    list      : ({ data }) => renderList(data.items, data.style),
+    list      : ({ data }) => renderList(data.items, data.style, data.meta?.start), // передаем start
     delimiter : () => '<hr />',
     quote     : ({ data }) => `<blockquote><p>${data.text ?? ''}</p>${data.caption ? `<cite>${data.caption}</cite>` : ''}</blockquote>`,
     table     : ({ data }) =>

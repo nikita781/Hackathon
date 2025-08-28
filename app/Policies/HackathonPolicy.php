@@ -43,6 +43,15 @@ class HackathonPolicy
 
     public function update(User $user, Hackathon $hackathon): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
+    }
+
+    public function publish(User $user, Hackathon $hackathon): bool
+    {
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 
@@ -129,5 +138,10 @@ class HackathonPolicy
         }
 
         return $user->hackathons()->where('id', $hackathon->id)->where('role_id', Role::JUDGE)->exists();
+    }
+
+    public function moderate(User $user): bool
+    {
+        return $user->isAdmin();
     }
 }

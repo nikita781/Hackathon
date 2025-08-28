@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AwardsController;
 use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\HackathonController;
@@ -65,6 +66,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [HackathonController::class, 'store'])->name('store');
         Route::prefix('/{hackathon}')->group(function () {
             Route::patch('/', [HackathonController::class, 'update'])->name('update');
+            Route::post('/publish', [HackathonController::class, 'publish'])->name('publish');
             Route::post('/join', [HackathonController::class, 'joinHackathon'])->name('join');
             Route::post('/leave', [HackathonController::class, 'leaveHackathon'])->name('leave');
             Route::prefix('/tabs')->name('tabs.')->group(function () {
@@ -124,6 +126,8 @@ Route::middleware('auth')->group(function () {
                 Route::get('/invite/{token}', [HackathonStaffController::class, 'acceptInvite'])->name('accept-invite');
                 Route::post('/inviteById', [HackathonStaffController::class, 'inviteUserById'])->name('invite-by-id');
             });
+
+            Route::post('/download-users', [HackathonController::class, 'downloadUsers'])->name('download-users');
         });
     });
 });
@@ -134,6 +138,7 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
     Route::get('/files/{media}', [MediaController::class, 'showHackathonFile'])->name('files.download');
     Route::prefix('/tabs/{tab}')->name('tabs.')->group(function () {
         Route::get('/partner-images', [MediaController::class, 'showHackathonPartners'])->name('partner-images');
+        Route::get('/partner-image/{media}', [MediaController::class, 'showHackathonPartnerImage'])->name('partner-image');
     });
     Route::prefix('/projects/{project}')->name('projects.')->group(function () {
         Route::get('/preview', [MediaController::class, 'showProjectPreview'])->name('image');
@@ -144,3 +149,22 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
 });
 
 Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])->name('awards.image');
+
+Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+    Route::prefix('/moderation')->name('moderation.')->group(function () {
+        Route::prefix('/hackathons')->name('hackathons')->group(function () {
+            Route::get('/', [AdminController::class, 'moderationHackathon'])->name('index');
+            Route::prefix('/{hackathon}')->group(function () {
+                Route::post('/accept', [AdminController::class, 'acceptHackathon'])->name('accept');
+                Route::post('/reject', [AdminController::class, 'rejectHackathon'])->name('reject');
+            });
+        });
+        Route::prefix('/projects')->name('projects')->group(function () {
+            Route::get('/', [AdminController::class, 'moderationProject'])->name('index');
+            Route::prefix('/{project}')->group(function () {
+                Route::post('/accept', [AdminController::class, 'acceptProject'])->name('accept');
+                Route::post('/reject', [AdminController::class, 'rejectProject'])->name('reject');
+            });
+        });
+    });
+});

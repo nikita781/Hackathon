@@ -10,6 +10,7 @@ const props = defineProps({
     ownTeam : { type: Array,   default : () => [] },
     hackathon : { type: Array,   default : () => [] },
     tabs: { type: Array,   default : () => [] },
+    allProjects: { type: Array,   default : () => [] },
 })
 
 const showEditTeam = ref(false)
