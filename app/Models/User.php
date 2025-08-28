@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,7 +22,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'oauth_id', 'name', 'nickname', 'email', 'date_of_birth', 'phone_number', 'tshort_size',
-        'favorite_programming_lang',
+        'favorite_programming_lang', 'status'
     ];
 
     /**
@@ -47,6 +48,9 @@ class User extends Authenticatable
     {
         return 'nickname';
     }
+
+    const STATUS_ACTIVE = '1';
+    const STATUS_BLOCKED = '2';
 
     /**
      * @return BelongsToMany
@@ -153,7 +157,8 @@ class User extends Authenticatable
 
     public function isCapitan(Project $project): bool
     {
-        return $this->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('teams.id', $project->team_id)->exists();
+        return $this->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('teams.id',
+            $project->team_id)->exists();
     }
 
     public function isMemberOfProject(Project $project): bool
@@ -193,5 +198,33 @@ class User extends Authenticatable
     {
         return $this->BelongsToMany(Award::class)
             ->withPivot('awarded_at');
+    }
+
+    public function scopeFilter(Builder $query, $request): Builder
+    {
+        $query->when($request->q, function ($q, $search) {
+            $q->where('nickname', 'ILIKE', "%{$search}%");
+        });
+
+        $query->when($request->roles, function ($q, $roles) {
+            $roles = is_array($roles) ? $roles : explode(',', $roles);
+            $q->whereHas('roles', function ($q) use ($roles) {
+                $q->whereIn('id', $roles);
+            });
+        });
+
+        $query->when(isset($request->status), function ($q) use ($request) {
+            $q->where('status', $request->status);
+        });
+
+        $query->when($request->order, function ($q, $order) {
+            return match ($order) {
+                'dateA' => $q->orderBy('created_at', 'asc'),
+                'dateD' => $q->orderBy('created_at', 'desc'),
+                default => $q,
+            };
+        });
+
+        return $query;
     }
 }

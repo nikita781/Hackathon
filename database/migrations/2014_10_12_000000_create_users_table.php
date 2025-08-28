@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('phone_number')->nullable();
             $table->string('tshort_size')->nullable();
             $table->string('favorite_programming_lang')->nullable();
+            $table->integer('status')->default(User::STATUS_ACTIVE);
             $table->timestamps();
         });
     }

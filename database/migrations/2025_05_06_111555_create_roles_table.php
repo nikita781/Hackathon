@@ -42,6 +42,54 @@ return new class extends Migration
         ]);
 
         $superAdmin->assignedRole(Role::SUPER_ADMIN);
+
+        $admin = User::create([
+            'name' => 'Админ',
+            'nickname' => 'Admin',
+            'email' => 'Admin@Admin.com',
+        ]);
+
+        $admin->assignedRole(Role::ADMIN);
+
+        $moderator = User::create([
+            'name' => 'Модератор',
+            'nickname' => 'Moderator',
+            'email' => 'Moderator@Moderator.com',
+        ]);
+
+        $moderator->assignedRole(Role::MODERATOR);
+
+        $organizer = User::create([
+            'name' => 'Организатор',
+            'nickname' => 'Organizer',
+            'email' => 'Organizer@Organizer.com',
+        ]);
+
+        $organizer->assignedRole(Role::ORGANIZER);
+
+        $judge = User::create([
+            'name' => 'Судья',
+            'nickname' => 'Judge',
+            'email' => 'Judge@Judge.com',
+        ]);
+
+        $judge->assignedRole(Role::JUDGE);
+
+        $mentor = User::create([
+            'name' => 'Ментор',
+            'nickname' => 'Mentor',
+            'email' => 'Mentor@Mentor.com',
+        ]);
+
+        $mentor->assignedRole(Role::MENTOR);
+
+        $member = User::create([
+            'name' => 'Участник',
+            'nickname' => 'Member',
+            'email' => 'Member@Member.com',
+        ]);
+
+        $member->assignedRole(Role::MEMBER);
     }
 
     /**
