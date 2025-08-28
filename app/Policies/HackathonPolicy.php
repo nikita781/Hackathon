@@ -38,6 +38,10 @@ class HackathonPolicy
 
     public function create(User $user): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         return $user->hasRole(Role::ORGANIZER);
     }
 
@@ -52,6 +56,10 @@ class HackathonPolicy
 
     public function publish(User $user, Hackathon $hackathon): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 
@@ -67,6 +75,10 @@ class HackathonPolicy
     public function join(?User $user, Hackathon $hackathon): bool
     {
         if (!$user) {
+            return false;
+        }
+
+        if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
 
@@ -88,6 +100,10 @@ class HackathonPolicy
     public function acceptInvite(?User $user, Hackathon $hackathon): bool
     {
         if (!$user) {
+            return false;
+        }
+
+        if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
 

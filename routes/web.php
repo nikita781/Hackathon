@@ -58,6 +58,10 @@ Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.sh
 Route::get('/notification', [NotificationController::class, 'index'])->name('notification.index');
 Route::patch('/notification/mark-as-read', [NotificationController::class, 'markAsRead'])->middleware('auth')->name('notification.mark-as-read');
 
+Route::prefix('support')->name('support.')->group(function () {
+    Route::post('/{support}/answer', [SupportsController::class, 'answer'])->name('answer');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');
@@ -115,9 +119,6 @@ Route::middleware('auth')->group(function () {
             Route::prefix('/support')->name('support.')->group(function () {
                 Route::get('/', [SupportsController::class, 'index'])->name('index');
                 Route::post('/', [SupportsController::class, 'store'])->name('store');
-                Route::prefix('/{support}')->group(function () {
-                    Route::post('/answer', [SupportsController::class, 'answer'])->name('answer');
-                });
             });
 
             Route::prefix('/staff')->name('staff.')->group(function () {
@@ -167,4 +168,19 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
             });
         });
     });
+
+    Route::prefix('/support')->name('support.')->group(function () {
+        Route::get('/', [AdminController::class, 'support'])->name('index');
+    });
+
+    Route::prefix('/users')->name('users.')->group(function () {
+        Route::get('/', [AdminController::class, 'users'])->name('index');
+        Route::prefix('/{user}')->group(function () {
+            Route::post('/block', [AdminController::class, 'blockUser'])->name('block');
+            Route::post('/unblock', [AdminController::class, 'unblockUser'])->name('unblock');
+            Route::post('/change-roles', [AdminController::class, 'changeRoles'])->name('change-roles');
+        });
+    });
+
+    Route::get('/roles', [AdminController::class, 'allRoles'])->name('roles');
 });

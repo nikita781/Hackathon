@@ -16,7 +16,7 @@ return new class extends Migration
     {
         Schema::create('hackathons', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignIdFor(User::class)->index()->constrained()->nullOnDelete()->cascadeOnUpdate();
             $table->string('title');
             $table->enum('format', ['online', 'offline', 'hybrid']);
             $table->enum('type', ['team', 'individual']);

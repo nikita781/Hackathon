@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,5 +42,34 @@ class Support extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(SupportMessage::class);
+    }
+
+    public function scopeFilter(Builder $query, $request): Builder
+    {
+        $query->when($request->q, function ($q, $search) {
+            $q->whereHas('messages', function ($q2) use ($search) {
+                $q2->where('message', 'ILIKE', "%{$search}%");
+            });
+        });
+
+        $query->when($request->type, function ($q, $type) {
+            if (in_array($type, self::TYPES, true)) {
+                $q->where('type', $type);
+            }
+        });
+
+        $query->when(isset($request->is_completed), function ($q) use ($request) {
+            $q->where('is_completed', $request->is_completed);
+        });
+
+        $query->when($request->order, function ($q, $order) {
+            return match ($order) {
+                'dateA' => $q->orderBy('created_at', 'asc'),
+                'dateD' => $q->orderBy('created_at', 'desc'),
+                default => $q,
+            };
+        });
+
+        return $query;
     }
 }

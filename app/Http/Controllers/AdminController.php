@@ -7,8 +7,12 @@ use App\Http\Resources\ProjectResource;
 use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Project;
+use App\Models\Role;
+use App\Models\Support;
+use App\Models\User;
 use App\Notifications\ModerateNotification;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -50,7 +54,7 @@ class AdminController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return Inertia::render('Admin/Moderation/Hackathon', [
+        return Inertia::render('Admin/Moderation/Project', [
             'hackathons' => HackathonResource::collection($hackathons),
             'filters'    => $request->only(
                 'q', 'status', 'order'
@@ -160,5 +164,84 @@ class AdminController extends Controller
         }
 
         return back()->with('status', $message);
+    }
+
+    public function support(Request $request): Response
+    {
+        $support = Support::query()
+            ->with('messages.user')
+            ->filter($request)
+            ->where('is_completed', false)
+            ->latest()
+            ->paginate(12);
+
+        return Inertia::render('Admin/Support', [
+            'support' => $support,
+        ]);
+    }
+
+    public function users(Request $request): Response
+    {
+        $users = User::query()
+            ->with('roles')
+            ->filter($request)
+            ->paginate(12);
+
+        return Inertia::render('Admin/Users', [
+            'users' => $users,
+        ]);
+    }
+
+    public function blockUser(User $user): RedirectResponse
+    {
+        Gate::authorize('blockUser', User::class);
+
+        $user->update([
+            'status' => User::STATUS_BLOCKED
+        ]);
+
+        return back()->with('status', "Пользователь заблокирован");
+    }
+
+    public function unblockUser(User $user): RedirectResponse
+    {
+        Gate::authorize('blockUser', User::class);
+
+        $user->update([
+            'status' => User::STATUS_ACTIVE
+        ]);
+
+        return back()->with('status', "Пользователь разблокирован");
+    }
+
+    public function changeRoles(Request $request, User $user): RedirectResponse
+    {
+        Gate::authorize('changeRoles', User::class);
+
+        $data = $request->validate([
+            'roles' => ['required', 'array'],
+            'roles.*' => ['integer', 'exists:roles,id'],
+        ]);
+
+        $newRoles = $data['roles'];
+
+        $currentRoles = $user->roles()->pluck('id')->toArray();
+
+        if (empty($newRoles)) {
+            return back()->with('error', 'У пользователя должна быть хотя бы одна роль');
+        }
+
+        $user->roles()->sync($newRoles);
+
+        return back()->with('status', 'Роли пользователя изменены');
+    }
+
+    public function allRoles(): JsonResponse
+    {
+        $roles = Role::all();
+
+        return response()->json([
+            'roles' => $roles,
+        ]);
     }
 }
