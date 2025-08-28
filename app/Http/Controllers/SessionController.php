@@ -13,7 +13,6 @@ class SessionController extends Controller
 {
     public function index(): Response
     {
-        abort_unless(app()->environment('local'), 403, 'Только в локальном режиме');
         return Inertia::render('Auth/FakeOAuthLogin', [
             'users' => User::query()->with('roles')->select(['id', 'name', 'email'])->get(),
         ]);
