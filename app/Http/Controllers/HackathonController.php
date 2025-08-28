@@ -117,6 +117,10 @@ class HackathonController extends Controller
      */
     public function store(HackathonRequest $request): JsonResponse
     {
+        if (!Gate::check('create', Hackathon::class)) {
+            abort(404);
+        }
+
         $data = Arr::except($request->validated(), ['tags', 'image_path']);
         $data['slug'] = Hackathon::generateUniqueSlug($data['title']);
         $user = auth()->user();

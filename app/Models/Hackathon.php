@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -225,12 +227,22 @@ class Hackathon extends Model implements HasMedia
     {
         $slug = Str::slug($title);
         $original = $slug;
-        $i = 1;
+        $counter = 1;
 
-        while (self::where('slug', $slug)->exists()) {
-            $slug = $original . '-' . $i++;
-        }
+        do {
+            try {
+                DB::beginTransaction();
+                if (!self::where('slug', $slug)->exists()) {
+                    DB::commit();
+                    return $slug;
+                }
+                DB::rollBack();
+            } catch (QueryException $e) {
+                DB::rollBack();
+            }
 
-        return $slug;
+            $slug = $original . '-' . $counter;
+            $counter++;
+        } while (true);
     }
 }
