@@ -157,7 +157,7 @@ class ProjectsController extends Controller
         return back()->with('status', 'Проект успешно удален!');
     }
 
-    public function publish(Hackathon $hackathon, Project $project): RedirectResponse
+    public function publish(Hackathon $hackathon, Team $team, Project $project): RedirectResponse
     {
         if (!Gate::check('publish', $project)) {
             abort(403);

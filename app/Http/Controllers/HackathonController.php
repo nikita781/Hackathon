@@ -229,6 +229,7 @@ class HackathonController extends Controller
                     'update' => Gate::check('update', $hackathon),
                     'delete' => Gate::check('delete', $hackathon),
                     'viewTask' => Gate::check('viewTask', $hackathon),
+                    'moderate' => Gate::check('moderate', Hackathon::class)
                 ],
                 'team' => [
                     'update' => Gate::check('update', $ownTeam),
@@ -239,6 +240,7 @@ class HackathonController extends Controller
                 'project' => [
                     'viewAll' => Gate::check('viewAll', [Project::class, $hackathon]),
                     'createProject' => Gate::check('createProject', [Project::class, $hackathon]),
+                    'moderate' => Gate::check('moderate', Project::class)
                 ],
                 'support' => [
                     'viewAny' => Gate::check('viewAny', [Support::class, $hackathon]),
