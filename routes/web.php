@@ -116,6 +116,8 @@ Route::middleware('auth')->group(function () {
                 });
             });
 
+            Route::get('/gallery', [HackathonController::class, 'gallery'])->name('gallery');
+
             Route::prefix('/support')->name('support.')->group(function () {
                 Route::get('/', [SupportsController::class, 'index'])->name('index');
                 Route::post('/', [SupportsController::class, 'store'])->name('store');

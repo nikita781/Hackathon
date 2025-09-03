@@ -374,6 +374,12 @@ class HackathonController extends Controller
         ]);
 
         return Excel::download(new HackathonUsersExport($rows), "hackathon_users_{$hackathon->slug}.xlsx");
+    }
 
+    public function gallery(Request $request, Hackathon $hackathon): JsonResponse
+    {
+        return response()->json([
+            'gallery' => $hackathon->allProjects()->filter($request)->published()
+        ]);
     }
 }

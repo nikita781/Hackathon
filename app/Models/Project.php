@@ -32,6 +32,11 @@ class Project extends Model implements HasMedia
         return 'slug';
     }
 
+    public function scopePublished($query)
+    {
+        return $query->where('status', self::PUBLISHED);
+    }
+
     /**
      * @return BelongsTo
      */
