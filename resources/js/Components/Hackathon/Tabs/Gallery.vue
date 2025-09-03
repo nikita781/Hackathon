@@ -30,6 +30,7 @@ function capitalizeFirstLetter(str) {
     <div class="hackathon__tab">
         <div class="hackathon__gallery">
             <p class="hackathon__my-project__title">Проекты</p>
+            <pre>{{props.allProjects}}</pre>
             <div class="hackathon__gallery_filter">
                 <div class="main__search my-hackathon__search">
                     <div class="main__search_container">

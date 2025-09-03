@@ -15,10 +15,11 @@ const props = defineProps({
     is_join: Boolean,
     allProjects: Object,
     flash: Object,
+    supports: Object,
 })
 
 console.log(props.can)
-console.log(props.allProjects)
+console.log(props.supports)
 
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
@@ -36,7 +37,7 @@ const availableTabs = computed(() => {
         {key: 'overview', title: 'Обзор', blocked: false},
         {key: 'oneProject', title: 'Обзор', blocked: false},
         {key: 'project', title: 'Мой проект', blocked: !props.can?.project.createProject},
-        {key: 'gallery', title: 'Галерея проектов', blocked: !props.can?.project?.viewAll},
+        {key: 'gallery', title: 'Галерея проектов'},
         {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
         {key: 'rules', title: 'Правила', blocked: false},
         {key: 'contacts', title: 'Контакты', blocked: false},
@@ -217,6 +218,7 @@ function formatDate(dateStr) {
                 :hackathon="props.hackathon"
                 :tabs="props.tabs"
                 :allProjects="props.allProjects"
+                :supports="props.supports"
             />
         </div>
     </AuthenticatedLayout>

@@ -3,6 +3,17 @@ import {computed, nextTick, onMounted, ref} from "vue";
 import {usePage} from "@inertiajs/vue3";
 import WriteAppeal from "@/Components/Dialog/WriteAppeal.vue";
 
+const props = defineProps({
+    positions : { type: Array,   default : () => [] },
+    ownTeam : { type: Array,   default : () => [] },
+    hackathon : { type: Array,   default : () => [] },
+    tabs: { type: Array,   default : () => [] },
+    allProjects: { type: Array,   default : () => [] },
+    supports: { type: Array,   default : () => [] },
+})
+
+console.log(props.supports)
+
 const isForm = ref(false);
 const activeTab = ref(usePage().props.query?.tab   === 'past' ? 1 : 0)
 
@@ -46,6 +57,7 @@ onMounted(async () => {
                         Написать обращение
                     </button>
                     <WriteAppeal
+                        :hackathonSlug="props.hackathon.slug"
                         v-model="isForm"
                     />
                 </div>

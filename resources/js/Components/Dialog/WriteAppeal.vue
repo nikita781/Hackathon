@@ -1,18 +1,59 @@
 <script setup>
-
-import {ref} from "vue";
+import { ref, computed } from "vue";
 
 const props = defineProps({
-    modelValue : Boolean,
-})
-const emit = defineEmits([
-    'update:modelValue',
-])
+    modelValue: { type: Boolean, default: false },
+    hackathonSlug: { type: String, required: true },
+});
+const emit = defineEmits(["update:modelValue", "sent"]);
 
-const type = ref('team');
+const type = ref('question');
 const textAppeal = ref('');
+const pending = ref(false);
+const errorMsg = ref('');
 
-function close(){ emit('update:modelValue',false) }
+const isDisabled = computed(() => pending.value || !textAppeal.value.trim());
+
+function reset() {
+    type.value = 'question';
+    textAppeal.value = '';
+    pending.value = false;
+    errorMsg.value = '';
+}
+function close() {
+    reset();
+    emit("update:modelValue", false);
+}
+
+async function submitAppeal() {
+    errorMsg.value = '';
+    if (!textAppeal.value.trim()) {
+        errorMsg.value = 'Введите текст обращения';
+        return;
+    }
+
+    try {
+        pending.value = true;
+        await axios.post(
+            route('hackathons.support.store', { hackathon: props.hackathonSlug }),
+            {
+                type: type.value,
+                message: textAppeal.value.trim(),
+            }
+        );
+        emit('sent');
+        close();
+    } catch (e) {
+        const resp = e?.response;
+        errorMsg.value =
+            resp?.data?.message ||
+            resp?.data?.errors?.message?.[0] ||
+            'Не удалось отправить обращение';
+        console.error('support-store', resp ?? e);
+    } finally {
+        pending.value = false;
+    }
+}
 </script>
 
 <template>
@@ -34,8 +75,9 @@ function close(){ emit('update:modelValue',false) }
                     class="main__cards_select dialog__select"
                     style="max-width: 300px; width: 100%;"
                 >
-                    <option value="team">Вопрос</option>
-                    <option value="individual">Предложение</option>
+                    <option value="question">Вопрос</option>
+                    <option value="suggestion">Предложение</option>
+                    <option value="bug">Сообщить об ошибке</option>
                 </select>
             </div>
             <div class="dialog__component">
@@ -46,15 +88,18 @@ function close(){ emit('update:modelValue',false) }
                     class="dialog__textarea"
                     placeholder="Введите текст обращения"
                 />
+                <p v-if="errorMsg" style="color:#e74c3c; margin-top:8px;">{{ errorMsg }}</p>
             </div>
             <div class="dialog__btns">
-                <button class="main__btn main__btn_white dialog__btn" @click="close">
+                <button class="main__btn main__btn_white dialog__btn" @click="close" :disabled="pending">
                     Отменить
                 </button>
                 <button
                     class="main__btn dialog__btn"
+                    @click="submitAppeal"
+                    :disabled="isDisabled"
                 >
-                    Отправить
+                    {{ pending ? 'Отправка…' : 'Отправить' }}
                 </button>
             </div>
         </div>
@@ -62,5 +107,4 @@ function close(){ emit('update:modelValue',false) }
 </template>
 
 <style scoped>
-
 </style>

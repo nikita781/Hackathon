@@ -1,10 +1,13 @@
 <script setup>
 import IconsCheck from "@/Components/Icons/Check.vue";
 import {computed, nextTick, onMounted, ref, watch} from "vue";
+import {useToast} from "vue-toastification";
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
     project: { type: Object, required: true },
+    oneProject: { type: Object, required: true },
+    teamId:        { type: Number, required: true },
 })
 
 const emit = defineEmits(['cancel'])
@@ -44,6 +47,27 @@ watch(() => props.project, () => {
     previewUrl.value = null;
     getPreview();
 });
+
+async function publishProject() {
+    if (disabled.value) return;
+    pending.value = true;
+    try {
+        const url = route('hackathons.teams.projects.publish', {
+            hackathon: props.hackathonSlug,
+            team     : props.teamId,
+            project  : props.project.slug,
+        });
+        await axios.post(url, {});
+        // emit('cancel');
+        const toast = useToast(); toast.success('Проект отправлен на модерацию!');
+    } catch (e) {
+        console.error('publish-project', e?.response ?? e);
+        const toast = useToast(); toast.error('Не удалось отправить проект');
+    } finally {
+        pending.value = false;
+        agree.value = false;
+    }
+}
 </script>
 
 <template>
@@ -85,8 +109,10 @@ watch(() => props.project, () => {
             <button class="main__btn dialog__btn"
                     :class="{ blocked: disabled }"
                     :disabled="disabled"
+                    @click="publishProject"
             >
-                Отправить
+                <span v-if="pending">Отправка…</span>
+                <span v-else>Отправить</span>
             </button>
             <button class="main__btn main__btn_white dialog__btn" @click="cancel">
                 Отменить

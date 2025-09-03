@@ -116,33 +116,6 @@ const onStep2Success = ()      => { nextStep() }
                     @cancel="close"
                 />
             </keep-alive>
-
-<!--            <Step1-->
-<!--                v-if="step === 1"-->
-<!--                :hackathon-slug="props.hackathonSlug"-->
-<!--                :team-id="props.teamId"-->
-<!--                v-model:title="title"-->
-<!--                v-model:description="description"-->
-<!--                @success="onStep1Success"-->
-<!--            />-->
-<!--            <Step2-->
-<!--                v-if="step === 2"-->
-<!--                :hackathon-slug="props.hackathonSlug"-->
-<!--                :project="project"-->
-<!--                @success="onStep2Success"-->
-<!--            />-->
-
-<!--            <Step3 v-if="step === 3" :project="project" />-->
-<!--            <Step4 v-if="step === 4" :project="project" />-->
-
-<!--            <div class="project__footer">-->
-<!--                <button-->
-<!--                    :disabled="step === 4"-->
-<!--                    @click="nextStep"-->
-<!--                    class="project__next_btn">-->
-<!--                    Далее-->
-<!--                </button>-->
-<!--            </div>-->
         </div>
     </div>
 </template>
