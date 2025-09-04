@@ -17,7 +17,9 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
 
-            'hackathons' => HackathonResource::collection($this->whenLoaded('hackathons', $this->hackathons)),
+            'hackathons' => $this->whenLoaded('hackathons', function () {
+                return HackathonResource::collection($this->hackathons);
+            }),
             'position' => new RoleResource(Role::find($this->pivot?->role_id)),
         ];
     }

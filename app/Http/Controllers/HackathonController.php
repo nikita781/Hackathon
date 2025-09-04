@@ -379,7 +379,7 @@ class HackathonController extends Controller
     public function gallery(Request $request, Hackathon $hackathon): JsonResponse
     {
         return response()->json([
-            'gallery' => $hackathon->allProjects()->filter($request)->published()
+            'gallery' => $hackathon->allProjects()->filter($request)->published()->get()
         ]);
     }
 }
