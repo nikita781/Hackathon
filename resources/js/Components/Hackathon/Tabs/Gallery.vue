@@ -41,10 +41,10 @@ onBeforeUnmount(() => {
 
 const mapSortToBackend = (v) => {
     switch (v) {
-        case 'dateA':  return 'created_at'
-        case 'dateD':  return '-created_at'
-        case 'titleA': return 'title'
-        case 'titleD': return '-title'
+        case 'dateA':  return 'dateA'
+        case 'dateD':  return 'dateD'
+        case 'titleA': return 'titleA'
+        case 'titleD': return 'titleD'
         default:       return undefined
     }
 }
@@ -80,6 +80,8 @@ async function fetchGallery (toPage = 1) {
             { params: buildParams(toPage), signal: abortCtrl.signal }
         )
 
+        console.log(buildParams(toPage))
+        console.log(abortCtrl.signal)
         console.log(data)
 
         const payload = data.gallery ?? data
@@ -218,9 +220,9 @@ const getPreviewSrc = (p) => {
                             </div>
 
                             <ul class="hackathon__my-project__item_avatar">
-                                <li v-for="(m, idx) in (project.members ?? project.users ?? [])" :key="idx">
-                                    <img :src="m?.avatar_url ?? '/profile.jpg'" alt="Avatar">
-                                </li>
+                                <li><img src="/profile.jpg" alt="Avatar"></li>
+                                <li><img src="/profile.jpg" alt="Avatar"></li>
+                                <li><img src="/profile.jpg" alt="Avatar"></li>
                             </ul>
                         </div>
                     </div>
