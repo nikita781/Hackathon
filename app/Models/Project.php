@@ -68,19 +68,21 @@ class Project extends Model implements HasMedia
     public function scopeFilter(Builder $query, $request): Builder
     {
         $query->when($request->q, function ($q, $search) {
-            $q->where('title', 'ILIKE', '%' . $search . '%')
-                ->orWhere('description', 'ILIKE', '%' . $search . '%');
+            $q->where(function ($sub) use ($search) {
+                $sub->where('projects.title', 'ILIKE', "%{$search}%")
+                    ->orWhere('projects.description', 'ILIKE', "%{$search}%");
+            });
         });
 
         $query->when($request->order, function ($q, $order) {
             return match ($order) {
-                'dateA' => $q->orderBy('moderated_time', 'asc'),
-                'dateD' => $q->orderBy('moderated_time', 'desc'),
-                'titleA' => $q->orderBy('title', 'asc'),
-                'titleD' => $q->orderBy('title', 'desc'),
-                'scoreA' => $q->orderBy('avg_score', 'asc'),
-                'scoreD' => $q->orderBy('avg_score', 'desc'),
-                default => $q,
+                'dateA'   => $q->orderBy('projects.moderated_time', 'asc'),
+                'dateD'   => $q->orderBy('projects.moderated_time', 'desc'),
+                'titleA'  => $q->orderBy('projects.title', 'asc'),
+                'titleD'  => $q->orderBy('projects.title', 'desc'),
+                'scoreA'  => $q->orderBy('projects.avg_score', 'asc'),
+                'scoreD'  => $q->orderBy('projects.avg_score', 'desc'),
+                default   => $q,
             };
         });
 

@@ -86,7 +86,10 @@ class ProjectPolicy
             return false;
         }
 
-        $publishedProjects = $project->team->projects()->whereIn('status', [Project::PUBLISHED, Project::MODERATION])->exists();
+        $publishedProjects = Project::query()
+            ->where('team_id', $project->team_id)
+            ->whereIn('status', [Project::PUBLISHED, Project::MODERATION])
+            ->exists();
         return $user->isCapitan($project) && !$publishedProjects;
     }
 
