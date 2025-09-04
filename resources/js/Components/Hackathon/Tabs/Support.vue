@@ -17,6 +17,18 @@ console.log(props.supports)
 const isForm = ref(false);
 const activeTab = ref(usePage().props.query?.tab   === 'past' ? 1 : 0)
 
+const TYPE_LABEL = {
+    question: "Вопрос",
+    suggestion: "Предложение",
+    bug: "Ошибка",
+};
+
+const supportsList = computed(() => (Array.isArray(props.supports) ? props.supports : []));
+
+const openSupports   = computed(() => supportsList.value.filter(s => !s.is_completed));
+const closedSupports = computed(() => supportsList.value.filter(s =>  s.is_completed));
+const currentList    = computed(() => (activeTab.value === 0 ? openSupports.value : closedSupports.value));
+
 function setActiveTab(idx) {
     if (activeTab.value === idx) return
     activeTab.value = idx
@@ -73,14 +85,19 @@ onMounted(async () => {
                         :style="sliderStyle"
                     ></div>
                 </div>
-                <div class="hackathon__support_item">
-                    <p class="hackathon__support_title">Обращение 1</p>
-                    <p class="hackathon__contact_links-item">Предложение</p>
-                </div>
-                <div class="hackathon__support_item">
-                    <p class="hackathon__support_title">Обращение 2</p>
-                    <p class="hackathon__contact_links-item">Вопрос</p>
-                </div>
+                <template v-if="currentList.length">
+                    <div
+                        v-for="(s, idx) in currentList"
+                        :key="s.id"
+                        class="hackathon__support_item"
+                    >
+                        <p class="hackathon__support_title">Обращение {{ idx + 1 }}</p>
+                        <p class="hackathon__contact_links-item">{{ TYPE_LABEL[s.type] ?? s.type }}</p>
+                    </div>
+                </template>
+                <p v-else class="hackathon__support_title" style="opacity:.7; margin-top:12px">
+                    Здесь пока пусто
+                </p>
             </div>
         </div>
     </div>

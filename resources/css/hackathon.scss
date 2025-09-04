@@ -13,6 +13,12 @@ $x-big: 1829.98px;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
+        @media screen and (max-width: $medium){
+            padding: 30px 50px;
+        }
+        @media screen and (max-width: $x-small){
+            padding: 20px 30px;
+        }
         &_btn {
             display: flex;
             justify-content: space-between;
@@ -24,13 +30,26 @@ $x-big: 1829.98px;
             margin-top: 30px;
             display: grid;
             grid-template-columns: 1fr 1fr;
+            @media screen and (max-width: $small){
+               grid-template-columns: 1fr;
+                gap: 20px;
+            }
         }
         &_img {
             padding-right: 100px;
+            @media screen and (max-width: $medium){
+                padding-right: 20px;
+            }
+            @media screen and (max-width: $small){
+                padding-right: unset;
+            }
             img {
                 width: 100%;
                 object-fit: cover;
                 border-radius: 10px;
+                @media screen and (max-width: $small){
+                    max-height: 300px;
+                }
             }
         }
     }
@@ -40,10 +59,17 @@ $x-big: 1829.98px;
         text-transform: uppercase;
         letter-spacing: 2px;
         font-family: 'Cera Black';
+        @media screen and (max-width: $medium){
+            font-size: 25px;
+        }
+        @media screen and (max-width: $x-small){
+            font-size: 20px;
+        }
     }
     &__btn {
         width: fit-content;
         margin-top: 10px;
+        max-width: unset;
     }
     &__menu {
         background-color: #E80024;
@@ -52,6 +78,13 @@ $x-big: 1829.98px;
             padding: 0 80px;
             margin: 0 auto;
             display: flex;
+            flex-wrap: wrap;
+            @media screen and (max-width: $medium){
+                padding: 0 50px;
+            }
+            @media screen and (max-width: $x-small){
+                padding: 0 30px;
+            }
         }
         &_item {
             padding: 17px 16px;
@@ -59,11 +92,17 @@ $x-big: 1829.98px;
             letter-spacing: 1px;
             font-size: 22px;
             cursor: pointer;
+            @media screen and (max-width: $x-large){
+                font-size: 18px;
+            }
             &.active {
                 background-color: #C5122E;
             }
             &.blocked {
                 cursor: not-allowed;
+            }
+            &.noVisible {
+                display: none;
             }
         }
     }
@@ -432,6 +471,41 @@ $x-big: 1829.98px;
             font-size: 22px;
             font-weight: bold;
         }
+    }
+    &__participants {
+        &_text {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: -20px;
+        }
+        &_container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        &_item {
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        &_title {
+            font-size: 22px;
+            text-transform: uppercase;
+            font-family: "Cera Bold";
+        }
+        &_team {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+    }
+    &__managers {
+        display: flex;
+        gap: 30px;
+        align-items: center;
     }
 }
 .hackathon__arrow {

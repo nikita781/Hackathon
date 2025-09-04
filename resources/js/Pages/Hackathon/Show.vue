@@ -24,6 +24,8 @@ console.log(props.supports)
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
     oneProject : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/OneProject.vue')),
+    participants : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Participants.vue')),
+    managers : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Managers.vue')),
     project  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/MyProject.vue')),
     gallery  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Gallery.vue')),
     resources: defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Resources.vue')),
@@ -36,6 +38,8 @@ const availableTabs = computed(() => {
     return [
         {key: 'overview', title: 'Обзор', blocked: false},
         {key: 'oneProject', title: 'Обзор', blocked: false},
+        {key: 'participants', title: 'Участники', noVisible: !props.can?.hackathon?.update},
+        {key: 'managers', title: 'Управляющие', noVisible: !props.can?.hackathon?.update},
         {key: 'project', title: 'Мой проект', blocked: !props.can?.project.createProject},
         {key: 'gallery', title: 'Галерея проектов'},
         {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
@@ -107,7 +111,9 @@ function formatDate(dateStr) {
         <div class="hackathon__header">
             <div class="hackathon__header_btn" @click="toggleHeader">
                 <h1 class="hackathon__title">{{props.hackathon.title}}</h1>
-                <IconsArrow class="hackathon__arrow" :class="{ _rotated: !isOpen }" />
+                <div>
+                    <IconsArrow class="hackathon__arrow" :class="{ _rotated: !isOpen }" />
+                </div>
             </div>
             <transition name="accordion">
                 <div v-show="isOpen" class="hackathon__header_content">
@@ -202,7 +208,7 @@ function formatDate(dateStr) {
                     v-for="tab in availableTabs"
                     :key="tab.key"
                     class="hackathon__menu_item"
-                    :class="{ active: activeTab===tab.key, blocked:tab.blocked }"
+                    :class="{ active: activeTab===tab.key, blocked:tab.blocked, noVisible:tab.noVisible }"
                     @click="openTab(tab)"
                 >
                     {{ tab.title }}

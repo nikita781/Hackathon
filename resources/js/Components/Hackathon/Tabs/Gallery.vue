@@ -263,12 +263,22 @@ const getPreviewSrc = (p) => {
 <style scoped>
 .disabled { pointer-events: none; opacity: .5; }
 .skeleton-loader {
-    background: linear-gradient(90deg, #2c2c2c 25%, #3b3b3b 37%, #2c2c2c 63%);
-    background-size: 400% 100%;
-    animation: shine 1.4s ease infinite;
+    width: 100%;
+    height: 200px;
+    background-color: #e0e0e0;
+    animation: skeleton 1.2s ease-in-out infinite;
+    border-radius: 4px;
 }
-@keyframes shine {
-    0% { background-position: 100% 0; }
-    100% { background-position: 0 0; }
+
+@keyframes skeleton {
+    0% {
+        background-color: #e0e0e0;
+    }
+    50% {
+        background-color: #f0f0f0;
+    }
+    100% {
+        background-color: #e0e0e0;
+    }
 }
 </style>
