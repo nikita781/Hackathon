@@ -86,7 +86,10 @@ class Hackathon extends Model implements HasMedia
 
     public function getAllHackathonStaff(): Collection
     {
-        return $this->users()->wherePivotIn('role_id', Role::STAFF)->get();
+        return $this->users()
+            ->with('roles')
+            ->wherePivotIn('role_id', Role::STAFF)
+            ->get();
     }
 
     /**
