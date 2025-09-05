@@ -9,7 +9,7 @@ use App\Models\HackathonInvite;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\InviteNotification;
-use DragonCode\Support\Facades\Helpers\Str;
+use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

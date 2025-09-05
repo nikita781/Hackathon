@@ -58,8 +58,12 @@ class Team extends Model
         });
 
         $query->when($request->status, function ($q, $status) {
-            if ($status === Project::PUBLISHED || $status === Project::MODERATION || $status === Project::DRAFT || $status === Project::BLOCKED) {
+            if ($status === Project::PUBLISHED) {
                 $q->whereHas('projects', fn($q) => $q->where('status', $status));
+            }
+
+            if ($status === Project::DRAFT) {
+                $q->whereHas('projects', fn($q) => $q->where('status', Project::DRAFT)->orWhere('status', Project::BLOCKED)->orWhere('status', Project::MODERATION));
             }
         });
 

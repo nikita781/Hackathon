@@ -10,6 +10,8 @@ class TeamResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $this->loadMissing(['teamUsers.user', 'teamUsers.position']);
+
         return [
             'id' => $this->id,
             'title' => $this->title,

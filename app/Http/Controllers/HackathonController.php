@@ -183,7 +183,8 @@ class HackathonController extends Controller
             $teams = collect();
         } else if ($isStaffHackathon) {
             $teams = $hackathon->teams()
-                ->with(['projects', 'users.positions'])
+                ->with(['projects', 'teamUsers.user', 'teamUsers.position'])
+                ->filter($request)
                 ->paginate($perPageTeam);
         } else {
             $ownTeam = $hackathon->ownTeam($user);

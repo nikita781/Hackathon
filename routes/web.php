@@ -183,6 +183,6 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
             Route::post('/change-roles', [AdminController::class, 'changeRoles'])->name('change-roles');
         });
     });
-
-    Route::get('/roles', [AdminController::class, 'allRoles'])->name('roles');
 });
+
+Route::get('/refbook/roles', [AdminController::class, 'allRoles'])->name('roles');
