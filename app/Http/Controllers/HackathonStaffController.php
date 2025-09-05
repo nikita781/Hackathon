@@ -70,7 +70,7 @@ class HackathonStaffController extends Controller
     public function inviteUserById(Request $request, Hackathon $hackathon): JsonResponse
     {
         $data = $request->validate([
-            'users' => 'array',
+            'users' => 'required|array',
             'users.*.user_id' => 'required|exists:users,id',
             'users.*.role_id' => 'required|exists:roles,id',
         ]);
@@ -96,7 +96,7 @@ class HackathonStaffController extends Controller
             $invite = HackathonInvite::create([
                 'hackathon_id' => $hackathon->id,
                 'user_id' => $invitedUserId,
-                'position_id' => $invitedRoleId,
+                'role_id' => $invitedRoleId,
                 'token' => $token,
                 'expires_at' => now()->addDay(),
             ]);
