@@ -377,7 +377,7 @@ $x-big: 1829.98px;
         color: #E80024;
         font-size: 22px;
         text-transform: uppercase;
-        font-weight: 600;
+        font-family: "Cera Bold";
         &_container {
             display: flex;
             justify-content: space-between;
@@ -402,6 +402,7 @@ $x-big: 1829.98px;
             display: flex;
             align-items: center;
             gap: 10px;
+            cursor: pointer;
             @media screen and (max-width: $x-small){
                 display: none;
             }
@@ -416,8 +417,14 @@ $x-big: 1829.98px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                transition: 0.2s;
                 @media screen and (max-width: $small){
                     font-size: 18px;
+                }
+                &.active {
+                    background-color: #E80024;
+                    color: #fff;
+                    transition: 0.2s;
                 }
             }
         }

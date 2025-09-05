@@ -1,66 +1,86 @@
 <script setup>
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import {ref, watch} from "vue";
-import { useClipboard } from '@vueuse/core'
+import {useClipboard} from "@vueuse/core";
 import {useForm} from "@inertiajs/vue3";
 
+// axios приходит из bootstrap (глобально)
+
 const props = defineProps({
-    modelValue : Boolean,
-    positions : { type: Array,   default : () => [] },
-    ownTeam : { type: Array,   default : () => [] },
-    hackathon : { type: Array,   default : () => [] },
-})
-const emit = defineEmits([
-    'update:modelValue',
-])
+    modelValue: {type: Boolean, default: false},
+    positions: {type: Array, default: () => []}, // роли [{id, name|title}]
+    ownTeam: {type: Array, default: () => []},
+    hackathon: {type: Object, required: true},    // нужен slug
+});
 
-function close(){ emit('update:modelValue',false) }
+const emit = defineEmits(["update:modelValue"]);
+const close = () => emit("update:modelValue", false);
 
-const inviteLink = ref('')
-const { copy, copied } = useClipboard()
+const inviteLink = ref("");
+const {copy, copied} = useClipboard();
 
-const userIds = ref([{ user_id: '', position_id: props.positions[0]?.id }])
-const form = useForm({
-    users: []
-})
+// Хэлпер для названия роли
+const roleLabel = (r) => r?.title ?? r?.name ?? `Роль #${r?.id ?? "—"}`;
 
-async function getLink () {
-    inviteLink.value = ''
+// Поля для «пригласить по ID»
+const userIds = ref([{user_id: "", role_id: 'mentor'}]);
+
+const form = useForm({users: []});
+
+// Ссылка: бэк всегда создаёт на дефолтную роль (MENTOR). Просто получаем её.
+async function getLink() {
+    inviteLink.value = "";
+    console.log(props.hackathon.slug)
     try {
-        const { data } = await axios.post(
-            route('hackathons.teams.create-invite', {
+        const {data} = await axios.post(
+            route("hackathons.staff.create-invite", {
                 hackathon: props.hackathon.slug,
-                team     : props.ownTeam.id
             })
-        )
-        inviteLink.value = data.url
-    } catch (e) { console.error('link-error', e) }
+            // ВАЖНО: без role_id — бэк сейчас его игнорирует и всегда ставит MENTOR
+        );
+        inviteLink.value = data.url;
+    } catch (e) {
+        console.error("link-error", e);
+    }
 }
 
-watch(() => props.modelValue, v => { if (v) getLink() })
+// При открытии модалки — подтягиваем ссылку
+watch(() => props.modelValue, (v) => {
+    if (v) getLink();
+});
 
 const addUserField = () => {
-    userIds.value.push({ user_id: '', position_id: props.positions[0]?.id }) // Добавляем новое поле
-}
+    userIds.value.push({user_id: "", role_id: 'mentor'});
+};
 
 const removeUserField = (index) => {
-    userIds.value.splice(index, 1) // Удаляем поле
-}
+    userIds.value.splice(index, 1);
+};
 
 const inviteUsers = async () => {
     try {
+        // приводим к числам по возможности
+        const payload = {
+            users: userIds.value.map(u => ({
+                user_id: u.user_id ? Number(u.user_id) : null,
+                role_id: u.role_id ? u.role_id : null,
+            })),
+        };
+
+        console.log(userIds.value)
+
         await axios.post(
-            route('hackathons.teams.invite-by-id', {
+            route("hackathons.staff.invite-by-id", {
                 hackathon: props.hackathon.slug,
-                team     : props.ownTeam.id,
             }),
-            { users: userIds.value }      // тело запроса
-        )
-        close()                         // закрываем модалку после успеха
+            payload
+        );
+
+        close();
     } catch (error) {
-        console.error(error)
+        console.error("invite-by-id-error", error);
     }
-}
+};
 </script>
 
 <template>
@@ -82,18 +102,27 @@ const inviteUsers = async () => {
                     <input
                         class="dialog__input"
                         readonly
+                        :value="inviteLink"
                         placeholder="Текст ссылки"
                         style="width: 100%"
                     />
-                    <button class="main__btn dialog__btn"
-                            :class="{ blocked: !inviteLink }"
-                            :disabled="!inviteLink"
-                            @click="copy(inviteLink)">
+                    <button
+                        class="main__btn dialog__btn"
+                        :class="{ blocked: !inviteLink }"
+                        :disabled="!inviteLink"
+                        @click="copy(inviteLink)"
+                    >
                         {{ copied ? 'Скопировано' : 'Копировать' }}
                     </button>
                 </div>
             </div>
-            <div v-for="(user, index) in userIds" :key="index" class="dialog__component">
+
+            <!-- ПРИГЛАСИТЬ ПО ID (с выбором роли) -->
+            <div
+                v-for="(user, index) in userIds"
+                :key="index"
+                class="dialog__component"
+            >
                 <p class="dialog__title">Добавить участника по ID</p>
                 <div class="dialog__input_btns dialog__input_btns_small">
                     <input
@@ -102,28 +131,35 @@ const inviteUsers = async () => {
                         placeholder="Введите ID участника"
                         style="width: 100%"
                     />
-                    <select v-model="user.position_id" class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
-                        <option v-for="p in positions" :key="p.id" :value="p.id">{{ p.name }}</option>
+                    <select
+                        v-model="user.role_id"
+                        class="main__cards_select dialog__select"
+                        style="width: 100%; max-width: 230px"
+                    >
+                        <option value="mentor">
+                            Ментор
+                        </option>
                     </select>
                     <div>
                         <IconsCancel class="clickable" style="cursor: pointer" @click="removeUserField(index)"/>
                     </div>
                 </div>
             </div>
+
             <div class="dialog__plus" style="margin-top: -10px" @click="addUserField">
                 <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z" fill="#E80024"/>
+                    <path
+                        d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z"
+                        fill="#E80024"/>
                 </svg>
                 <p>Добавить еще</p>
             </div>
+
             <div class="dialog__btns">
                 <button class="main__btn main__btn_white dialog__btn" @click="close">
                     Отменить
                 </button>
-                <button
-                    class="main__btn dialog__btn"
-                    @click="inviteUsers"
-                >
+                <button class="main__btn dialog__btn" @click="inviteUsers">
                     Пригласить
                 </button>
             </div>
@@ -132,5 +168,8 @@ const inviteUsers = async () => {
 </template>
 
 <style scoped>
-
+/* при желании — мелкие доработки UI */
+.dialog__hint {
+    font-size: 12px;
+}
 </style>

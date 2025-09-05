@@ -26,6 +26,7 @@ const tabComponents = {
     oneProject : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/OneProject.vue')),
     participants : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Participants.vue')),
     managers : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Managers.vue')),
+    rate : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Rate.vue')),
     project  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/MyProject.vue')),
     gallery  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Gallery.vue')),
     resources: defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Resources.vue')),
@@ -37,9 +38,9 @@ const tabComponents = {
 const availableTabs = computed(() => {
     return [
         {key: 'overview', title: 'Обзор', blocked: false},
-        {key: 'oneProject', title: 'Обзор', blocked: false},
         {key: 'participants', title: 'Участники', noVisible: !props.can?.hackathon?.update},
         {key: 'managers', title: 'Управляющие', noVisible: !props.can?.hackathon?.update},
+        {key: 'rate', title: 'Оценить', noVisible: !props.can?.hackathon?.update},
         {key: 'project', title: 'Мой проект', blocked: !props.can?.project.createProject},
         {key: 'gallery', title: 'Галерея проектов'},
         {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
@@ -187,8 +188,17 @@ function formatDate(dateStr) {
                                 class="main__btn_main hackathon__btn"
                                 @click="showTakePart = true"
                                 :class="{ main__btn_white: joined}"
+                                v-if="props.can.hackathon.join"
                             >
                                 {{joined ? 'Отменить участие' : 'Принять участие'}}
+                            </button>
+                            <button
+                                type="button"
+                                class="main__btn_main hackathon__btn"
+                                style="cursor: not-allowed"
+                                v-if="props.can.hackathon.update"
+                            >
+                                Редактировать
                             </button>
                             <TakePart
                                 v-model="showTakePart"

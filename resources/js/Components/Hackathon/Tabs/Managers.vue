@@ -2,6 +2,15 @@
 import IconsPencilMyProject from "@/Components/Icons/PencilMyProject.vue";
 import InvitationToTheManager from "@/Components/Dialog/InvitationToTheManager.vue";
 import {ref} from "vue";
+import InvitationToTheTeam from "@/Components/Dialog/InvitationToTheTeam.vue";
+
+const props = defineProps({
+    positions : { type: Array,   default : () => [] },
+    ownTeam : { type: Array,   default : () => [] },
+    hackathon : { type: Array,   default : () => [] },
+    tabs: { type: Array,   default : () => [] },
+    allProjects: { type: Array,   default : () => [] },
+})
 
 const showInvitation = ref(false);
 </script>
@@ -27,6 +36,9 @@ const showInvitation = ref(false);
                     </button>
                     <InvitationToTheManager
                         v-model="showInvitation"
+                        :positions="props.positions"
+                        :ownTeam="props.ownTeam"
+                        :hackathon="props.hackathon"
                     />
                 </div>
             </div>
@@ -36,14 +48,14 @@ const showInvitation = ref(false);
                         <img src="/profile.jpg" alt="Avatar">
                         <p class="hackathon__my-project__list_text">Глеб123</p>
                     </div>
-                    <p class="hackathon__my-project__list_text">Капитан</p>
+                    <p class="hackathon__my-project__list_text">Судья</p>
                 </div>
                 <div class="hackathon__my-project__list_item">
                     <div class="hackathon__my-project__list_container">
                         <img src="/profile.jpg" alt="Avatar">
                         <p class="hackathon__my-project__list_text">Глеб123</p>
                     </div>
-                    <p class="hackathon__my-project__list_text">Капитан</p>
+                    <p class="hackathon__my-project__list_text">Ментор</p>
                 </div>
             </div>
         </div>

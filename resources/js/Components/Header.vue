@@ -138,7 +138,12 @@ const currentLang = computed(() => langMap[langStore.currentLanguage])
                                     <a href="/profile"
                                        class="header__profile_menu_item">{{ capitalizeFirstLetter(langStore.translations.profile) }}</a>
                                     <a @click.prevent="logout"
-                                       class="header__profile_menu_item">{{ capitalizeFirstLetter(langStore.translations.logout) }}</a>
+                                       class="header__profile_menu_item"
+                                        style="
+                                            border-bottom-right-radius: 6px;
+                                            border-bottom-left-radius: 6px;
+                                        "
+                                    >{{ capitalizeFirstLetter(langStore.translations.logout) }}</a>
                                 </div>
                             </div>
                         </div>

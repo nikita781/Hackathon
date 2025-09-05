@@ -18,14 +18,9 @@ const langStore = useLangStore()
 
 const dirty = ref(false)
 
-const contacts = ref([
-    { title: 'Ментор',       value: '+7 (919) 999-99-99' },
-    { title: 'Telegram-чат', value: 'Ссылка на тг чат' },
-])
+const contacts = ref([])
 
-const socials = ref([
-    { title: 'Telegram-канал', value: 'Ссылка на тг канал' },
-])
+const socials = ref([])
 
 const dlgShown    = ref(false)
 const dlgListName = ref('contacts')

@@ -2,6 +2,8 @@
 import { onMounted, ref, watch, computed, onBeforeUnmount } from 'vue'
 import { useLangStore } from '@/store/lang.js'
 import IconsStar from '@/Components/Icons/Star.vue'
+import Hyperlink from "@/Components/Icons/Hyperlink.vue";
+import Document from "@/Components/Icons/Document.vue";
 import axios from 'axios'
 
 const props = defineProps({
@@ -24,6 +26,11 @@ const items = ref([])
 const total = ref(0)
 const lastPage = ref(1)
 const previews = ref(Object.create(null))
+
+const oneProject = ref(null)
+const isOne = computed(() => !!oneProject.value)
+const oneGallery = ref([])
+const galleryLoading = ref(false)
 
 let abortCtrl = null
 let searchTimer = null
@@ -60,7 +67,7 @@ const buildParams = (pageNum = 1) => {
         params.search = q
         params.q = q
     }
-    if (s) params.sort = s
+    if (s) params.order = s
     return params
 }
 
@@ -159,11 +166,55 @@ const getPreviewSrc = (p) => {
     const key = getKey(p)
     return previews.value[key] || (p.preview_url ?? '/project.jpg')
 }
+
+function openProject(p) {
+    oneProject.value = p
+    loadProjectGallery(p)
+}
+function closeProject() {
+    oneProject.value = null
+    oneGallery.value = []
+}
+
+async function loadProjectGallery (project) {
+    if (!project?.slug) { oneGallery.value = []; return }
+    galleryLoading.value = true
+    try {
+        const { data } = await axios.get(
+            route('hackathons.projects.gallery', { hackathon: props.hackathon.slug, project: project.slug }),
+            { headers: { Accept: 'application/json' } }
+        )
+        const raw = data?.gallery ?? []
+        oneGallery.value = raw.map(it => ({
+            id:      typeof it === 'object' ? (it.id ?? it.media_id ?? it.key ?? null) : null,
+            url:     typeof it === 'string'
+                ? it
+                : (it.url ?? it.original_url ?? it.preview_url ?? it.path ?? ''),
+            name:    typeof it === 'object' ? (it.name ?? it.filename ?? '') : '',
+        })).filter(it => it.url)
+    } catch (e) {
+        console.error('project-gallery', e?.response ?? e)
+        oneGallery.value = []
+    } finally {
+        galleryLoading.value = false
+    }
+}
+
+const oneTitle = computed(() => getTitle(oneProject.value || {}))
+const oneShortDesc  = computed(() => oneProject.value?.description || '')
+const oneDesc  = computed(() => oneProject.value?.about || '')
+const oneStack = computed(() => oneProject.value?.stack || '')
+const onePreview = computed(() => oneProject.value ? getPreviewSrc(oneProject.value) : '/project.jpg')
+const links = computed(() => ({
+    project:      oneProject.value?.project_link || '',
+    presentation: oneProject.value?.presentation_path || oneProject.value?.presentation_url || '',
+    video:        oneProject.value?.video_link || '',
+}))
 </script>
 
 <template>
     <div class="hackathon__tab">
-        <div class="hackathon__gallery">
+        <div v-if="!isOne" class="hackathon__gallery">
             <p class="hackathon__my-project__title">Проекты</p>
 
             <div class="hackathon__gallery_filter">
@@ -186,7 +237,7 @@ const getPreviewSrc = (p) => {
 
                 <div class="main__cards_filter hackathon__gallery_sort" style="width: 320px">
                     <p>{{ langStore.translations.sort }}:</p>
-                    <select v-model="sort" class="main__cards_select">
+                    <select v-model="sort" class="main__cards_select" style="min-width: 185px">
                         <option value="dateA">По дате ↑</option>
                         <option value="dateD">По дате ↓</option>
                         <option value="titleA">По названию ↑</option>
@@ -208,6 +259,8 @@ const getPreviewSrc = (p) => {
                         v-for="project in items"
                         :key="getKey(project)"
                         class="hackathon__my-project__item"
+                        @click="openProject(project)"
+                        style="cursor: pointer"
                     >
                         <div class="hackathon__my-project__item_header">
                             <img :src="getPreviewSrc(project)" alt="">
@@ -258,6 +311,79 @@ const getPreviewSrc = (p) => {
                     </svg>
                 </button>
             </nav>
+        </div>
+        <div v-else class="hackathon__tab_main">
+            <div class="hackathon__tab_container">
+                <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+                    <button type="button" class="main__btn_main" @click="closeProject">← Назад к проектам</button>
+                    <p class="hackathon__my-project__title" style="margin:0">{{ oneTitle }}</p>
+                </div>
+
+                <div class="hackathon__oneProject_image">
+                    <img :src="onePreview" alt="">
+                </div>
+
+                <p class="">{{ oneShortDesc }}</p>
+            </div>
+
+            <div class="hackathon__tab_container" v-if="oneDesc">
+                <p class="hackathon__my-project__title">Описание</p>
+                <p class="">{{ oneDesc }}</p>
+            </div>
+
+            <div class="hackathon__tab_container" v-if="oneStack">
+                <p class="hackathon__my-project__title">Технологический стек проекта</p>
+                <p class="">{{ oneStack }}</p>
+            </div>
+
+            <div class="hackathon__tab_container">
+                <p class="hackathon__my-project__title">Галерея проекта</p>
+
+                <div v-if="galleryLoading" class="hackathon__oneProject_gallery">
+                    <div v-for="i in 4" :key="'g'+i" class="skeleton-loader" style="height:160px"></div>
+                </div>
+
+                <div v-else-if="oneGallery.length" class="hackathon__oneProject_gallery">
+                    <a
+                        v-for="img in oneGallery"
+                        :key="img.id ?? img.url"
+                        :href="img.url"
+                        class="hackathon__oneProject_gallery-item"
+                        target="_blank" rel="noopener noreferrer"
+                        title="Открыть в новой вкладке"
+                    >
+                        <img :src="img.url" :alt="img.name || 'Изображение проекта'">
+                    </a>
+                </div>
+            </div>
+
+            <div class="hackathon__tab_container">
+                <p class="hackathon__my-project__title">Материалы</p>
+
+                <div class="hackathon__oneProject_media" v-if="links.project">
+                    <p class="hackathon__oneProject_media-title">Ссылка на проект</p>
+                    <div class="hackathon__oneProject_media-item">
+                        <Hyperlink />
+                        <a :href="links.project" target="_blank" rel="noopener noreferrer">Ссылка</a>
+                    </div>
+                </div>
+
+                <div class="hackathon__oneProject_media" v-if="links.presentation">
+                    <p class="hackathon__oneProject_media-title">Презентация</p>
+                    <div class="hackathon__oneProject_media-item">
+                        <Document />
+                        <a :href="links.presentation" target="_blank" rel="noopener noreferrer">Файл</a>
+                    </div>
+                </div>
+
+                <div class="hackathon__oneProject_media" v-if="links.video">
+                    <p class="hackathon__oneProject_media-title">Ссылка на видео</p>
+                    <div class="hackathon__oneProject_media-item">
+                        <Hyperlink />
+                        <a :href="links.video" target="_blank" rel="noopener noreferrer">Ссылка</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>

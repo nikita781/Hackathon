@@ -72,20 +72,22 @@ function openModal(url) {
                         <img src="/test.jpg" alt="">
                     </div>
 
+<!--                    <pre>{{n}}</pre>-->
+
                     <div class="notification__content">
                         <div class="notification__main">
-                            <p  class="notification__name">{{ n.data.title }}</p>
-                            <p  class="notification__text">{{ n.data.description }}</p>
+                            <p  class="notification__name">{{ n?.title }}</p>
+                            <p  class="notification__text">{{ n?.description }}</p>
                             <button
-                                v-if="n.data.url"
+                                v-if="n?.url"
                                 type="button"
                                 class="main__btn dialog__btn notification__btn"
                                 style="max-width: fit-content"
-                                @click="openModal(n.data.url)"
-                                :class="{ blocked: !n.data.is_active }"
-                                :disabled="!n.data.is_active"
+                                @click="openModal(n?.url)"
+                                :class="{ blocked: !n.is_active }"
+                                :disabled="!n.is_active"
                             >
-                                {{ !n.data.is_active ? 'Приглашение принято' : 'Подтвердить' }}
+                                {{ !n.is_active ? 'Приглашение принято' : 'Подтвердить' }}
                             </button>
                         </div>
                         <p class="profile__tabs_awards_item_date">Отправлено {{ formatDate(n.created_at) }}</p>

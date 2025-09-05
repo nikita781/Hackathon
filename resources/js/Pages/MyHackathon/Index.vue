@@ -61,19 +61,30 @@ const fetchHackathons = debounce((page = 1) => {
 
 watch([sort], () => fetchHackathons(1))
 
+watch(activeTab, () => recalcSlider());
+watch(
+    () => langStore.translations,
+    () => {
+        nextTick(() => {
+            tabsRef.value = document.querySelectorAll('.my-hackathon__tabs_item');
+            recalcSlider();
+        });
+    }, { deep: true }
+)
+
 const tabsRef = ref([]);
-const sliderStyle = computed(() => {
-    if (!tabsRef.value.length) return {};
+const sliderStyle = ref({});
+function recalcSlider () {
+    nextTick(() => {
+        const el = tabsRef.value?.[activeTab.value];
+        if (!el) return;
+        sliderStyle.value = {
+            left : `${el.offsetLeft}px`,
+            width: `${el.offsetWidth}px`,
+        };
+    });
+}
 
-    const activeTabElement = tabsRef.value[activeTab.value];
-    const left = activeTabElement?.offsetLeft || 0;
-    const width = activeTabElement?.offsetWidth || 0;
-
-    return {
-        left: `${left}px`,
-        width: `${width}px`,
-    };
-});
 
 function formatDate(dateStr) {
     const date = new Date(dateStr)
