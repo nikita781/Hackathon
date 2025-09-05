@@ -10,7 +10,10 @@ const props = defineProps({
     hackathon : { type: Array,   default : () => [] },
     tabs: { type: Array,   default : () => [] },
     allProjects: { type: Array,   default : () => [] },
+    hackathonStaff: { type: Array,   default : () => [] },
 })
+
+console.log(props.hackathonStaff)
 
 const showInvitation = ref(false);
 </script>
@@ -43,19 +46,12 @@ const showInvitation = ref(false);
                 </div>
             </div>
             <div class="hackathon__participants_team">
-                <div class="hackathon__my-project__list_item">
+                <div class="hackathon__my-project__list_item" v-for="(person,idx) in props.hackathonStaff" :key="idx">
                     <div class="hackathon__my-project__list_container">
                         <img src="/profile.jpg" alt="Avatar">
-                        <p class="hackathon__my-project__list_text">Глеб123</p>
+                        <p class="hackathon__my-project__list_text">{{ person.name }}</p>
                     </div>
-                    <p class="hackathon__my-project__list_text">Судья</p>
-                </div>
-                <div class="hackathon__my-project__list_item">
-                    <div class="hackathon__my-project__list_container">
-                        <img src="/profile.jpg" alt="Avatar">
-                        <p class="hackathon__my-project__list_text">Глеб123</p>
-                    </div>
-                    <p class="hackathon__my-project__list_text">Ментор</p>
+                    <p class="hackathon__my-project__list_text">{{ person.hackathon_role.title }}</p>
                 </div>
             </div>
         </div>

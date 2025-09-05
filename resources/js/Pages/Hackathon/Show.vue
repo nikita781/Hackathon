@@ -13,13 +13,14 @@ const props = defineProps({
     ownTeam: Object,
     positions: Array,
     is_join: Boolean,
+    hackathonStaff: Array,
     allProjects: Object,
     flash: Object,
     supports: Object,
 })
 
 console.log(props.can)
-console.log(props.supports)
+console.log(props.hackathonStaff)
 
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
@@ -40,7 +41,7 @@ const availableTabs = computed(() => {
         {key: 'overview', title: 'Обзор', blocked: false},
         {key: 'participants', title: 'Участники', noVisible: !props.can?.hackathon?.update},
         {key: 'managers', title: 'Управляющие', noVisible: !props.can?.hackathon?.update},
-        {key: 'rate', title: 'Оценить', noVisible: !props.can?.hackathon?.update},
+        {key: 'rate', title: 'Оценить', noVisible: !props.can?.hackathon?.rate},
         {key: 'project', title: 'Мой проект', blocked: !props.can?.project.createProject},
         {key: 'gallery', title: 'Галерея проектов'},
         {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
@@ -232,6 +233,7 @@ function formatDate(dateStr) {
                 :positions="props.positions"
                 :ownTeam="props.ownTeam"
                 :hackathon="props.hackathon"
+                :hackathonStaff="props.hackathonStaff"
                 :tabs="props.tabs"
                 :allProjects="props.allProjects"
                 :supports="props.supports"
