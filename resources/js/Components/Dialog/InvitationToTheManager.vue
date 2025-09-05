@@ -1,42 +1,45 @@
 <script setup>
 import IconsCancel from "@/Components/Icons/Cancel.vue";
-import {ref, watch} from "vue";
-import {useClipboard} from "@vueuse/core";
-import {useForm} from "@inertiajs/vue3";
+import { ref, watch } from "vue";
+import { useClipboard } from "@vueuse/core";
 
-// axios приходит из bootstrap (глобально)
-
+// props
 const props = defineProps({
-    modelValue: {type: Boolean, default: false},
-    positions: {type: Array, default: () => []}, // роли [{id, name|title}]
-    ownTeam: {type: Array, default: () => []},
-    hackathon: {type: Object, required: true},    // нужен slug
+    modelValue: { type: Boolean, default: false },
+    hackathon:  { type: Object,  required: true },  // нужен slug
 });
 
+// ui
 const emit = defineEmits(["update:modelValue"]);
 const close = () => emit("update:modelValue", false);
 
 const inviteLink = ref("");
-const {copy, copied} = useClipboard();
+const rolesResp  = ref({ roles: [] });
+const { copy, copied } = useClipboard();
 
-// Хэлпер для названия роли
-const roleLabel = (r) => r?.title ?? r?.name ?? `Роль #${r?.id ?? "—"}`;
+// поле «пригласить по ID»
+const userIds = ref([{ user_id: "", role_id: null }]);
 
-// Поля для «пригласить по ID»
-const userIds = ref([{user_id: "", role_id: 'mentor'}]);
+// роли подтягиваем один раз при открытии
+async function getRoles() {
+    try {
+        const { data } = await axios.get(route("roles"));
+        rolesResp.value = data ?? { roles: [] };
+        // если в первой строке не выбрана роль — выставим первую из списка
+        if (rolesResp.value?.roles?.length && userIds.value[0] && !userIds.value[0].role_id) {
+            userIds.value[0].role_id = rolesResp.value.roles[0].id;
+        }
+    } catch (e) {
+        console.error("roles-error", e);
+    }
+}
 
-const form = useForm({users: []});
-
-// Ссылка: бэк всегда создаёт на дефолтную роль (MENTOR). Просто получаем её.
+// ссылка (на дефолтную роль, как сейчас на бэке)
 async function getLink() {
     inviteLink.value = "";
-    console.log(props.hackathon.slug)
     try {
-        const {data} = await axios.post(
-            route("hackathons.staff.create-invite", {
-                hackathon: props.hackathon.slug,
-            })
-            // ВАЖНО: без role_id — бэк сейчас его игнорирует и всегда ставит MENTOR
+        const { data } = await axios.post(
+            route("hackathons.staff.create-invite", { hackathon: props.hackathon.slug })
         );
         inviteLink.value = data.url;
     } catch (e) {
@@ -44,13 +47,18 @@ async function getLink() {
     }
 }
 
-// При открытии модалки — подтягиваем ссылку
-watch(() => props.modelValue, (v) => {
-    if (v) getLink();
-});
+// при открытии модалки
+watch(
+    () => props.modelValue,
+    async (v) => {
+        if (!v) return;
+        await Promise.all([getLink(), getRoles()]);
+    }
+);
 
 const addUserField = () => {
-    userIds.value.push({user_id: "", role_id: 'mentor'});
+    const firstRoleId = rolesResp.value?.roles?.[0]?.id ?? null;
+    userIds.value.push({ user_id: "", role_id: firstRoleId });
 };
 
 const removeUserField = (index) => {
@@ -58,30 +66,46 @@ const removeUserField = (index) => {
 };
 
 const inviteUsers = async () => {
+    // нормализуем данные
+    const rows = userIds.value
+        .map(u => ({
+            user_id: u.user_id ? Number(u.user_id) : null,
+            role_id: u.role_id ? Number(u.role_id) : null,
+            // дублируем для совместимости с возможным position_id на бэке
+            position_id: u.role_id ? Number(u.role_id) : null,
+        }))
+        .filter(u => u.user_id && (u.role_id || u.position_id));
+
+    if (!rows.length) return;
+
+    console.log(rows)
+
     try {
-        // приводим к числам по возможности
-        const payload = {
-            users: userIds.value.map(u => ({
-                user_id: u.user_id ? Number(u.user_id) : null,
-                role_id: u.role_id ? u.role_id : null,
-            })),
-        };
-
-        console.log(userIds.value)
-
+        // 1) как ты просил — СРАЗУ МАССИВ без обёртки
         await axios.post(
-            route("hackathons.staff.invite-by-id", {
-                hackathon: props.hackathon.slug,
-            }),
-            payload
+            route("hackathons.staff.invite-by-id", { hackathon: props.hackathon.slug }),
+            rows
         );
-
         close();
-    } catch (error) {
-        console.error("invite-by-id-error", error);
+    } catch (err) {
+        // если валидация требует обёртку users — пробуем фолбэк
+        if (err?.response?.status === 422) {
+            try {
+                await axios.post(
+                    route("hackathons.staff.invite-by-id", { hackathon: props.hackathon.slug }),
+                    { users: rows }
+                );
+                close();
+                return;
+            } catch (e2) {
+                console.error("invite-by-id-error (fallback)", e2);
+            }
+        }
+        console.error("invite-by-id-error", err);
     }
 };
 </script>
+
 
 <template>
     <div v-if="modelValue" class="dialog" style="z-index:2">
@@ -136,8 +160,8 @@ const inviteUsers = async () => {
                         class="main__cards_select dialog__select"
                         style="width: 100%; max-width: 230px"
                     >
-                        <option value="mentor">
-                            Ментор
+                        <option v-for="p in rolesResp.roles" :key="p.id" :value="p.id">
+                            {{ p.title }}
                         </option>
                     </select>
                     <div>
