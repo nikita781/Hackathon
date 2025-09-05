@@ -149,10 +149,6 @@ class HackathonPolicy
             return true;
         }
 
-        if ($user->hasRole(Role::ORGANIZER)) {
-            return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
-        }
-
         return $user->hackathons()->where('id', $hackathon->id)->where('role_id', Role::JUDGE)->exists();
     }
 

@@ -93,17 +93,6 @@ class ProjectPolicy
         return $user->isCapitan($project) && !$publishedProjects;
     }
 
-    public function rate(User $user, Project $project):bool
-    {
-        $hackathon = Hackathon::findOrFail($project->hackathon_id);
-
-        if ($hackathon->evaluation_start > now() && $hackathon->evaluation_end < now()) {
-            return false;
-        }
-
-        return $user->isHackathonJudge($hackathon);
-    }
-
     public function moderate(User $user): bool
     {
         return $user->isAdmin();

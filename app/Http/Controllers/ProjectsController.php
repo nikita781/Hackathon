@@ -173,7 +173,7 @@ class ProjectsController extends Controller
 
     public function rate(Request $request, Project $project): RedirectResponse
     {
-        if (!Gate::check('rate', $project)) {
+        if (!Gate::check('evaluation', $project->hackathon)) {
             abort(404);
         }
 
