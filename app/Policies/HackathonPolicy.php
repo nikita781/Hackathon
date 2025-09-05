@@ -149,7 +149,10 @@ class HackathonPolicy
             return true;
         }
 
-        return $user->hackathons()->where('id', $hackathon->id)->where('role_id', Role::JUDGE)->exists();
+        return $user->hackathons()
+            ->where('hackathons.id', $hackathon->id)
+            ->wherePivot('role_id', Role::JUDGE)
+            ->exists();
     }
 
     public function moderate(User $user): bool
