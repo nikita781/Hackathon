@@ -18,7 +18,7 @@ class Role extends Model
     public const MODERATORS = [self::SUPER_ADMIN, self::ADMIN, self::MODERATOR];
     public const ADMINS = [self::SUPER_ADMIN, self::ADMIN];
     public const STAFF_WITH_ORGANIZER = [self::SUPER_ADMIN, self::ADMIN, self::MODERATOR, self::ORGANIZER, self::JUDGE, self::MENTOR];
-    public const STAFF = [self::MODERATOR, self::JUDGE, self::MENTOR];
+    public const STAFF = [self::JUDGE, self::MENTOR];
 
     protected $fillable = [
         'title',

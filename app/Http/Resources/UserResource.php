@@ -20,6 +20,11 @@ class UserResource extends JsonResource
             'hackathons' => $this->whenLoaded('hackathons', function () {
                 return HackathonResource::collection($this->hackathons);
             }),
+
+            'hackathon_role' => $this->whenPivotLoaded('hackathon_user', function () {
+                return new RoleResource(Role::find($this->pivot->role_id));
+            }),
+
             'roles' => RoleResource::collection($this->whenLoaded('roles')),
         ];
     }

@@ -88,6 +88,7 @@ class Hackathon extends Model implements HasMedia
     {
         return $this->users()
             ->with('roles')
+            ->withPivot('role_id')
             ->wherePivotIn('role_id', Role::STAFF)
             ->get();
     }

@@ -238,7 +238,7 @@ class AdminController extends Controller
 
     public function allRoles(): JsonResponse
     {
-        $roles = Role::all();
+        $roles = Role::whereIn('id', Role::STAFF)->get();
 
         return response()->json([
             'roles' => $roles,
