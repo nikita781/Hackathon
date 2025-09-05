@@ -66,46 +66,30 @@ const removeUserField = (index) => {
 };
 
 const inviteUsers = async () => {
-    // нормализуем данные
-    const rows = userIds.value
-        .map(u => ({
-            user_id: u.user_id ? Number(u.user_id) : null,
-            role_id: u.role_id ? Number(u.role_id) : null,
-            // дублируем для совместимости с возможным position_id на бэке
-            position_id: u.role_id ? Number(u.role_id) : null,
-        }))
-        .filter(u => u.user_id && (u.role_id || u.position_id));
-
-    if (!rows.length) return;
-
-    console.log(rows)
-
     try {
-        // 1) как ты просил — СРАЗУ МАССИВ без обёртки
+        // приводим к числам по возможности
+        const payload = {
+            users: userIds.value.map(u => ({
+                user_id: u.user_id ? Number(u.user_id) : null,
+                role_id: u.role_id ? Number(u.role_id) : null,
+            })),
+        };
+
+        console.log(payload)
+
         await axios.post(
-            route("hackathons.staff.invite-by-id", { hackathon: props.hackathon.slug }),
-            rows
+            route("hackathons.staff.invite-by-id", {
+                hackathon: props.hackathon.slug,
+            }),
+            payload
         );
+
         close();
-    } catch (err) {
-        // если валидация требует обёртку users — пробуем фолбэк
-        if (err?.response?.status === 422) {
-            try {
-                await axios.post(
-                    route("hackathons.staff.invite-by-id", { hackathon: props.hackathon.slug }),
-                    { users: rows }
-                );
-                close();
-                return;
-            } catch (e2) {
-                console.error("invite-by-id-error (fallback)", e2);
-            }
-        }
-        console.error("invite-by-id-error", err);
+    } catch (error) {
+        console.error("invite-by-id-error", error);
     }
 };
 </script>
-
 
 <template>
     <div v-if="modelValue" class="dialog" style="z-index:2">
