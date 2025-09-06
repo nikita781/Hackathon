@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('stack')->nullable();
             $table->string('project_link')->nullable();
             $table->string('video_link')->nullable();
-            $table->enum('status', ['draft', 'moderation', 'published', 'blocked'])->default('draft');
+            $table->smallInteger('status')->default(1);
             $table->dateTime('moderated_time')->nullable();
             $table->dateTime('published_time')->nullable();
             $table->dateTime('blocked_time')->nullable();

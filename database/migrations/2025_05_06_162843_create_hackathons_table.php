@@ -33,7 +33,7 @@ return new class extends Migration
             $table->dateTime('evaluation_start')->nullable();
             $table->dateTime('evaluation_end')->nullable();
             $table->string('slug')->unique();
-            $table->enum('status', ['draft', 'moderation', 'published', 'blocked'])->default('draft');
+            $table->smallInteger('status')->default(1);
             $table->dateTime('moderated_time')->nullable();
             $table->dateTime('published_time')->nullable();
             $table->dateTime('blocked_time')->nullable();

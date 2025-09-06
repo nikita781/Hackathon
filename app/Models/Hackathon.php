@@ -26,11 +26,11 @@ class Hackathon extends Model implements HasMedia
         'comment', 'is_finished',
     ];
 
-    public const STATUSES = ['draft', 'moderation', 'published', 'blocked'];
-    public const STATUS_DRAFT = 'draft';
-    public const STATUS_MODERATION = 'moderation';
-    public const STATUS_PUBLISHED = 'published';
-    public const STATUS_BLOCKED = 'blocked';
+    public const STATUSES = [self::STATUS_DRAFT, self::STATUS_MODERATION, self::STATUS_PUBLISHED, self::STATUS_BLOCKED];
+    public const STATUS_DRAFT = 1;
+    public const STATUS_MODERATION = 2;
+    public const STATUS_PUBLISHED = 3;
+    public const STATUS_BLOCKED = 4;
 
     /**
      * @return string

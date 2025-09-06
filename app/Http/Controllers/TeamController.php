@@ -23,7 +23,7 @@ class TeamController extends Controller
     public function index(Request $request, Hackathon $hackathon)
     {
         if (!Gate::check('viewAll', [Team::class, $hackathon])) {
-            abort(404);
+            abort(403);
         }
 
         $perPage = min($request->get('per_page', 2), 10);
@@ -37,7 +37,7 @@ class TeamController extends Controller
     public function update(UpdateTeamRequest $request, Hackathon $hackathon, Team $team): RedirectResponse
     {
         if (!Gate::check('update', $team)) {
-            abort(404);
+            abort(403);
         }
 
         $team->update($request->only('title'));
@@ -57,7 +57,7 @@ class TeamController extends Controller
     public function kick(KickTeamRequest $request, Hackathon $hackathon, Team $team): RedirectResponse
     {
         if (!Gate::check('kick', $team)) {
-            abort(404);
+            abort(403);
         }
 
         $data = $request->validated();
@@ -112,7 +112,7 @@ class TeamController extends Controller
         $user = auth()->user();
 
         if (!Gate::check('acceptInvite', $hackathon)) {
-            abort(404);
+            abort(403);
         }
 
         if (!$hackathon->users()->where('user_id', $user->id)->exists()) {

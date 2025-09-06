@@ -20,12 +20,12 @@ class Project extends Model implements HasMedia
         'moderated_time', 'published_time', 'blocked_time', 'avg_score', 'comment', 'slug',
     ];
 
-    public const PROJECT_STATUS = ['draft', 'moderation', 'published', 'blocked'];
+    public const PROJECT_STATUS = [self::DRAFT, self::MODERATION, self::PUBLISHED, self::BLOCKED];
 
-    public const DRAFT = 'draft';
-    public const MODERATION = 'moderation';
-    public const PUBLISHED = 'published';
-    public const BLOCKED = 'blocked';
+    public const DRAFT = 1;
+    public const MODERATION = 2;
+    public const PUBLISHED = 3;
+    public const BLOCKED = 4;
 
     public function getRouteKeyName(): string
     {
