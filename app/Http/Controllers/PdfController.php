@@ -6,11 +6,14 @@ use App\Models\Hackathon;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class PdfController extends Controller
 {
     public function certificate(Hackathon $hackathon): Response
     {
+        Gate::authorize('downloadCertificate', $hackathon);
+
         $user = auth()->user();
 
         $place = $user->teams()->where('hackathon_id', $hackathon->id)->first()->place;

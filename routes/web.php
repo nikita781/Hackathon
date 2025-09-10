@@ -9,6 +9,7 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NominationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SupportsController;
@@ -127,7 +128,8 @@ Route::middleware('auth')->group(function () {
                 Route::post('/inviteById', [HackathonStaffController::class, 'inviteUserById'])->name('invite-by-id');
             });
 
-            Route::post('/download-users', [HackathonController::class, 'downloadUsers'])->name('download-users');
+            Route::get('/download-users', [HackathonController::class, 'downloadUsers'])->name('download-users');
+            Route::get('/certificate', [PdfController::class, 'certificate'])->name('certificate');
         });
     });
 });
