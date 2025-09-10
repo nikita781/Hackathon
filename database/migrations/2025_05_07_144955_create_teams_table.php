@@ -18,6 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Hackathon::class)->index()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('title');
+            $table->integer('place')->nullable();
             $table->timestamps();
         });
     }

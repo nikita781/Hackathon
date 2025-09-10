@@ -15,6 +15,7 @@ class TeamResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'place' => $this->place,
             'users' => $this->whenLoaded('teamUsers', function() {
                 return $this->teamUsers->map(function($teamUser) {
                     return [

@@ -19,7 +19,10 @@ class SendHackathonFinishedNotifications
     {
         $hackathon = $event->hackathon;
 
-        $hackathon->load('members');
+        $hackathon->assignPlaces();
+
+        $hackathon->load('members', 'awards', 'teams.users');
+        $hackathonAwards = $hackathon->awards;
         foreach ($hackathon->members as $member) {
             $member->notify(new HackathonFinishedNotification($hackathon));
 
@@ -36,6 +39,28 @@ class SendHackathonFinishedNotifications
                 if ($award && !$member->awards()->where('award_id', $award->id)->exists()) {
                     $member->awards()->attach($award->id, ['awarded_at' => now()]);
                 }
+            }
+        }
+
+        $awardedAt = now();
+
+        foreach ($hackathonAwards as $award) {
+            if ($award->for_all) {
+                $award->users()->syncWithoutDetaching(
+                    $hackathon->members->pluck('id')->mapWithKeys(fn ($id) => [$id => ['awarded_at' => now()]])
+                );
+            } elseif ($award->place !== null) {
+                $winningUserIds = $hackathon->teams()
+                    ->where('place', $award->place)
+                    ->with('users:id')
+                    ->get()
+                    ->pluck('users.*.id')
+                    ->flatten()
+                    ->unique();
+
+                $award->users()->syncWithoutDetaching(
+                    $winningUserIds->mapWithKeys(fn ($id) => [$id => ['awarded_at' => $awardedAt]])
+                );
             }
         }
     }

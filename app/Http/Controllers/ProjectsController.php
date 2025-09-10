@@ -171,10 +171,10 @@ class ProjectsController extends Controller
         return back()->with('status', 'Проект отправлен на модерацию!');
     }
 
-    public function rate(Request $request, Project $project): RedirectResponse
+    public function rate(Request $request, Hackathon $hackathon, Project $project): RedirectResponse
     {
-        if (!Gate::check('evaluation', $project->hackathon)) {
-            abort(404);
+        if (!Gate::check('evaluation', $hackathon)) {
+            abort(403);
         }
 
         $data = $request->validate([

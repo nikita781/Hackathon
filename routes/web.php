@@ -16,30 +16,24 @@ use App\Http\Controllers\TabController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
 
+// LOCALE ROUTES
 Route::get('/lang/switch/{locale}', [LanguageController::class, 'switchLang'])->name('lang.switch');
 Route::get('/lang/{locale}.json', [LanguageController::class, 'json'])->name('lang.json');
 
+// REGISTER ROUTES
 Route::middleware('guest')->group(function () {
     Route::get('/login', [SessionController::class, 'index'])->name('login');
     Route::get('/auth/redirect', [SessionController::class, 'redirect'])->name('auth.redirect');
     Route::get('/auth/callback', [SessionController::class, 'callback'])->name('auth.callback');
 });
 
+// HOME
 Route::get('/', [HackathonController::class, 'index'])->name('home');
 
+
+// GUEST ROUTES
 Route::prefix('hackathons')->name('hackathons.')->group(function () {
     //
     Route::prefix('/{hackathon}')->group(function () {
@@ -55,6 +49,7 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
 
 Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.show');
 
+// NOTIFICATION ROUTES
 Route::get('/notification', [NotificationController::class, 'index'])->name('notification.index');
 Route::patch('/notification/mark-as-read', [NotificationController::class, 'markAsRead'])->middleware('auth')->name('notification.mark-as-read');
 
@@ -62,6 +57,7 @@ Route::prefix('support')->name('support.')->group(function () {
     Route::post('/{support}/answer', [SupportsController::class, 'answer'])->name('answer');
 });
 
+// AUTH ROUTES
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');
@@ -113,6 +109,7 @@ Route::middleware('auth')->group(function () {
                 Route::prefix('/{project}')->group(function () {
                     Route::patch('/', [ProjectsController::class, 'update'])->name('update');
                     Route::delete('/', [ProjectsController::class, 'destroy'])->name('destroy');
+                    Route::post('/rate', [ProjectsController::class, 'rate'])->name('rate');
                 });
             });
 
@@ -135,6 +132,7 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// MEDIA ROUTES
 Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function () {
     Route::get('/media', [MediaController::class, 'showHackathonMedia'])->name('image');
     Route::get('/media-mobile', [MediaController::class, 'showHackathonMediaMobile'])->name('image-mobile');
@@ -153,6 +151,7 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
 
 Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])->name('awards.image');
 
+// ADMIN ROUTES
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::prefix('/moderation')->name('moderation.')->group(function () {
         Route::prefix('/hackathons')->name('hackathons')->group(function () {
@@ -185,4 +184,5 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     });
 });
 
+// REFBOOK ROUTES
 Route::get('/refbook/roles', [AdminController::class, 'allRoles'])->name('roles');

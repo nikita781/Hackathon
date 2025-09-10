@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Team extends Model
 {
     protected $fillable = [
-        'hackathon_id', 'title',
+        'hackathon_id', 'title', 'place'
     ];
 
     public function hackathon(): BelongsTo

@@ -202,6 +202,7 @@ class HackathonController extends Controller
         $positionsResource = PositionResource::collection($positions);
         $hackathonStaff = UserResource::collection($hackathon->getAllHackathonStaff());
         $supports = SupportResource::collection($hackathon->support()->where('type', Support::QUESTION)->orWhere('type', Support::SUGGESTION)->orderBy('created_at')->with('messages.user')->get());
+        $tags = TagResource::collection(Tag::all());
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -224,6 +225,7 @@ class HackathonController extends Controller
             'allProjects' => $allProjects,
             'supports' => $supports,
             'is_join' => $user ? $user->onHackathonAsMember($hackathon) : false,
+            'tags' => $tags,
             'can' => [
                 'hackathon' => [
                     'join' => Gate::check('join', $hackathon),

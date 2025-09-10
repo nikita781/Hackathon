@@ -53,7 +53,7 @@ class Hackathon extends Model implements HasMedia
 
     public function owner(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function teams(): HasMany
@@ -138,6 +138,23 @@ class Hackathon extends Model implements HasMedia
     public function support(): HasMany
     {
         return $this->hasMany(Support::class);
+    }
+
+    public function assignPlaces(): void
+    {
+        $projects = $this->allProjects()
+            ->with('team')
+            ->orderByDesc('avg_score')
+            ->get();
+
+        DB::transaction(function () use ($projects) {
+            $place = 1;
+
+            foreach ($projects as $project) {
+                $project->team->update(['place' => $place]);
+                $place++;
+            }
+        });
     }
 
     /**
