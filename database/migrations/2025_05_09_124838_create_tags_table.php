@@ -28,17 +28,17 @@ return new class extends Migration
         });
 
         Tag::insert([
-           ['title' => 'UX/UI', 'slug' => 'ux-ui'],
-           ['title' => 'Тестировщики', 'slug' => 'testers'],
-           ['title' => 'Веб-дизайнеры', 'slug' => 'web-designers'],
-           ['title' => 'Product-менеджеры', 'slug' => 'product-managers'],
-           ['title' => 'Веб-разработчики', 'slug' => 'web-developers'],
-           ['title' => 'Android-разработчики', 'slug' => 'android-developers'],
-           ['title' => 'iOS-разработчики', 'slug' => 'ios-developers'],
-           ['title' => 'Frontend-разработчики', 'slug' => 'frontend-developers'],
-           ['title' => 'Backend-разработчики', 'slug' => 'backend-developers'],
-           ['title' => 'QA-инженеры', 'slug' => 'qa-engineers'],
-           ['title' => 'DevOps', 'slug' => 'devops'],
+           ['title' => 'UX/UI', 'order' => 1, 'slug' => 'ux-ui'],
+           ['title' => 'Тестировщики', 'order' => 2, 'slug' => 'testers'],
+           ['title' => 'Веб-дизайнеры', 'order' => 3, 'slug' => 'web-designers'],
+           ['title' => 'Product-менеджеры', 'order' => 4, 'slug' => 'product-managers'],
+           ['title' => 'Веб-разработчики', 'order' => 5, 'slug' => 'web-developers'],
+           ['title' => 'Android-разработчики', 'order' => 6, 'slug' => 'android-developers'],
+           ['title' => 'iOS-разработчики', 'order' => 7, 'slug' => 'ios-developers'],
+           ['title' => 'Frontend-разработчики', 'order' => 8, 'slug' => 'frontend-developers'],
+           ['title' => 'Backend-разработчики', 'order' => 9, 'slug' => 'backend-developers'],
+           ['title' => 'QA-инженеры', 'order' => 10, 'slug' => 'qa-engineers'],
+           ['title' => 'DevOps', 'order' => 11, 'slug' => 'devops'],
         ]);
     }
 
