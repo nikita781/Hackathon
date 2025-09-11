@@ -295,7 +295,7 @@ onMounted(async () => {
                 <option value="non-cash">{{ capitalizeFirstLetter(langStore.translations.item_prize) }}</option>
             </select>
         </div>
-        <div class="dialog__component medium">
+        <div class="dialog__component large">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.prize_fund) }}</p>
             <input v-model="form.prize_pool" type="text" class="dialog__input" :placeholder="capitalizeFirstLetter(langStore.translations.enter_prize_hint)">
         </div>

@@ -59,6 +59,39 @@ const onStep2Success = ()      => { nextStep() }
     <div class="project__title">{{ project ? project.title : 'Название проекта' }}</div>
 <!--    <pre>{{oneProject}}</pre>-->
     <div class="project__container">
+        <div class="project__menu_phone">
+            <div class="project__menu_item" @click="goToStep(1)">
+                <div>
+                    <div class="project__menu_btn active" :class="{'completed': step > 1}">
+                        <CheckMenu />
+                    </div>
+                </div>
+            </div>
+            <div class="project__menu_line project__menu_line-phone" :class="{'active': step > 1}"></div>
+            <div class="project__menu_item" @click="goToStep(2)">
+                <div>
+                    <div class="project__menu_btn" :class="{'active': step > 1, 'completed': step > 2}">
+                        <CheckMenu />
+                    </div>
+                </div>
+            </div>
+            <div class="project__menu_line project__menu_line-phone" :class="{'active': step > 2}"></div>
+            <div class="project__menu_item" @click="goToStep(3)">
+                <div>
+                    <div class="project__menu_btn" :class="{'active': step > 2, 'completed': step > 3}">
+                        <CheckMenu />
+                    </div>
+                </div>
+            </div>
+            <div class="project__menu_line project__menu_line-phone" :class="{'active': step > 3}"></div>
+            <div class="project__menu_item" @click="goToStep(4)">
+                <div>
+                    <div class="project__menu_btn" :class="{'active': step > 3, 'completed': step > 4}">
+                        <CheckMenu />
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="project__menu">
             <div class="project__menu_item" @click="goToStep(1)">
                 <p class="project__menu_text">Основная информация</p>

@@ -73,7 +73,7 @@ function clearHover(key) {
 
                     <div v-for="criterion in group.criteria" :key="criterion.id" class="dialog__eva_item">
                         <p class="dialog__eva_title">{{ criterion.title }}</p>
-                        <div class="dialog__eva_number">
+                        <div class="dialog__eva_number dialog__eva_number-active">
                             <p
                                 v-for="n in criterion.max_score"
                                 :key="n"

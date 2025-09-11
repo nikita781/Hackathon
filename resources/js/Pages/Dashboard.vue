@@ -97,7 +97,7 @@ onMounted(async () => {
                         </div>
                         <div class="dialog__component">
                             <p class="dialog__title">Дата рождения</p>
-                            <input type="date" readonly :value="props.user.date_of_birth" class="dialog__input" placeholder="Введите дату рождения">
+                            <input type="date" readonly :value="props.user.date_of_birth || new Date().toISOString().slice(0, 10)" class="dialog__input" placeholder="Введите дату рождения">
                         </div>
                     </div>
                     <div class="profile__content_row">

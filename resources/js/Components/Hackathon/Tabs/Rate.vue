@@ -245,9 +245,9 @@ function setIdProject (id) {
                         </button>
                     </div>
 
-                    <div class="main__cards_filter hackathon__gallery_sort" style="width: 320px">
+                    <div class="main__cards_filter hackathon__gallery_sort">
                         <p>{{ langStore.translations.sort }}:</p>
-                        <select v-model="sort" class="main__cards_select" style="min-width: 185px">
+                        <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select" style="min-width: 185px">
                             <option value="dateA">По дате ↑</option>
                             <option value="dateD">По дате ↓</option>
                             <option value="titleA">По названию ↑</option>

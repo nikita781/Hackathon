@@ -96,16 +96,18 @@ const saveChanges = async () => {
                 </svg></div>
             </div>
 <!--            <pre>{{team}}</pre>-->
-            <div class="dialog__input_btns dialog__input_btns_small" v-for="(person,idx) in filteredUsers" :key="idx">
+            <div class="dialog__input_btns dialog__input_btns_small dialog__input_btns-phone" v-for="(person,idx) in filteredUsers" :key="idx">
                 <div class="hackathon__my-project__list_container" style="width: 100%">
                     <img src="/profile.jpg" alt="Avatar">
                     <p class="hackathon__my-project__list_text">{{ person.user.name }}</p>
                 </div>
-                <select v-model="person.position.id" class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
-                    <option v-for="p in positions" :key="p.id" :value="p.id">{{ p.name }}</option>
-                </select>
-                <div>
-                    <IconsCancel class="clickable" style="cursor: pointer" @click="confirmRemoveUser(person.user.id)" />
+                <div class="dialog__input_reset">
+                    <select v-model="person.position.id" class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
+                        <option v-for="p in positions" :key="p.id" :value="p.id">{{ p.name }}</option>
+                    </select>
+                    <div>
+                        <IconsCancel class="clickable" style="cursor: pointer" @click="confirmRemoveUser(person.user.id)" />
+                    </div>
                 </div>
             </div>
             <ConfirmDialog

@@ -87,7 +87,7 @@ onMounted(async () => {
                     ></div>
                 </div>
 
-                <div class="hackathon__support_org">
+                <div class="hackathon__support_org" v-if="props.can.hackathon.update">
                     <div class="hackathon__support_org-btn first active">
                         Открытые
                     </div>

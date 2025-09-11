@@ -3,6 +3,8 @@ import IconsPencilMyProject from "@/Components/Icons/PencilMyProject.vue";
 import InvitationToTheManager from "@/Components/Dialog/InvitationToTheManager.vue";
 import {ref} from "vue";
 import InvitationToTheTeam from "@/Components/Dialog/InvitationToTheTeam.vue";
+import EditManagers from "@/Components/Dialog/EditManagers.vue";
+import EditTeam from "@/Components/Dialog/EditTeam.vue";
 
 const props = defineProps({
     positions : { type: Array,   default : () => [] },
@@ -13,9 +15,8 @@ const props = defineProps({
     hackathonStaff: { type: Array,   default : () => [] },
 })
 
-console.log(props.hackathonStaff)
-
 const showInvitation = ref(false);
+const showEditTeam = ref(false);
 </script>
 
 <template>
@@ -27,16 +28,22 @@ const showInvitation = ref(false);
                     <button
                         type="button"
                         class="main__btn_main hackathon__my-project__team_svg"
+                        @click="showEditTeam = true"
                     >
                         <IconsPencilMyProject/>
                     </button>
                     <button
                         type="button"
-                        class="main__btn_main"
+                        class="main__btn_main hackathon__tab_back"
                         @click="showInvitation = true"
                     >
                         Пригласить управляющих
                     </button>
+                    <EditManagers
+                        v-model="showEditTeam"
+                        :managers="props.hackathonStaff"
+                        :hackathon="props.hackathon"
+                    />
                     <InvitationToTheManager
                         v-model="showInvitation"
                         :positions="props.positions"

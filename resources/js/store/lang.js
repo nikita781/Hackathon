@@ -28,8 +28,12 @@ export const useLangStore = defineStore('lang', () => {
     async function switchLanguage(langShort = 'en') {
         try {
             const locale = localeMap[langShort] ?? langShort
-            await axios.get(`${BASE_URL}/lang/switch/${locale}`)
-            await fetchTranslations(langShort)
+            if (langShort !== 'zh') {
+                await axios.get(`${BASE_URL}/lang/switch/${locale}`)
+                await fetchTranslations(langShort)
+            } else if (langShort === 'zh') {
+                await fetchTranslations('zh_CN')
+            }
         } catch (e) {
             console.error('Ошибка смены языка:', e)
         }

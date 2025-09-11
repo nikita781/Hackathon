@@ -1,19 +1,49 @@
+$x-small: 575.98px;
+$small: 767.98px;
+$medium: 991.98px;
+$large: 1199.98px;
+$x-large: 1399.98px;
+$big: 1592.98px;
+$x-big: 1829.98px;
+
 .project {
     &__title {
         font-size: 34px;
         font-family: "Cera Black";
         text-transform: uppercase;
+        @media screen and (max-width: $medium){
+            font-size: 25px;
+        }
+        @media screen and (max-width: $x-small){
+            font-size: 20px;
+        }
     }
     &__container {
         margin-top: 30px;
         display: grid;
         grid-template-columns: 157px 1fr;
         gap: 60px;
+        @media screen and (max-width: $small){
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
     }
     &__menu {
         display: flex;
         flex-direction: column;
         gap: 4px;
+        @media screen and (max-width: $small){
+            display: none;
+        }
+        &_phone {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            @media screen and (max-width: $small){
+                display: flex;
+            }
+        }
         &_item {
             display: flex;
             justify-content: space-between;
@@ -44,6 +74,11 @@
             height: 92px;
             margin-right: 18px;
             background-color: #999;
+            &-phone {
+                height: 4px;
+                width: 100%;
+                margin-right: unset;
+            }
             &.active {
                 background-color: #E80024;
             }

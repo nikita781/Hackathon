@@ -79,6 +79,7 @@ function capitalizeFirstLetter(str) {
 
 onMounted(async () => {
     await langStore.fetchTranslations()
+    console.log(currentLang.value.flag)
 })
 
 async function changeLanguage(lang) {
@@ -93,13 +94,18 @@ const langMap = {
     ru: { flag: '/language/ru.jpg', label: 'RU' },
     en: { flag: '/language/en.png', label: 'EN' },
     fr: { flag: '/language/fr.png', label: 'FR' },
-    zh: { flag: '/language/zh.png', label: 'ZH' },
+    zh_cn: { flag: '/language/zh.png', label: 'ZH' },
     de: { flag: '/language/de.jpg', label: 'DE' },
     es: { flag: '/language/es.jpg', label: 'ES' },
     pt: { flag: '/language/pt.jpg', label: 'PT' }
 }
 
-const currentLang = computed(() => langMap[langStore.currentLanguage])
+const normalizeLang = (code) => (code || '').toLowerCase().split('-')[0]
+
+const currentLang = computed(() => {
+    const key = normalizeLang(langStore.currentLanguage)
+    return langMap[key] ?? langMap.ru
+})
 
 </script>
 

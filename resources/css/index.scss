@@ -276,6 +276,13 @@ $x-big: 1829.98px;
             padding: 20px 50px;
             display: none;
         }
+        &-phone {
+            display: none;
+            padding: unset;
+            @media screen and (max-width: $medium){
+                display: flex;
+            }
+        }
         &_phone {
             display: flex;
             padding: 10px 0;

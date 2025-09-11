@@ -235,9 +235,9 @@ const links = computed(() => ({
                     </button>
                 </div>
 
-                <div class="main__cards_filter hackathon__gallery_sort" style="width: 320px">
+                <div class="main__cards_filter hackathon__gallery_sort">
                     <p>{{ langStore.translations.sort }}:</p>
-                    <select v-model="sort" class="main__cards_select" style="min-width: 185px">
+                    <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select">
                         <option value="dateA">По дате ↑</option>
                         <option value="dateD">По дате ↓</option>
                         <option value="titleA">По названию ↑</option>
@@ -315,7 +315,7 @@ const links = computed(() => ({
         <div v-else class="hackathon__tab_main">
             <div class="hackathon__tab_container">
                 <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
-                    <button type="button" class="main__btn_main" @click="closeProject">← Назад к проектам</button>
+                    <button type="button" class="main__btn_main hackathon__tab_back" @click="closeProject">← Назад к проектам</button>
                     <p class="hackathon__my-project__title" style="margin:0">{{ oneTitle }}</p>
                 </div>
 

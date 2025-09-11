@@ -78,7 +78,7 @@ const inviteUsers = async () => {
             <p class="dialog__text" style="margin-top: -18px">Ваши товарищи получат приглашение для вступления в команду, которое необходимо принять и подтвердить</p>
             <div class="dialog__component dialog__line">
                 <p class="dialog__title">Ссылка для приглашения</p>
-                <div class="dialog__input_btns dialog__input_btns_small">
+                <div class="dialog__input_btns dialog__input_btns_small dialog__input_btns-phone">
                     <input
                         class="dialog__input"
                         :value="inviteLink"
@@ -96,18 +96,20 @@ const inviteUsers = async () => {
             </div>
             <div v-for="(user, index) in userIds" :key="index" class="dialog__component">
                 <p class="dialog__title">Добавить участника по ID</p>
-                <div class="dialog__input_btns dialog__input_btns_small">
+                <div class="dialog__input_btns dialog__input_btns_small dialog__input_btns-phone">
                     <input
                         v-model="user.user_id"
                         class="dialog__input"
                         placeholder="Введите ID участника"
                         style="width: 100%"
                     />
-                    <select v-model="user.position_id" class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
-                        <option v-for="p in positions" :key="p.id" :value="p.id">{{ p.name }}</option>
-                    </select>
-                    <div>
-                        <IconsCancel class="clickable" style="cursor: pointer" @click="removeUserField(index)"/>
+                    <div class="dialog__input_reset">
+                        <select v-model="user.position_id" class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
+                            <option v-for="p in positions" :key="p.id" :value="p.id">{{ p.name }}</option>
+                        </select>
+                        <div>
+                            <IconsCancel class="clickable" style="cursor: pointer" @click="removeUserField(index)"/>
+                        </div>
                     </div>
                 </div>
             </div>

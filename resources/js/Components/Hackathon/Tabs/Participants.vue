@@ -203,14 +203,31 @@ onMounted(async () => {
                     <button type="button" class="main__btn_main" @click="fetchTeams(1)">{{ langStore.translations.search }}</button>
                 </div>
 
-                <div class="main__cards_filter hackathon__gallery_sort" style="width: 320px">
+                <div class="main__cards_filter hackathon__gallery_sort">
                     <p>{{ langStore.translations.sort }}:</p>
-                    <select v-model="sort" class="main__cards_select">
+                    <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select">
                         <option value="dateD">По новизне ↓</option>
                         <option value="dateA">По новизне ↑</option>
                         <option value="titleA">По названию ↑</option>
                         <option value="titleD">По названию ↓</option>
                     </select>
+                </div>
+            </div>
+
+            <div class="main__filter main__filter-phone">
+                <div v-for="group in filterGroups" :key="group.name" class="main__filter_item">
+                    <p class="main__filter_title">{{ group.label }}</p>
+
+                    <div
+                        v-for="option in group.options"
+                        :key="option.value"
+                        class="main__filter_input"
+                        :class="{ active: selected[group.name] === option.value }"
+                        @click="toggle(group.name, option.value)"
+                    >
+                        <div class="custom-checkbox"></div>
+                        <p>{{ option.label }}</p>
+                    </div>
                 </div>
             </div>
 
