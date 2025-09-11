@@ -12,7 +12,10 @@ class UserController extends Controller
 {
     public function show(User $user): Response
     {
-        $projects = $user->teams->projects()->where('status', Project::PUBLISHED)->with('hackathon', 'team')->get();
+        $projects = Project::whereIn('team_id', $user->teams()->pluck('teams.id'))
+            ->where('status', Project::PUBLISHED)
+            ->with('hackathon', 'team')
+            ->get();
 
         $projectsData = $projects->map(function ($project) {
             return [
