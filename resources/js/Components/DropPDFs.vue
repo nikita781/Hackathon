@@ -1,58 +1,113 @@
-<!--  DropPDFs.vue  -->
 <script setup>
-import {reactive, ref, onBeforeUnmount, watch, onMounted} from 'vue'
-import {useLangStore} from "@/store/lang.js";
+import {reactive, ref, watch, onBeforeUnmount} from 'vue'
+import {useLangStore} from '@/store/lang.js'
 
-/* ===== v-model ======================================================== */
-defineProps({
-    /* v-model:files → массив File */
-    modelValue: { type: Array, default: () => [] }
+/**
+ * files — СМЕШАННЫЙ массив для отображения:
+ *  - новые: File
+ *  - существующие: { id, name, url }
+ *
+ * Эмитим:
+ *  - update:files — обратно СМЕШАННЫЙ массив (для отображения)
+ *  - deleting-ids — массив id существующих файлов, помеченных на удаление
+ */
+const props = defineProps({
+    files: {type: Array, default: () => []},
+    maxSizeMb: {type: Number, default: 5},
 })
-const emit = defineEmits(['update:files'])
+const emit = defineEmits(['update:files', 'deleting-ids'])
 
 const langStore = useLangStore()
-
-/* ===== локальное состояние =========================================== */
+const inputEl = ref(null)
 const dragging = ref(false)
-const inputEl  = ref(null)
+const deletedIds = ref([])
 
-/* [{ file, url }] — url нужен, чтобы потом корректно revoke */
-const items = reactive([])
+/* Внутренние карточки: и новые, и существующие */
+const items = reactive([]) // { kind:'existing'|'new', id?, name, url, file? }
 
-/* ===== utils ========================================================== */
+/* ----- helpers ------------------------------------------------------- */
+function revokeNewURLs() {
+    items.forEach(i => {
+        if (i.kind === 'new' && i.url) URL.revokeObjectURL(i.url)
+    })
+}
+
+function rebuildFromProp(list) {
+    // очищаем и пересобираем (revoking для новых)
+    revokeNewURLs()
+    items.splice(0, items.length)
+
+    ;(list ?? []).forEach(x => {
+        if (x instanceof File) {
+            const url = URL.createObjectURL(x)
+            items.push({kind: 'new', name: x.name, url, file: x})
+        } else if (x && (x.url || x.download_url)) {
+            items.push({
+                kind: 'existing',
+                id: x.id,
+                name: x.name || x.original_name || (x.url || '').split('/').pop(),
+                url: x.url || x.download_url
+            })
+        }
+    })
+}
+
+watch(() => props.files, rebuildFromProp, {immediate: true, deep: true})
+
+function emitFiles() {
+    // наружу отдаём СМЕШАННЫЙ массив (как и партнёры)
+    const mixed = items.map(i => (i.kind === 'new' ? i.file : {id: i.id, name: i.name, url: i.url}))
+    emit('update:files', mixed)
+}
+
+function emitDeletes() {
+    emit('deleting-ids', [...deletedIds.value])
+}
+
+/* ----- add / remove -------------------------------------------------- */
 function addFiles(fileList) {
     ;[...fileList].forEach(f => {
-        if (f.type !== 'application/pdf') return           // <-- только PDF
+        if (f.type !== 'application/pdf') return
+        if (props.maxSizeMb && f.size > props.maxSizeMb * 1024 * 1024) return
         const url = URL.createObjectURL(f)
-        items.push({ file: f, url })
+        items.push({kind: 'new', name: f.name, url, file: f})
     })
-    emit('update:files', items.map(i => i.file))
+    emitFiles()
+}
+
+function onInput(e) {
+    addFiles(e.target.files);
+    e.target.value = ''
 }
 
 function remove(idx) {
-    URL.revokeObjectURL(items[idx].url)
+    const it = items[idx]
+    if (!it) return
+
+    if (it.kind === 'existing' && it.id) {
+        deletedIds.value.push(it.id)
+        emitDeletes()
+    }
+    if (it.kind === 'new') URL.revokeObjectURL(it.url)
+
     items.splice(idx, 1)
-    emit('update:files', items.map(i => i.file))
+    emitFiles()
 }
 
-/* чистим objectURL при размонтировании */
-onBeforeUnmount(() => items.forEach(i => URL.revokeObjectURL(i.url)))
-
-/* ===== события DnD / input =========================================== */
-function onInput(e) { addFiles(e.target.files) }
-
-function onDrop(e)   { e.preventDefault(); dragging.value = false; addFiles(e.dataTransfer.files) }
-function onDrag(e)   {
-    e.preventDefault()
-    dragging.value = (e.type === 'dragenter' || e.type === 'dragover')
+/* ----- DnD ----------------------------------------------------------- */
+function onDrop(e) {
+    e.preventDefault();
+    dragging.value = false;
+    addFiles(e.dataTransfer.files)
 }
 
-/* сбрасываем <input> когда удалили всё */
-watch(() => items.length, n => { if (!n && inputEl.value) inputEl.value.value = '' })
+function onDrag(e) {
+    e.preventDefault();
+    dragging.value = e.type === 'dragenter' || e.type === 'dragover'
+}
 
-onMounted(async ()=>{
-    await langStore.fetchTranslations()
-})
+/* очистка */
+onBeforeUnmount(revokeNewURLs)
 </script>
 
 <template>
@@ -64,7 +119,6 @@ onMounted(async ()=>{
         @dragenter="onDrag"
         @dragleave="onDrag"
     >
-        <!-- скрытый input -->
         <input
             ref="inputEl"
             type="file"
@@ -73,25 +127,25 @@ onMounted(async ()=>{
             multiple
             @change="onInput"
         />
-
-        <!-- пустая зона -->
         <template v-if="!items.length">
             <p class="hint">
                 Перетащите или выберите файлы<br>
-                (PDF, 5 MB&nbsp;максимальный размер файла)
+                (PDF, {{ maxSizeMb }} MB&nbsp;максимальный размер файла)
             </p>
         </template>
 
-        <!-- список PDF -->
         <template v-else>
-            <div v-for="(it, idx) in items" :key="idx" class="pdf-card">
+            <div v-for="(it, idx) in items" :key="(it.kind==='existing' ? 'e:' + it.id : 'n:' + it.name + ':' + idx)"
+                 class="pdf-card">
                 <svg viewBox="0 0 24 24" width="40" height="40" fill="#E80024">
                     <path d="M6 2h7l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
                     <text x="7" y="17" font-size="7" fill="#fff" font-family="sans-serif">PDF</text>
                 </svg>
-                <span class="name" :title="it.file.name">{{ it.file.name }}</span>
 
-                <!-- маска-удалялка -->
+                <a v-if="it.kind==='existing'" :href="it.url" target="_blank" rel="noopener" class="name"
+                   :title="it.name">{{ it.name }}</a>
+                <span v-else class="name" :title="it.name">{{ it.name }}</span>
+
                 <div class="mask" @click.stop="remove(idx)"/>
             </div>
         </template>
@@ -99,31 +153,67 @@ onMounted(async ()=>{
 </template>
 
 <style scoped>
-.dropzone{
-    min-height:150px;padding:8px;gap:12px;flex-wrap:wrap;
-    background:#f3f4f7;border-radius:8px;border:2px dashed transparent;
-    display:flex;justify-content:center;align-items:center;cursor:pointer;
-    transition:border-color .15s;user-select:none
-}
-.dropzone.dragging{border-color:#E80024}
-
-.hint{color:#999;text-align:center;line-height:1.3;font-size:15px}
-
-/* карточка pdf */
-.pdf-card{
-    position:relative;width:120px;height:120px;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:6px;border-radius:6px;background:#fff;overflow:hidden;padding:6px
-}
-.name{
-    font-size:11px;text-align:center;line-height:1.2;word-break:break-all;
-    color:#333;max-height:32px;overflow:hidden
+.dropzone {
+    min-height: 150px;
+    padding: 8px;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #f3f4f7;
+    border-radius: 8px;
+    border: 2px dashed transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: border-color .15s;
+    user-select: none
 }
 
-/* красная маска при ховере */
-.mask{
-    position:absolute;inset:0;background:rgba(232,0,36,0);
-    transition:background .15s
+.dropzone.dragging {
+    border-color: #E80024
 }
-.pdf-card:hover .mask{background:rgba(232,0,36,.25);cursor:pointer}
+
+.hint {
+    color: #999;
+    text-align: center;
+    line-height: 1.3;
+    font-size: 15px
+}
+
+.pdf-card {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 6px;
+    background: #fff;
+    overflow: hidden;
+    padding: 6px
+}
+
+.name {
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.2;
+    word-break: break-all;
+    color: #333;
+    max-height: 32px;
+    overflow: hidden
+}
+
+.mask {
+    position: absolute;
+    inset: 0;
+    background: rgba(232, 0, 36, 0);
+    transition: background .15s
+}
+
+.pdf-card:hover .mask {
+    background: rgba(232, 0, 36, .25);
+    cursor: pointer
+}
 </style>

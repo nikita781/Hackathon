@@ -4,12 +4,14 @@ import IconsArrow from '@/Components/Icons/Arrow.vue'
 import {computed, defineAsyncComponent, nextTick, onMounted, ref, watch} from "vue";
 import TakePart from "@/Components/Dialog/TakePart.vue";
 import { useToast } from 'vue-toastification';
+import DialogCreateHackathon from "@/Components/Dialog/CreateHackathon.vue";
 
 const props = defineProps({
     hackathon: Object,
     tabs: Object,
     can: Object,
     team: Object,
+    tags: Object,
     ownTeam: Object,
     positions: Array,
     is_join: Boolean,
@@ -20,7 +22,7 @@ const props = defineProps({
 })
 
 console.log(props.can)
-console.log(props.hackathonStaff)
+console.log(props.hackathon)
 
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
@@ -80,7 +82,11 @@ onMounted(() => {
 });
 
 const activeTab = ref(availableTabs.value[0]?.key ?? null)
-function openTab(tab) { if (!tab.blocked) activeTab.value = tab?.key }
+function openTab(tab) { if (!tab.blocked) {activeTab.value = tab?.key}
+    if (menuVisible) {
+        closeMenu()
+    }
+}
 
 const CurrentTab = computed(() => tabComponents[activeTab.value] ?? null)
 
@@ -90,6 +96,7 @@ console.log(props.tabs)
 const joined = ref(props.is_join)
 const isOpen = ref(true)
 const showTakePart  = ref(false)
+const showUpdateHackathon  = ref(false)
 
 watch(() => props.is_join, v => (joined.value = v))
 
@@ -97,6 +104,23 @@ function onJoined () { joined.value = true; window.location.reload();  }
 function onLeft   () { joined.value = false; window.location.reload(); }
 function toggleHeader() {
     isOpen.value = !isOpen.value
+}
+
+const menuVisible = ref(false)
+const openMenu = async ()=>{
+    menuVisible.value = true
+    document.body.style.overflow = 'hidden';
+    await nextTick(); setTimeout(()=>document
+        .querySelector('.slide-out-menu')?.classList.add('visible'),10)
+}
+const closeMenu = ()=>{
+    const m=document.querySelector('.slide-out-menu')
+    if(!m) return
+    m.classList.remove('visible')
+    setTimeout(() => {
+        menuVisible.value = false;
+        document.body.style.overflow = 'auto';
+    }, 300);
 }
 
 function formatDate(dateStr) {
@@ -196,7 +220,7 @@ function formatDate(dateStr) {
                             <button
                                 type="button"
                                 class="main__btn_main hackathon__btn"
-                                style="cursor: not-allowed"
+                                @click="showUpdateHackathon = true"
                                 v-if="props.can.hackathon.update"
                             >
                                 Редактировать
@@ -207,6 +231,12 @@ function formatDate(dateStr) {
                                 :hackathonSlug="props.hackathon.slug"
                                 @joined="onJoined"
                                 @left="onLeft"
+                            />
+                            <DialogCreateHackathon
+                                v-model="showUpdateHackathon"
+                                :hackathon="props.hackathon"
+                                :tabs="props.tabs"
+                                :tags="props.tags ?? []"
                             />
                         </div>
                     </div>
@@ -225,6 +255,32 @@ function formatDate(dateStr) {
                     {{ tab.title }}
                 </p>
             </div>
+            <div class="hackathon__menu_container-phone">
+                <svg @click="openMenu" class="hackathon__menu_container-phone-svg" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#1f1f1f"><path d="M440-120v-240h80v80h320v80H520v80h-80Zm-320-80v-80h240v80H120Zm160-160v-80H120v-80h160v-80h80v240h-80Zm160-80v-80h400v80H440Zm160-160v-240h80v80h160v80H680v80h-80Zm-480-80v-80h400v80H120Z"/></svg>
+                <div v-if="menuVisible" class="slide-out-menu red">
+                    <div class="menu-header">
+                        <h3>Вкладки</h3>
+                        <svg @click="closeMenu" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.40994 7.99994L15.7099 1.70994C15.8982 1.52164 16.004 1.26624 16.004 0.999941C16.004 0.73364 15.8982 0.478245 15.7099 0.289941C15.5216 0.101638 15.2662 -0.00415039 14.9999 -0.00415039C14.7336 -0.00415039 14.4782 0.101638 14.2899 0.289941L7.99994 6.58994L1.70994 0.289941C1.52164 0.101638 1.26624 -0.00415015 0.999939 -0.00415015C0.733637 -0.00415015 0.478243 0.101638 0.289939 0.289941C0.101635 0.478245 -0.00415253 0.73364 -0.00415254 0.999941C-0.00415254 1.26624 0.101635 1.52164 0.289939 1.70994L6.58994 7.99994L0.289939 14.2899C0.196211 14.3829 0.121816 14.4935 0.0710478 14.6154C0.0202791 14.7372 -0.00585938 14.8679 -0.00585938 14.9999C-0.00585938 15.132 0.0202791 15.2627 0.0710478 15.3845C0.121816 15.5064 0.196211 15.617 0.289939 15.7099C0.382902 15.8037 0.493503 15.8781 0.615362 15.9288C0.737221 15.9796 0.867927 16.0057 0.999939 16.0057C1.13195 16.0057 1.26266 15.9796 1.38452 15.9288C1.50638 15.8781 1.61698 15.8037 1.70994 15.7099L7.99994 9.40994L14.2899 15.7099C14.3829 15.8037 14.4935 15.8781 14.6154 15.9288C14.7372 15.9796 14.8679 16.0057 14.9999 16.0057C15.132 16.0057 15.2627 15.9796 15.3845 15.9288C15.5064 15.8781 15.617 15.8037 15.7099 15.7099C15.8037 15.617 15.8781 15.5064 15.9288 15.3845C15.9796 15.2627 16.0057 15.132 16.0057 14.9999C16.0057 14.8679 15.9796 14.7372 15.9288 14.6154C15.8781 14.4935 15.8037 14.3829 15.7099 14.2899L9.40994 7.99994Z" fill="#171717"/>
+                        </svg>
+                    </div>
+                    <div class="main__filter main__filter_phone">
+                        <div
+                            class="main__filter_item red"
+                        >
+                            <p
+                                v-for="tab in availableTabs"
+                                :key="tab.key"
+                                class="hackathon__menu_item"
+                                :class="{ active: activeTab===tab.key, blocked:tab.blocked, noVisible:tab.noVisible }"
+                                @click="openTab(tab)"
+                            >
+                                {{ tab.title }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="hackathon__panel">
             <component
@@ -235,6 +291,7 @@ function formatDate(dateStr) {
                 :hackathon="props.hackathon"
                 :hackathonStaff="props.hackathonStaff"
                 :tabs="props.tabs"
+                :can="props.can"
                 :allProjects="props.allProjects"
                 :supports="props.supports"
             />

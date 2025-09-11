@@ -85,6 +85,30 @@ $x-big: 1829.98px;
             @media screen and (max-width: $x-small){
                 padding: 0 30px;
             }
+            @media screen and (max-width: $small){
+                display: none;
+            }
+            &-phone {
+                display: none;
+                justify-content: flex-end;
+                max-width: 1280px;
+                padding: 10px 50px;
+                margin: 0 auto;
+                @media screen and (max-width: $x-small){
+                    padding: 10px 30px;
+                }
+                @media screen and (max-width: $small){
+                    display: flex;
+                }
+                &-svg {
+                    width: 30px;
+                    height: 30px;
+                    cursor: pointer;
+                    path {
+                        fill: white;
+                    }
+                }
+            }
         }
         &_item {
             padding: 17px 16px;
@@ -92,7 +116,16 @@ $x-big: 1829.98px;
             letter-spacing: 1px;
             font-size: 22px;
             cursor: pointer;
+
             @media screen and (max-width: $x-large){
+                font-size: 18px;
+            }
+            @media screen and (max-width: $medium){
+                font-size: 15px;
+                padding: 13px;
+            }
+            @media screen and (max-width: $small){
+                padding: 15px 13px;
                 font-size: 18px;
             }
             &.active {
@@ -471,6 +504,31 @@ $x-big: 1829.98px;
         &_title {
             font-size: 22px;
             font-weight: bold;
+        }
+        &_org {
+            display: flex;
+            &-btn {
+                border: 2px solid #E80024;
+                padding: 10px 24px;
+                text-transform: uppercase;
+                font-family: "Cera Bold";
+                font-size: 16px;
+                color: #E80024;
+                letter-spacing: 1px;
+                cursor: pointer;
+                &.active {
+                    background-color: #E80024;
+                    color: #fff;
+                }
+                &.first {
+                    border-top-left-radius: 100px;
+                    border-bottom-left-radius: 100px;
+                }
+                &.end {
+                    border-top-right-radius: 100px;
+                    border-bottom-right-radius: 100px;
+                }
+            }
         }
     }
     &__participants {

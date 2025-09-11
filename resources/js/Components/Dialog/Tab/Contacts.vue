@@ -1,88 +1,114 @@
 <script setup>
-import {onMounted, ref, watch} from 'vue'
+import { onMounted, nextTick, ref, watch } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
 import DialogContact from '@/Components/Dialog/CreateContact.vue'
 
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import IconsPencil from "@/Components/Icons/Pencil.vue";
-import {useLangStore} from "@/store/lang.js";
+import { useLangStore } from "@/store/lang.js";
 
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
-    allTags  : { type:Array, default:() => [] }
+    allTags       : { type:Array, default:() => [] },
+    isEdit        : { type:Boolean, default:false }
 })
-const emit = defineEmits(['saved', 'cancel', 'dirty'])
+const emit = defineEmits(['saved','cancel','dirty'])
 
 const langStore = useLangStore()
 
-const dirty = ref(false)
+const loaded = ref(false)
+const dirty  = ref(false)
 
-const contacts = ref([])
-
-const socials = ref([])
+const contacts = ref([])  // [{ title, value }]
+const socials  = ref([])  // [{ title, value }]
 
 const dlgShown    = ref(false)
 const dlgListName = ref('contacts')
 const editingIdx  = ref(null)
 
-function openAdd  (list){ dlgListName.value = list; editingIdx.value = null; dlgShown.value = true }
-function openEdit (list, idx){ dlgListName.value = list; editingIdx.value = idx; dlgShown.value = true }
+/* ------------ диалог ------------ */
+function openAdd(list){ dlgListName.value = list; editingIdx.value = null; dlgShown.value = true }
+function openEdit(list, idx){ dlgListName.value = list; editingIdx.value = idx; dlgShown.value = true }
 
-function addItem(item){
-    (dlgListName.value === 'contacts' ? contacts : socials).value.push(item)
-}
+function addItem(item){ (dlgListName.value === 'contacts' ? contacts : socials).value.push(item) }
 function updateItem(item){
     const list = dlgListName.value === 'contacts' ? contacts : socials
     if (editingIdx.value !== null) list.value[editingIdx.value] = item
     editingIdx.value = null
 }
-function removeItem(list, idx){
-    (list === 'contacts' ? contacts : socials).value.splice(idx,1)
-}
+function removeItem(list, idx){ (list === 'contacts' ? contacts : socials).value.splice(idx,1) }
 
+/* ------------ форма для отправки ------------ */
 const form = useForm({
     sections: [
-        { title:'Контакты',          items: [] },
-        { title:'Социальные сети',   items: [] },
+        { title:'Контакты',        items: [] },
+        { title:'Социальные сети', items: [] },
     ],
     delete_media_ids: []
 })
 
+/* синхронизация локального состояния -> form.sections */
 watch(contacts, arr => {
-    form.sections[0].items = JSON.parse(JSON.stringify(arr))
+    form.sections[0].items = arr.map(i => ({ title:i.title, content:i.value }))
 }, { deep:true, immediate:true })
 
-watch(socials,  arr => {
-    form.sections[1].items = JSON.parse(JSON.stringify(arr))
+watch(socials, arr => {
+    form.sections[1].items = arr.map(i => ({ title:i.title, content:i.value }))
 }, { deep:true, immediate:true })
 
-watch(
-    [form.sections],
-    () => {
-        if (!dirty.value) {
-            dirty.value = true
-            emit('dirty', true)
-        }
-    },
-    { deep:true }
-)
+/* dirty только после загрузки */
+watch([contacts, socials], () => {
+    if (!loaded.value) return
+    if (!dirty.value) {
+        dirty.value = true
+        emit('dirty', true)
+    }
+}, { deep:true })
 
-async function save () {
+/* ------------ загрузка для редактирования ------------ */
+async function fetchContacts(){
+    try{
+        const { data } = await axios.get(
+            route('hackathons.show', { hackathon: props.hackathonSlug }),
+            { headers:{ Accept:'application/json' } }
+        )
+
+        // Берём таб «Контакты»
+        const tab =
+            data?.tabs?.original?.find(t => t.title === 'Контакты')
+            ?? data?.tabs?.original?.[4] // запасной вариант по индексу
+
+        const secContacts = tab?.sections?.find(s => s.title === 'Контакты')
+        const secSocials  = tab?.sections?.find(s => s.title === 'Социальные сети')
+
+        contacts.value = (secContacts?.items ?? []).map(it => ({ title: it.title, value: it.content }))
+        socials.value  = (secSocials?.items  ?? []).map(it => ({ title: it.title, value: it.content }))
+
+        await nextTick()
+        loaded.value = true
+    } catch (err){
+        console.error('contacts-load-error', err?.response ?? err)
+        loaded.value = true   // чтобы не зависнуть
+    }
+}
+
+/* ------------ сохранение ------------ */
+async function save(){
     const fd = new FormData()
     fd.append('title', 'Контакты')
 
     form.sections.forEach((s, si) => {
         fd.append(`sections[${si}][title]`, s.title)
         s.items.forEach((it, ii) => {
-            fd.append(`sections[${si}][items][${ii}][title]`, it.title)
-            fd.append(`sections[${si}][items][${ii}][content]`, it.value)
+            fd.append(`sections[${si}][items][${ii}][title]`,   it.title)
+            fd.append(`sections[${si}][items][${ii}][content]`, it.content)
         })
     })
 
     fd.append('_method','PATCH')
 
-    try {
+    try{
         await axios.post(
             route('hackathons.tabs.update', { hackathon: props.hackathonSlug }),
             fd,
@@ -91,30 +117,33 @@ async function save () {
         dirty.value = false
         emit('dirty', false)
         emit('saved', { slug: props.hackathonSlug })
-    } catch (err) {
+    } catch (err){
         console.error('contacts-tab-errors', err?.response ?? err)
     }
 }
 
 defineExpose({ save })
 
+/* ------------ reset / cancel ------------ */
 const resetState = () => {
     contacts.value = []
     socials.value  = []
     dlgShown.value = false
     editingIdx.value = null
     dlgListName.value = 'contacts'
-
     form.sections.forEach(s => (s.items = []))
 }
 
-function cancel () {
-    resetState()
-    emit('cancel')
-}
+function cancel(){ resetState(); emit('cancel') }
 
+/* ------------ i18n + init ------------ */
 onMounted(async () => {
     await langStore.fetchTranslations()
+    if (props.isEdit) {
+        await fetchContacts()
+    } else {
+        loaded.value = true
+    }
 })
 
 function capitalizeFirstLetter(str) {
@@ -134,18 +163,19 @@ function capitalizeFirstLetter(str) {
                 <p>{{ capitalizeFirstLetter(langStore.translations.addMore) }}</p>
             </div>
         </div>
-        <div v-for="(c,idx) in contacts" :key="idx" class="dialog__component">
-            <p class="dialog__title">{{ c.title }}</p>
 
+        <div v-for="(c,idx) in contacts" :key="`c-${idx}`" class="dialog__component">
+            <p class="dialog__title">{{ c.title }}</p>
             <div class="dialog__input_btns">
                 <input v-model="c.value" class="dialog__input" readonly style="width:100%"/>
                 <div class="dialog__prize_btns">
-                    <IconsPencil  style="padding:5px" class="clickable" @click="openEdit('contacts',idx)" />
-                    <IconsCancel              class="clickable" @click="removeItem('contacts',idx)" />
+                    <IconsPencil style="padding:5px" class="clickable" @click="openEdit('contacts',idx)" />
+                    <IconsCancel class="clickable" @click="removeItem('contacts',idx)" />
                 </div>
             </div>
         </div>
     </div>
+
     <div class="dialog__prize">
         <div class="dialog__title_header">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.socialLinks) }}</p>

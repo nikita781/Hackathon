@@ -8,6 +8,7 @@ const props = defineProps({
     ownTeam : { type: Array,   default : () => [] },
     hackathon : { type: Array,   default : () => [] },
     tabs: { type: Array,   default : () => [] },
+    can: { type: Array,   default : () => [] },
     allProjects: { type: Array,   default : () => [] },
     supports: { type: Array,   default : () => [] },
 })
@@ -75,16 +76,26 @@ onMounted(async () => {
                 </div>
                 <div class="my-hackathon__tabs">
                     <p :class="['my-hackathon__tabs_item',{active:activeTab===0}]" @click="setActiveTab(0)">
-                        Открытые
+                        {{ !props.can?.hackathon?.update ? 'Открытые' : 'Для меня' }}
                     </p>
                     <p :class="['my-hackathon__tabs_item',{active:activeTab===1}]" @click="setActiveTab(1)">
-                        Закрытые
+                        {{ !props.can?.hackathon?.update ? 'Закрытые' : 'От меня' }}
                     </p>
                     <div
                         class="slider"
                         :style="sliderStyle"
                     ></div>
                 </div>
+
+                <div class="hackathon__support_org">
+                    <div class="hackathon__support_org-btn first active">
+                        Открытые
+                    </div>
+                    <div class="hackathon__support_org-btn end">
+                        Завершенные
+                    </div>
+                </div>
+
                 <template v-if="currentList.length">
                     <div
                         v-for="(s, idx) in currentList"

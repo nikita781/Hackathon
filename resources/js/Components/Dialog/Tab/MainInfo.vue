@@ -7,7 +7,8 @@ import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     draft    : Object,
-    allTags  : { type:Array, default:() => [] }
+    allTags  : { type:Array, default:() => [] },
+    isEdit   : { type:Boolean, default:false }
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
 

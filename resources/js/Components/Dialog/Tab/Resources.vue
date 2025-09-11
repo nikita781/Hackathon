@@ -1,6 +1,6 @@
 <script setup>
 import EditorField from "@/Components/EditorField.vue";
-import {onMounted, ref, watch} from "vue";
+import {nextTick, onMounted, ref, watch} from "vue";
 import DropPDFs from "@/Components/DropPDFs.vue";
 import {router, useForm} from "@inertiajs/vue3";
 import {useLangStore} from "@/store/lang.js";
@@ -8,16 +8,53 @@ import {useLangStore} from "@/store/lang.js";
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
-    allTags  : { type:Array, default:() => [] }
+    allTags  : { type:Array, default:() => [] },
+    isEdit   : { type:Boolean, default:false }
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const description = ref(null)
+const resourcesFiles = ref([])
+const deletedMediaIds  = ref([])
+
+const loaded = ref(false)
+
+async function fetchResources() {
+    try {
+        const { data } = await axios.get(
+            route('hackathons.show', { hackathon: props.hackathonSlug }),
+            { headers: { Accept: 'application/json' } }
+        );
+        // resourcesFiles.value = data.files || [];
+
+        // form.sections[0].content = description.value;
+        // form.files = resourcesFiles.value;
+
+        if (props.isEdit) {
+            const hackathon = data.tabs.original[1];
+
+            form.sections[0].content = hackathon.sections.find(s => s.title === 'Ресурсы')?.content || '';
+            form.files = hackathon.files
+
+            description.value = form.sections[0].content
+            resourcesFiles.value = form.files
+        }
+        await nextTick()
+        loaded.value = true
+    } catch (err) {
+        console.error('fetch-resources-error', err?.response ?? err);
+    }
+}
+
+onMounted(() => {
+    if (props.isEdit) {
+        fetchResources();
+    }
+});
 
 const langStore = useLangStore()
 
 const dirty = ref(false)
-
-const description = ref(null)
-const resourcesFiles = ref([])
 
 const form = useForm({
     title   : 'Ресурсы',
@@ -34,6 +71,7 @@ watch(resourcesFiles,  arr => { form.files = arr }, { deep:true })
 watch(
     [description, resourcesFiles],
     () => {
+        if (!loaded.value) return
         if (!dirty.value) {
             dirty.value = true
             emit('dirty', true)
@@ -60,8 +98,10 @@ async function save () {
         })
 
         /* файлы */
-        form.files.forEach((f,i)        => fd.append(`files[${i}]`, f))
-        form.delete_media_ids.forEach((id,i)=> fd.append(`delete_media_ids[${i}]`, id))
+        resourcesFiles.value.forEach(f => {
+            if (f instanceof File) fd.append('files[]', f)
+        })
+        deletedMediaIds.value.forEach(id => fd.append('delete_media_ids[]', id))
 
         fd.append('_method', 'PATCH')
 
@@ -99,19 +139,30 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+const handleFilesUpdate = (mixed) => {
+    resourcesFiles.value = mixed
+    // если где-то используете form.files — оставьте только новые файлы:
+    form.files = mixed.filter(x => x instanceof File)
+}
+const handleDeletingIds = (ids) => { deletedMediaIds.value = ids }
+
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
 </script>
 
 <template>
-    <div class="dialog__component">
+    <div class="dialog__component" v-if="!isEdit || loaded">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.resources) }}</p>
         <EditorField v-model="description" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
     </div>
     <div class="dialog__component">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.files) }}</p>
-        <DropPDFs v-model:files="resourcesFiles" />
+        <DropPDFs
+            :files="resourcesFiles"
+            @update:files="handleFilesUpdate"
+            @deleting-ids="handleDeletingIds"
+        />
     </div>
     <div class="dialog__btns">
         <button class="main__btn main__btn_white" @click="cancel">{{ langStore.translations.cansel }}</button>

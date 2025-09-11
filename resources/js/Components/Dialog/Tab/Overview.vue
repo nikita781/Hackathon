@@ -13,11 +13,23 @@ import {useLangStore} from "@/store/lang.js";
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
-    allTags  : { type:Array, default:() => [] }
+    allTags  : { type:Array, default:() => [] },
+    isEdit   : { type:Boolean, default:false }
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
 
 const langStore = useLangStore()
+
+const form = useForm({
+    sections: [
+        { title: 'Описание', content: '', items: [] },
+        { title: 'План проведения', content: '', items: [] },
+        { title: 'Время на выполнение', content: '', items: [] },
+    ],
+    partners: [],
+    files: [],
+    delete_media_ids: []
+});
 
 const loaded = ref(false)
 const dirty = ref(false)
@@ -39,6 +51,23 @@ async function fetchHackathon () {
             route('hackathons.show', { hackathon: props.hackathonSlug }),
             { headers: { Accept: 'application/json' } }
         )
+        if (props.isEdit) {
+            const hackathon = data.tabs.original[0];
+
+            form.sections[0].content = hackathon.sections.find(s => s.title === 'Описание')?.content || '';
+            form.sections[1].content = hackathon.sections.find(s => s.title === 'План проведения')?.content || '';
+            form.sections[2].content = hackathon.sections.find(s => s.title === 'Время на выполнение')?.content || '';
+
+            const timeContent = JSON.parse(form.sections[2].content);
+            taskStart.value = timeContent?.start || '';
+            taskEnd.value = timeContent?.end || '';
+
+            description.value = form.sections[0].content
+            plan.value = form.sections[1].content
+
+            await getPartner(hackathon.id);
+        }
+
         nominations.value = data.hackathon.original.nominations
         await nextTick()
         loaded.value = true
@@ -46,7 +75,22 @@ async function fetchHackathon () {
         console.error('fetch-hackathon-error', err?.response ?? err)
     }
 }
-onMounted(fetchHackathon)
+async function getPartner(tabId) {
+    try {
+        const response = await axios.get(
+            route('hackathons.tabs.partner-images', { hackathon: props.hackathonSlug, tab: tabId }),
+            { headers: { Accept: 'application/json' } }
+        );
+        partnerLogos.value = response.data.partners;
+    } catch (e) {
+        console.error('hackathon-load', e?.response ?? e);
+    }
+}
+onMounted(() => {
+    if (props.isEdit) {
+        fetchHackathon();
+    }
+})
 
 function openAdd()              { editingIndex.value = null; dlgShown.value = true ; fetchHackathon() }
 function openEdit(idx)          { editingIndex.value = idx;  dlgShown.value = true }
@@ -68,25 +112,39 @@ async function removeNomination(idx){
 watch(description,  v => { form.sections[0].content = v ?? '' })
 watch(plan,         v => { form.sections[1].content = v ?? '' })
 
-const form = useForm({
-    sections : [
-        { title: 'Описание',        content: '', items: [] },
-        { title: 'План проведения', content: '', items: [] },
-    ],
-    partners: [],
-    files   : [],
-    delete_media_ids: []
-})
-
 const handleFilesUpdate = (newFiles) => {
-    partnerLogos.value = newFiles;
+    // Проверяем, что newFiles это массив
+    if (Array.isArray(newFiles)) {
+        partnerLogos.value = newFiles;
+    } else {
+        console.error("newFiles is not an array", newFiles);
+    }
 };
+
+const deletedMediaIds = ref([]);
+
+const handleDeletingIds = (deletedIds) => {
+    deletedMediaIds.value = deletedIds;
+};
+
+
+watch(
+    [partnerLogos],
+    () => {
+        if (!loaded.value) return;
+
+        if (!dirty.value) {
+            dirty.value = true;
+            emit('dirty', true);
+        }
+    },
+    { deep: true }
+);
 
 watch(
     [description, plan, partnerLogos, taskStart, taskEnd],
     () => {
         if (!loaded.value) return
-
         if (!dirty.value) {
             dirty.value = true
             emit('dirty', true)
@@ -103,21 +161,27 @@ async function save () {
         content: JSON.stringify({ start: taskStart.value, end: taskEnd.value })
     }
 
-    const fd = new FormData()
-    fd.append('title', 'Обзор')
+    const fd = new FormData();
+    fd.append('title', 'Обзор');
     form.sections.forEach((s, si) => {
-        fd.append(`sections[${si}][title]`,   s.title)
-        const content =
-            s.content == null
-                ? ''
-                : (typeof s.content === 'object'
-                    ? JSON.stringify(s.content)
-                    : String(s.content))
+        fd.append(`sections[${si}][title]`, s.title);
+        const content = s.content == null ? '' : (typeof s.content === 'object' ? JSON.stringify(s.content) : String(s.content));
+        fd.append(`sections[${si}][content]`, content);
+    });
+    partnerLogos.value.forEach((logo, index) => {
+        if (logo instanceof File) {
+            fd.append('partners[]', logo);
+        }
+    });
+    if (deletedMediaIds.value.length) {
+        deletedMediaIds.value.forEach(id => {
+            fd.append('delete_media_ids[]', id);
+        });
+    }
 
-        fd.append(`sections[${si}][content]`, content)
-    })
-    partnerLogos.value.forEach((f,i)=>fd.append(`partners[${i}]`,f))
-    fd.append('_method', 'PATCH')
+    fd.append('_method', 'PATCH');
+
+    console.log('FD →', [...fd.entries()].map(([k, v]) => [k, v instanceof File ? v.name : v]));
 
     try {
         await axios.post(
@@ -187,11 +251,11 @@ onMounted(async () => {
             </div>
         </div>
     </div>
-    <div class="dialog__component">
+    <div class="dialog__component" v-if="!isEdit || loaded">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.description) }}</p>
         <EditorField v-model="description" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
     </div>
-    <div class="dialog__component">
+    <div class="dialog__component" v-if="!isEdit || loaded">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.plan) }}</p>
         <EditorField v-model="plan" :placeholder="capitalizeFirstLetter(langStore.translations.enterPlan)"/>
     </div>
@@ -230,7 +294,7 @@ onMounted(async () => {
     />
     <div class="dialog__component">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.partners) }}</p>
-        <DropFiles @update:files="handleFilesUpdate" />
+        <DropFiles :files="partnerLogos" @update:files="handleFilesUpdate" @deleting-ids="handleDeletingIds" />
     </div>
     <div class="dialog__btns">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>

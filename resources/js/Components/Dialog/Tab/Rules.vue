@@ -1,6 +1,6 @@
 <script setup>
 import EditorField from "@/Components/EditorField.vue";
-import {onMounted, ref, watch} from "vue";
+import {nextTick, onMounted, ref, watch} from "vue";
 import DropPDFs from "@/Components/DropPDFs.vue";
 import {router, useForm} from "@inertiajs/vue3";
 import {useLangStore} from "@/store/lang.js";
@@ -8,16 +8,54 @@ import {useLangStore} from "@/store/lang.js";
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
-    allTags  : { type:Array, default:() => [] }
+    allTags  : { type:Array, default:() => [] },
+    isEdit   : { type:Boolean, default:false }
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const rulesText = ref(null)
+const rulesFiles = ref([])
+const deletedMediaIds  = ref([])
+
+const loaded = ref(false)
+
+async function fetchResources() {
+    try {
+        const { data } = await axios.get(
+            route('hackathons.show', { hackathon: props.hackathonSlug }),
+            { headers: { Accept: 'application/json' } }
+        );
+        // resourcesFiles.value = data.files || [];
+
+        // form.sections[0].content = description.value;
+        // form.files = resourcesFiles.value;
+
+        if (props.isEdit) {
+            const hackathon = data.tabs.original[2];
+
+            rulesText.value = hackathon.sections.find(s => s.title === 'Правила')?.content || '';
+            rulesFiles.value = hackathon.files
+        }
+        await nextTick()
+        loaded.value = true
+    } catch (err) {
+        console.error('fetch-resources-error', err?.response ?? err);
+    }
+}
+
+watch(rulesFiles.value, arr => {
+    form.files = arr; // Обновляем файлы в форме
+}, { deep: true });
+
+onMounted(() => {
+    if (props.isEdit) {
+        fetchResources();
+    }
+});
 
 const langStore = useLangStore()
 
 const dirty = ref(false)
-
-const rulesText  = ref(null)
-const rulesFiles = ref([])
 
 const form = useForm({
     sections : [
@@ -31,6 +69,7 @@ watch(rulesFiles, files => { form.files = files })
 watch(
     [rulesText, rulesFiles],
     () => {
+        if (!loaded.value) return
         if (!dirty.value) {
             dirty.value = true
             emit('dirty', true)
@@ -57,8 +96,10 @@ async function save () {
             fd.append(`sections[${si}][content]`, content)
         })
 
-        form.files.forEach((f,i)        => fd.append(`files[${i}]`, f))
-        form.delete_media_ids.forEach((id,i)=> fd.append(`delete_media_ids[${i}]`, id))
+        rulesFiles.value.forEach(f => {
+            if (f instanceof File) fd.append('files[]', f)
+        })
+        deletedMediaIds.value.forEach(id => fd.append('delete_media_ids[]', id))
 
         fd.append('_method', 'PATCH')
 
@@ -95,19 +136,43 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+const handleFilesUpdate = (mixed) => {
+    rulesFiles.value = mixed
+    // если где-то используете form.files — оставьте только новые файлы:
+    form.files = mixed.filter(x => x instanceof File)
+}
+const handleDeletingIds = (ids) => { deletedMediaIds.value = ids }
+
+watch(
+    [rulesFiles],
+    () => {
+        if (!loaded.value) return;
+
+        if (!dirty.value) {
+            dirty.value = true;
+            emit('dirty', true);
+        }
+    },
+    { deep: true }
+);
+
 onMounted(async () => {
     await langStore.fetchTranslations()
 })
 </script>
 
 <template>
-    <div class="dialog__component">
+    <div class="dialog__component" v-if="!isEdit || loaded">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rules) }}</p>
         <EditorField v-model="rulesText" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
     </div>
     <div class="dialog__component">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.files) }}</p>
-        <DropPDFs v-model:files="rulesFiles" />
+        <DropPDFs
+            :files="rulesFiles"
+            @update:files="handleFilesUpdate"
+            @deleting-ids="handleDeletingIds"
+        />
     </div>
     <div class="dialog__btns">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>

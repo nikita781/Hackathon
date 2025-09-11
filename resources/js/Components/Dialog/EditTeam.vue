@@ -33,12 +33,10 @@ const closeConfirmDialog = () => {
 const removeUser = async () => {
     if (!userToRemove.value) return
 
-    const url = route('hackathons.teams.kick', [
-        props.hackathon.slug,
-        props.team.id
-    ])
-
-    console.log('DELETE to:', url)
+    const url = route('hackathons.teams.kick', {
+        hackathon: props.hackathon.slug,
+        team: props.team.id,
+    })
 
     try {
         await axios.delete(url, {

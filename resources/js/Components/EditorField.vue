@@ -1,13 +1,13 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import EditorJS from '@editorjs/editorjs'
-import Header    from '@editorjs/header'
-import List      from '@editorjs/list'
+import Header from '@editorjs/header'
+import List from '@editorjs/list'
 import VkVideoTool from './VkVideoTool.js'
 
 const props = defineProps({
     /** plain-object (НЕ Proxy!) с initial data или null */
-    modelValue : { type: Object, default: null },
+    modelValue: { type: Object, default: null },
     placeholder: { type: String, default: 'Введите описание' }
 })
 
@@ -15,34 +15,48 @@ const emit = defineEmits(['update:modelValue'])
 
 /* --- refs -------------------------------------------------------------- */
 const holder = ref(null)
-let   editor = null
+let editor = null
 
 /* --- life-cycle -------------------------------------------------------- */
 onMounted(async () => {
+    if (!holder.value) {
+        console.error('EditorJS: holder is not found')
+        return
+    }
+
+    // Если данные пришли как строка, преобразуем их в объект
+    const initialData = props.modelValue ? JSON.parse(props.modelValue) : {}
+
     editor = new EditorJS({
         holder: holder.value,
         placeholder: props.placeholder,
-        tools : {
+        tools: {
             header: Header,
             list: {
                 class: List,
                 inlineToolbar: true,
                 config: {
-                    defaultStyle: 'unordered', // только маркированные списки
+                    defaultStyle: 'unordered',
                 },
-                toolbar: ['unorderedList', 'checklist'] // Убираем orderedList
+                toolbar: ['unorderedList', 'checklist']
             },
             vkvideo: VkVideoTool
         },
-        data  : props.modelValue ?? {},    // ← только один раз!
-        async onChange() {                 // ← отдаём наружу
-            const data = await editor.save()
-            emit('update:modelValue', structuredClone(data))
-        },
+        data: initialData, // Передаем правильно данные
+        onChange: async () => {
+            try {
+                const data = await editor.save()
+                emit('update:modelValue', structuredClone(data)) // Обновляем модель
+            } catch (error) {
+                console.error('Error during saving editor data:', error)
+            }
+        }
     })
 })
 
-onBeforeUnmount(() => { editor?.destroy() })
+onBeforeUnmount(() => {
+    editor?.destroy()
+})
 </script>
 
 <template>

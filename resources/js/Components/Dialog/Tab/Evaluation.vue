@@ -1,5 +1,5 @@
 <script setup>
-import {nextTick, onMounted, reactive, ref, watch} from 'vue'
+import {nextTick, onMounted, ref, watch} from 'vue'
 import CreateEvaluation from '@/Components/Dialog/CreateEvaluation.vue'
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import IconsPencil from "@/Components/Icons/Pencil.vue";
@@ -9,24 +9,24 @@ import {useLangStore} from "@/store/lang.js";
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
-    allTags  : { type:Array, default:() => [] }
+    allTags       : { type:Array, default:() => [] }
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
 
 const langStore = useLangStore()
 
 const loaded = ref(false)
-const dirty = ref(false)
+const dirty  = ref(false)
 
-const evaluationStart = ref(null)
-const evaluationEnd   = ref(null)
-const groups = ref(null)
-const dlgShown   = ref(false)
+const evaluationStart = ref('')
+const evaluationEnd   = ref('')
+const groups   = ref([])
+const dlgShown = ref(false)
 const editingIdx = ref(null)
 const deleted = []
 
-function openAdd ()           { editingIdx.value=null; dlgShown.value=true ; fetchData()}
-function openEdit(idx)        { editingIdx.value=idx; dlgShown.value=true; fetchData()}
+function openAdd ()    { editingIdx.value=null; dlgShown.value=true ; fetchData() }
+function openEdit(idx) { editingIdx.value=idx;  dlgShown.value=true ; fetchData() }
 async function removeGroup(idx){
     const { id } = groups.value[idx]
     try {
@@ -40,8 +40,9 @@ async function removeGroup(idx){
     }
     await fetchData()
 }
-function onSaved()              { dlgShown.value = false; fetchData() }
+function onSaved(){ dlgShown.value = false; fetchData() }
 
+/* ===== ЗАГРУЗКА: подхватываем даты из таба "Оценка" ===== */
 const fetchData = async () => {
     if (!props.hackathonSlug) return
     try{
@@ -49,53 +50,77 @@ const fetchData = async () => {
             route('hackathons.show', { hackathon:props.hackathonSlug }),
             { headers:{Accept:'application/json'} }
         )
-        groups.value = data.hackathon.original.criteria_groups ?? []
+
+        // группы критериев (как и было)
+        groups.value = data?.hackathon?.original?.criteria_groups ?? []
+
+        // таб "Оценка" → секция "Даты проверки"
+        const evalTab =
+            data?.tabs?.original?.find(t => t.title === 'Оценка')
+            ?? data?.tabs?.original?.[5] // запасной вариант по индексу
+
+        const dateSec = evalTab?.sections?.find(s => s.title === 'Даты проверки')
+
+        let parsed = {}
+        if (dateSec?.content){
+            try { parsed = typeof dateSec.content === 'string'
+                ? JSON.parse(dateSec.content)
+                : dateSec.content }
+            catch(e){ parsed = {} }
+        }
+
+        evaluationStart.value = parsed?.start ?? ''
+        evaluationEnd.value   = parsed?.end   ?? ''
+
         await nextTick()
         loaded.value = true
-    }catch(e){ console.error('evaluation-fetch', e?.response ?? e) }
+    }catch(e){
+        console.error('evaluation-fetch', e?.response ?? e)
+        loaded.value = true
+    }
 }
 onMounted(fetchData)
 
-watch(
-    [evaluationStart, evaluationEnd],
-    () => {
-        if (!loaded.value) return
+/* dirty только после загрузки */
+watch([evaluationStart, evaluationEnd], () => {
+    if (!loaded.value) return
+    if (!dirty.value) {
+        dirty.value = true
+        emit('dirty', true)
+    }
+})
 
-        if (!dirty.value) {
-            dirty.value = true
-            emit('dirty', true)
-        }
-    },
-    { deep:true }
-)
-
+/* ===== Сохранение: только даты ===== */
 async function save() {
-    /* 1. сохраняем даты в таб */
     const fd = new FormData()
     fd.append('title','Оценка')
     fd.append('sections[0][title]','Даты проверки')
     fd.append('sections[0][content]', JSON.stringify({
-        start:evaluationStart.value, end:evaluationEnd.value
+        start: evaluationStart.value || '',
+        end  : evaluationEnd.value   || ''
     }))
     fd.append('_method','PATCH')
 
-    await axios.post(
-        route('hackathons.tabs.update', { hackathon: props.hackathonSlug }),
-        fd, { headers:{'Content-Type':'multipart/form-data'} }
-    )
-    dirty.value = false
-    loaded.value = true
-    emit('dirty', false)
-    emit('saved',{slug:props.hackathonSlug})
+    try{
+        await axios.post(
+            route('hackathons.tabs.update', { hackathon: props.hackathonSlug }),
+            fd, { headers:{'Content-Type':'multipart/form-data'} }
+        )
+        dirty.value = false
+        emit('dirty', false)
+        emit('saved',{slug:props.hackathonSlug})
+    } catch (err){
+        console.error('evaluation-save', err?.response ?? err)
+    }
 }
 
 const reset = () => {
-    evaluationStart.value = null
-    evaluationEnd.value   = null
-    groups.splice(0)
+    evaluationStart.value = ''
+    evaluationEnd.value   = ''
+    groups.value = []
     deleted.splice(0)
-    dlgShown.value        = false
-    editingIdx.value      = null
+    dlgShown.value   = false
+    editingIdx.value = null
 }
 function cancel () { reset(); emit('cancel') }
 
@@ -106,9 +131,7 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-onMounted(async () => {
-    await langStore.fetchTranslations()
-})
+onMounted(async () => { await langStore.fetchTranslations() })
 </script>
 
 <template>
@@ -117,14 +140,15 @@ onMounted(async () => {
         <div class="dialog__horizontal">
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
-                <input type="datetime-local" v-model="evaluationStart" class="dialog__input" placeholder="Кол-во" style="width: 100%">
+                <input type="datetime-local" v-model="evaluationStart" class="dialog__input" style="width: 100%">
             </div>
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
-                <input type="datetime-local" v-model="evaluationEnd" class="dialog__input" placeholder="Кол-во" style="width: 100%">
+                <input type="datetime-local" v-model="evaluationEnd" class="dialog__input" style="width: 100%">
             </div>
         </div>
     </div>
+
     <div class="dialog__prize">
         <div class="dialog__title_header">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.evaluationCriteria) }}</p>
@@ -133,6 +157,7 @@ onMounted(async () => {
                 <p>{{ capitalizeFirstLetter(langStore.translations.addMore) }}</p>
             </div>
         </div>
+
         <div class="dialog__prize" v-for="(grp,idx) in groups" :key="idx">
             <div class="dialog__eva_container">
                 <p class="dialog__eva">{{ grp.title }}</p>
@@ -150,13 +175,14 @@ onMounted(async () => {
             </div>
         </div>
     </div>
-<!--    <pre>{{groups}}</pre>-->
+
     <CreateEvaluation
         v-model="dlgShown"
         :initial="editingIdx!==null ? groups[editingIdx] : null"
         :hackathonSlug="props.hackathonSlug"
         @saved="onSaved"
     />
+
     <div class="dialog__btns">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
         <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
@@ -164,5 +190,5 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-
+/* твои стили */
 </style>

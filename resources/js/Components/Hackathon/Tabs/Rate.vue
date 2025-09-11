@@ -1,21 +1,230 @@
 <script setup>
 import { useLangStore } from '@/store/lang.js'
-import {nextTick, onMounted, ref} from "vue";
+import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import IconsPencilMyProject from "@/Components/Icons/PencilMyProject.vue";
 import RateProject from "@/Components/Dialog/RateProject.vue";
+import axios from "axios";
+import Document from "@/Components/Icons/Document.vue";
+import Hyperlink from "@/Components/Icons/Hyperlink.vue";
+
+const showRate = ref(false)
+
+const props = defineProps({
+    positions  : { type: Array,  default: () => [] },
+    ownTeam    : { type: Array,  default: () => [] },
+    hackathon  : { type: Object, required: true },
+    tabs       : { type: Array,  default: () => [] },
+    allProjects: { type: Array,  default: () => [] },
+})
 
 const langStore = useLangStore()
+
+const search = ref('')
 const sort   = ref('dateA')
-const showRate = ref(false)
+const page   = ref(1)
+const perPage = ref(12)
+const loading = ref(false)
+
+const items = ref([])
+const total = ref(0)
+const lastPage = ref(1)
+const previews = ref(Object.create(null))
+
+const oneProject = ref(null)
+const isOne = computed(() => !!oneProject.value)
+const oneGallery = ref([])
+const galleryLoading = ref(false)
+
+let abortCtrl = null
+let searchTimer = null
 
 onMounted(async () => {
     await langStore.fetchTranslations()
+    await fetchGallery(1)
 })
+
+onBeforeUnmount(() => {
+    Object.values(previews.value).forEach((url) => URL.revokeObjectURL(url))
+    previews.value = {}
+    if (abortCtrl) abortCtrl.abort()
+})
+
+const mapSortToBackend = (v) => {
+    switch (v) {
+        case 'dateA':  return 'dateA'
+        case 'dateD':  return 'dateD'
+        case 'titleA': return 'titleA'
+        case 'titleD': return 'titleD'
+        default:       return undefined
+    }
+}
+
+const buildParams = (pageNum = 1) => {
+    const s = mapSortToBackend(sort.value)
+    const q = (search.value || '').trim()
+    const params = {
+        page   : pageNum,
+        per_page: perPage.value,
+    }
+    if (q) {
+        params.search = q
+        params.q = q
+    }
+    if (s) params.order = s
+    return params
+}
+
+const truncate = (text, max = 180) => {
+    if (!text) return ''
+    return text.length > max ? text.slice(0, max) + '…' : text
+}
+
+async function fetchGallery (toPage = 1) {
+    if (abortCtrl) abortCtrl.abort()
+    abortCtrl = new AbortController()
+    loading.value = true
+
+    try {
+        const { data } = await axios.get(
+            route('hackathons.gallery', { hackathon: props.hackathon.slug }),
+            { params: buildParams(toPage), signal: abortCtrl.signal }
+        )
+
+        // console.log(buildParams(toPage))
+        // console.log(abortCtrl.signal)
+        // console.log(data)
+
+        const payload = data.gallery ?? data
+        const paged = payload?.data && Array.isArray(payload.data)
+            ? payload
+            : (payload?.data?.data && Array.isArray(payload.data.data)
+                ? { ...payload.data, ...payload.meta }
+                : payload)
+
+        const list = Array.isArray(paged?.data) ? paged.data : (Array.isArray(payload) ? payload : [])
+
+        items.value   = list
+        page.value    = Number(paged?.current_page ?? 1)
+        lastPage.value= Number(paged?.last_page ?? 1)
+        total.value   = Number(paged?.total ?? list.length)
+
+        list.forEach((p) => {
+            const key = p.slug ?? p.id
+            if (!key || previews.value[key]) return
+            loadPreviewSafe(key)
+        })
+    } catch (e) {
+        console.error('gallery-fetch', e?.response ?? e)
+    } finally {
+        loading.value = false
+    }
+}
+
+async function loadPreviewSafe (projectKey) {
+    try {
+        const proj = items.value.find(p => (p.slug ?? p.id) === projectKey)
+        if (!proj?.slug) return
+        const { data: blob } = await axios.get(
+            route('hackathons.projects.image', { hackathon: props.hackathon.slug, project: proj.slug }),
+            { responseType: 'blob' }
+        )
+        previews.value[projectKey] = URL.createObjectURL(blob)
+    } catch (_) {
+
+    }
+}
+
+watch(sort, () => fetchGallery(1))
+
+watch(search, () => {
+    clearTimeout(searchTimer)
+    searchTimer = setTimeout(() => fetchGallery(1), 400)
+})
+
+const canPrev = computed(() => page.value > 1)
+const canNext = computed(() => page.value < lastPage.value)
+
+function goPrev () { if (canPrev.value) fetchGallery(page.value - 1) }
+function goNext () { if (canNext.value) fetchGallery(page.value + 1) }
+function goPage (p) { if (p >= 1 && p <= lastPage.value) fetchGallery(p) }
+
+const pagesWindow = computed(() => {
+    const W = 2 // по 2 с каждой стороны
+    const cur = page.value
+    const last = lastPage.value
+    const start = Math.max(1, cur - W)
+    const end = Math.min(last, cur + W)
+
+    const seq = []
+    if (start > 1) seq.push(1, 'gap')
+    for (let i = start; i <= end; i++) seq.push(i)
+    if (end < last) seq.push('gap', last)
+    return seq
+})
+
+const getTitle = (p) => p.title ?? p.name ?? 'Без названия'
+const getDesc  = (p) => truncate(p.short_description ?? p.description ?? '')
+const getKey   = (p) => p.slug ?? p.id
+const getPreviewSrc = (p) => {
+    const key = getKey(p)
+    return previews.value[key] || (p.preview_url ?? '/project.jpg')
+}
+
+function openProject(p) {
+    oneProject.value = p
+    loadProjectGallery(p)
+}
+function closeProject() {
+    oneProject.value = null
+    oneGallery.value = []
+}
+
+async function loadProjectGallery (project) {
+    if (!project?.slug) { oneGallery.value = []; return }
+    galleryLoading.value = true
+    try {
+        const { data } = await axios.get(
+            route('hackathons.projects.gallery', { hackathon: props.hackathon.slug, project: project.slug }),
+            { headers: { Accept: 'application/json' } }
+        )
+        const raw = data?.gallery ?? []
+        oneGallery.value = raw.map(it => ({
+            id:      typeof it === 'object' ? (it.id ?? it.media_id ?? it.key ?? null) : null,
+            url:     typeof it === 'string'
+                ? it
+                : (it.url ?? it.original_url ?? it.preview_url ?? it.path ?? ''),
+            name:    typeof it === 'object' ? (it.name ?? it.filename ?? '') : '',
+        })).filter(it => it.url)
+    } catch (e) {
+        console.error('project-gallery', e?.response ?? e)
+        oneGallery.value = []
+    } finally {
+        galleryLoading.value = false
+    }
+}
+
+const oneTitle = computed(() => getTitle(oneProject.value || {}))
+const oneShortDesc  = computed(() => oneProject.value?.description || '')
+const oneDesc  = computed(() => oneProject.value?.about || '')
+const oneStack = computed(() => oneProject.value?.stack || '')
+const onePreview = computed(() => oneProject.value ? getPreviewSrc(oneProject.value) : '/project.jpg')
+const links = computed(() => ({
+    project:      oneProject.value?.project_link || '',
+    presentation: oneProject.value?.presentation_path || oneProject.value?.presentation_url || '',
+    video:        oneProject.value?.video_link || '',
+}))
+
+const idProject = ref(null);
+function setIdProject (id) {
+    console.log('Selected project id:', id);
+    idProject.value = id;
+    showRate.value = true
+}
 </script>
 
 <template>
     <div class="hackathon__tab">
-        <div class="hackathon__tab_main">
+        <div v-if="!isOne" class="hackathon__tab_main">
             <div class="hackathon__tab_container">
                 <p class="hackathon__my-project__title">Оценить Проекты</p>
                 <div class="hackathon__gallery_filter">
@@ -47,37 +256,123 @@ onMounted(async () => {
                     </div>
                 </div>
                 <div class="hackathon__gallery_container">
-                    <div
-                        class="hackathon__my-project__item"
-                        style="cursor: pointer"
-                    >
-                        <div class="hackathon__my-project__item_header">
-                            <img src="/project.jpg" alt="">
-                            <button
-                                type="button"
-                                class="main__btn_main"
-                                @click="showRate = true"
-                            >
-                                Оценить
-                            </button>
+                    <template v-if="loading">
+                        <div v-for="i in 6" :key="'s'+i" class="hackathon__my-project__item">
+                            <div class="skeleton-loader" style="height: 180px; border-radius: 12px;"></div>
+                            <div class="skeleton-loader" style="height: 90px; margin-top: 12px;"></div>
                         </div>
-
-                        <div class="hackathon__my-project__item_content">
-                            <div>
-                                <p class="hackathon__my-project__item_title">EduGame</p>
-                                <p class="hackathon__my-project__item_text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut debitis incidunt laborum nobis perferendis praesentium quaerat quasi quidem reiciendis vel. Accusantium distinctio eaque laborum nobis odio omnis quia ratione vel.</p>
+                    </template>
+                    <template v-else>
+                        <div
+                            v-for="project in items"
+                            :key="getKey(project)"
+                            class="hackathon__my-project__item"
+                            @click="openProject(project)"
+                            style="cursor: pointer"
+                        >
+                            <div class="hackathon__my-project__item_header">
+                                <img :src="getPreviewSrc(project)" alt="">
+                                <button
+                                    type="button"
+                                    class="main__btn_main"
+                                    @click.stop="setIdProject(project.slug)"
+                                >
+                                    Оценить
+                                </button>
                             </div>
 
-                            <ul class="hackathon__my-project__item_avatar">
-                                <li><img src="/profile.jpg" alt="Avatar"></li>
-                                <li><img src="/profile.jpg" alt="Avatar"></li>
-                                <li><img src="/profile.jpg" alt="Avatar"></li>
-                            </ul>
+                            <div class="hackathon__my-project__item_content">
+                                <div>
+                                    <p class="hackathon__my-project__item_title">{{ getTitle(project) }}</p>
+                                    <p class="hackathon__my-project__item_text">{{ getDesc(project) }}</p>
+                                </div>
+
+                                <ul class="hackathon__my-project__item_avatar">
+                                    <li><img src="/profile.jpg" alt="Avatar"></li>
+                                    <li><img src="/profile.jpg" alt="Avatar"></li>
+                                    <li><img src="/profile.jpg" alt="Avatar"></li>
+                                </ul>
+                            </div>
                         </div>
-                    </div>
+                    </template>
                     <RateProject
                         v-model="showRate"
+                        :hackathon="props.hackathon"
+                        :project-id="idProject"
                     />
+                </div>
+            </div>
+        </div>
+        <div v-else class="hackathon__tab_main">
+            <div class="hackathon__tab_container">
+                <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+                    <button type="button" class="main__btn_main" @click="closeProject">← Назад к проектам</button>
+                    <p class="hackathon__my-project__title" style="margin:0">{{ oneTitle }}</p>
+                </div>
+
+                <div class="hackathon__oneProject_image">
+                    <img :src="onePreview" alt="">
+                </div>
+
+                <p class="">{{ oneShortDesc }}</p>
+            </div>
+
+            <div class="hackathon__tab_container" v-if="oneDesc">
+                <p class="hackathon__my-project__title">Описание</p>
+                <p class="">{{ oneDesc }}</p>
+            </div>
+
+            <div class="hackathon__tab_container" v-if="oneStack">
+                <p class="hackathon__my-project__title">Технологический стек проекта</p>
+                <p class="">{{ oneStack }}</p>
+            </div>
+
+            <div class="hackathon__tab_container">
+                <p class="hackathon__my-project__title">Галерея проекта</p>
+
+                <div v-if="galleryLoading" class="hackathon__oneProject_gallery">
+                    <div v-for="i in 4" :key="'g'+i" class="skeleton-loader" style="height:160px"></div>
+                </div>
+
+                <div v-else-if="oneGallery.length" class="hackathon__oneProject_gallery">
+                    <a
+                        v-for="img in oneGallery"
+                        :key="img.id ?? img.url"
+                        :href="img.url"
+                        class="hackathon__oneProject_gallery-item"
+                        target="_blank" rel="noopener noreferrer"
+                        title="Открыть в новой вкладке"
+                    >
+                        <img :src="img.url" :alt="img.name || 'Изображение проекта'">
+                    </a>
+                </div>
+            </div>
+
+            <div class="hackathon__tab_container">
+                <p class="hackathon__my-project__title">Материалы</p>
+
+                <div class="hackathon__oneProject_media" v-if="links.project">
+                    <p class="hackathon__oneProject_media-title">Ссылка на проект</p>
+                    <div class="hackathon__oneProject_media-item">
+                        <Hyperlink />
+                        <a :href="links.project" target="_blank" rel="noopener noreferrer">Ссылка</a>
+                    </div>
+                </div>
+
+                <div class="hackathon__oneProject_media" v-if="links.presentation">
+                    <p class="hackathon__oneProject_media-title">Презентация</p>
+                    <div class="hackathon__oneProject_media-item">
+                        <Document />
+                        <a :href="links.presentation" target="_blank" rel="noopener noreferrer">Файл</a>
+                    </div>
+                </div>
+
+                <div class="hackathon__oneProject_media" v-if="links.video">
+                    <p class="hackathon__oneProject_media-title">Ссылка на видео</p>
+                    <div class="hackathon__oneProject_media-item">
+                        <Hyperlink />
+                        <a :href="links.video" target="_blank" rel="noopener noreferrer">Ссылка</a>
+                    </div>
                 </div>
             </div>
         </div>

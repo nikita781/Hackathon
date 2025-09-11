@@ -1,5 +1,5 @@
 <script setup>
-import {defineAsyncComponent, onMounted, reactive, ref, watch} from 'vue'
+import {computed, defineAsyncComponent, onMounted, reactive, ref, watch} from 'vue'
 import ConfirmDialog from '@/Components/Dialog/ConfirmDialog.vue'
 import { useForm, router } from '@inertiajs/vue3'
 
@@ -13,7 +13,9 @@ import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     modelValue : Boolean,
-    tags       : { type:Array, default:() => [] }
+    hackathon  : { type:Array, default:() => [] },
+    tabs       : { type:Array, default:() => [] },
+    tags       : { type:Array, default:() => [] },
 })
 
 const langStore = useLangStore()
@@ -35,8 +37,36 @@ const tabsRu = ref(['Основная информация','Обзор','Рес
 
 function onDirty (flag) { hasUnsaved.value = flag }
 
+const isEdit = computed(() => {
+    const hasHackathon = !!(props.hackathon && Object.keys(props.hackathon).length)
+    const hasTabs      = !!(props.tabs && props.tabs.length)
+    return hasHackathon || hasTabs
+})
+
+function getHackathonSlugFromProps() {
+    const h = props.hackathon
+    return h?.slug
+        ?? h?.data?.slug
+        ?? (Array.isArray(h) ? h[0]?.slug : undefined)
+        ?? draft.slug
+}
+
+function initMode () {
+    if (isEdit.value) {
+        created.value = true
+        const slug = getHackathonSlugFromProps()
+        if (slug) draft.slug = slug
+        tabs[0] = defineAsyncComponent(() => import('./Tab/MainInfoEdit.vue'))
+    } else {
+        created.value = false
+        draft.slug = null
+        tabs[0] = defineAsyncComponent(() => import('./Tab/MainInfo.vue'))
+        active.value = 0
+    }
+}
+
 function toTab (i) {
-    if (!created.value && i > 0) return
+    if (!isEdit.value && !created.value && i > 0) return
     if (i === active.value)    return
 
     if (hasUnsaved.value) {
@@ -66,6 +96,9 @@ const emit  = defineEmits(['update:modelValue'])
 function close () {
     resetDialog()
     emit('update:modelValue', false)
+    if (isEdit.value) {
+        window.location.reload()
+    }
 }
 
 function onTabSaved({ slug }){
@@ -97,6 +130,13 @@ watch(() => langStore.translations,
     }
 )
 
+watch(() => [props.hackathon, props.tabs], initMode, { deep:true })
+
+watch(active, (newTab) => {
+    console.log(newTab)
+    localStorage.setItem('activeTab', newTab);
+});
+
 onMounted(async () => {
     await langStore.fetchTranslations()
     tabsRu.value = [
@@ -108,6 +148,7 @@ onMounted(async () => {
         capitalizeFirstLetter(langStore.translations.evaluation),
         capitalizeFirstLetter(langStore.translations.awards)
     ];
+    initMode()
 });
 </script>
 
@@ -134,7 +175,11 @@ onMounted(async () => {
                     <div v-for="(t,i) in tabsRu" :key="t"
                          :class="[
                               'dialog__tabs_item',
-                              { active:active===i, locked:!created&&i>0, done: created }
+                              {
+                                  active:active===i,
+                                  locked: !isEdit && !created && i>0,
+                                  done: created || isEdit
+                              }
                          ]"
                          @click="toTab(i)">
                         <p>{{ t }}</p>
@@ -146,8 +191,9 @@ onMounted(async () => {
                     <component
                         :is="tabs[active]"
                         :draft="draft"
-                        v-bind="created ? { hackathonSlug:draft.slug } : {}"
+                        v-bind="(created || isEdit) ? { hackathonSlug:draft.slug } : {}"
                         :all-tags="props.tags"
+                        :isEdit="isEdit"
                         @saved="onTabSaved"
                         @cancel="close"
                         @dirty="onDirty"
