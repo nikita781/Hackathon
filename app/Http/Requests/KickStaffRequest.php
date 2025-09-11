@@ -13,9 +13,4 @@ class KickStaffRequest extends FormRequest
             'staff.*' => ['required_with:staff', 'exists:users,id'],
         ];
     }
-
-    public function messages(): array
-    {
-        return trans('validations/kick_staff');
-    }
 }
