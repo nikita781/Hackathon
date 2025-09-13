@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Hackathon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -43,6 +45,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'notifications' => [
                 'unread' => $request->user()?->unreadNotifications()->exists(),
+            ],
+            'can' => [
+                'admin' => Gate::authorize('moderate', Hackathon::class),
             ],
         ]);
     }

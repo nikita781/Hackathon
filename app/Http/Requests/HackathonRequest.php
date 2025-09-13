@@ -4,8 +4,10 @@ namespace App\Http\Requests;
 
 use App\Models\Hackathon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class HackathonRequest extends FormRequest
 {
@@ -22,12 +24,12 @@ class HackathonRequest extends FormRequest
             'max_team_size' => [
                 'required_if:type,team', 'integer', 'min:1', 'gte:min_team_size', 'exclude_if:type,individual'
             ],
-            'registration_start' => ['nullable', 'date', 'before_or_equal:registration_end'],
-            'registration_end' => ['required', 'date', 'before_or_equal:event_start'],
-            'event_start' => ['required', 'date', 'before_or_equal:event_end'],
+            'registration_start' => ['nullable', 'date', 'before:registration_end'],
+            'registration_end' => ['required', 'date', 'before:event_start'],
+            'event_start' => ['required', 'date', 'before:event_end'],
             'event_end' => ['required', 'date'],
             'prize_type' => ['required', 'in:cash,non-cash'],
-            'prize_pool' => ['required', 'numeric', 'min:0'],
+            'prize_pool' => ['required', 'numeric', 'min:0', 'max:10000000'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
         ];
@@ -41,5 +43,25 @@ class HackathonRequest extends FormRequest
     public function messages(): array
     {
         return trans('validations/hackathon');
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                $data = $this->validated();
+
+                if (!empty($data['registration_end'])) {
+                    $end = Carbon::parse($data['registration_end']);
+
+                    if ($end->lessThanOrEqualTo(now())) {
+                        $validator->errors()->add(
+                            'registration_end',
+                            __('validations/hackathon.registration_end.after')
+                        );
+                    }
+                }
+            }
+        ];
     }
 }

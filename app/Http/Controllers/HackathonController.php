@@ -14,6 +14,7 @@ use App\Http\Resources\TabResource;
 use App\Http\Resources\TagResource;
 use App\Http\Resources\TeamResource;
 use App\Http\Resources\UserResource;
+use App\Models\Banner;
 use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Project;
@@ -53,7 +54,12 @@ class HackathonController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        $banners = Banner::query()
+            ->orderBy('order')
+            ->get();
+
         return Inertia::render('Hackathon/Index', [
+            'banners' => $banners,
             'hackathons' => HackathonResource::collection($hackathons),
             'tags' => TagResource::collection(Tag::orderBy('title')->get()),
             'can' => [

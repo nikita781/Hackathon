@@ -152,6 +152,7 @@ Route::prefix('hackathons/{hackathon}/')->name('hackathons.')->group(function ()
 });
 
 Route::get('/awards/{award}/media', [MediaController::class, 'showAwardMedia'])->name('awards.image');
+Route::get('/banners/{banner}/media', [MediaController::class, 'showBanner'])->name('banners.image');
 
 // ADMIN ROUTES
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
@@ -182,6 +183,29 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
             Route::post('/block', [AdminController::class, 'blockUser'])->name('block');
             Route::post('/unblock', [AdminController::class, 'unblockUser'])->name('unblock');
             Route::post('/change-roles', [AdminController::class, 'changeRoles'])->name('change-roles');
+        });
+    });
+
+    Route::prefix('/contents')->name('contents.')->group(function () {
+        Route::prefix('/tags')->name('tags')->group(function () {
+            Route::get('/', [AdminController::class, 'tags'])->name('index');
+            Route::post('/', [AdminController::class, 'storeTag'])->name('store');
+            Route::patch('/{tag}', [AdminController::class, 'updateTag'])->name('update');
+            Route::delete('/{tag}', [AdminController::class, 'deleteTag'])->name('delete');
+            Route::post('/change-order', [AdminController::class, 'changeTagOrder'])->name('change-order');
+        });
+
+        Route::prefix('/banners')->name('banners')->group(function () {
+            Route::get('/', [AdminController::class, 'banners'])->name('index');
+            Route::post('/', [AdminController::class, 'storeBanner'])->name('store');
+            Route::patch('/{banner}', [AdminController::class, 'updateBanner'])->name('update');
+            Route::delete('/{banner}', [AdminController::class, 'deleteBanner'])->name('delete');
+            Route::post('/change-order', [AdminController::class, 'changeBannerOrder'])->name('change-order');
+        });
+
+        Route::prefix('/awards')->name('awards')->group(function () {
+            Route::get('/', [AdminController::class, 'awards'])->name('index');
+            Route::patch('/{award}', [AdminController::class, 'updateAward'])->name('update');
         });
     });
 });

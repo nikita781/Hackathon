@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Award;
+use App\Models\Banner;
 use App\Models\Hackathon;
 use App\Models\Project;
 use App\Models\Tab;
@@ -94,7 +95,7 @@ class MediaController extends Controller
         $media = $award->getFirstMedia('main_image');
 
         if (!$media) {
-            abort(403);
+            abort(404);
         }
 
         return response()->file($media->getPath());
@@ -109,7 +110,7 @@ class MediaController extends Controller
         $media = $project->getFirstMedia('preview');
 
         if (!$media) {
-            abort(403);
+            abort(404);
         }
 
         return response()->file($media->getPath());
@@ -124,7 +125,7 @@ class MediaController extends Controller
         $media = $project->getFirstMedia('presentation');
 
         if (!$media) {
-            abort(403);
+            abort(404);
         }
 
         return response()->json([
@@ -167,18 +168,14 @@ class MediaController extends Controller
         return response()->file($media->getPath());
     }
 
-//    public function downloadProjectPresentation(Hackathon $hackathon, Project $project): BinaryFileResponse
-//    {
-//        if (!Gate::check('view', $hackathon) || !Gate::check('view', $project)) {
-//            abort(403);
-//        }
-//
-//        $media = $project->getFirstMedia('main_image');
-//
-//        if (!$media) {
-//            abort(403);
-//        }
-//
-//        return response()->download($media->getPath(), $media->file_name);
-//    }
+    public function showBanner(Banner $banner): BinaryFileResponse
+    {
+        $media = $banner->getFirstMedia('image');
+
+        if (!$media) {
+            abort(404);
+        }
+
+        return response()->file($media->getPath());
+    }
 }

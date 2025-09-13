@@ -34,4 +34,8 @@ return [
     'delete_media_ids.array' => 'The "Media IDs for deletion" must be an array.',
     'delete_media_ids.*.integer' => 'Each media ID must be an integer.',
     'delete_media_ids.*.exists' => 'Some of the selected media were not found.',
+
+    'title.min' => 'Title must be at least 5 characters long.',
+    'description.min' => 'Description must be at least 10 characters long.',
+    'about.min' => '"About the project" must be at least 10 characters long.',
 ];

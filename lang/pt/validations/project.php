@@ -34,4 +34,8 @@ return [
     'delete_media_ids.array' => 'Os IDs de mídia para exclusão devem ser um array.',
     'delete_media_ids.*.integer' => 'Cada ID de mídia deve ser um número inteiro.',
     'delete_media_ids.*.exists' => 'Alguns dos arquivos de mídia especificados não foram encontrados.',
+
+    'title.min' => 'O título deve ter pelo menos 5 caracteres.',
+    'description.min' => 'A descrição deve ter pelo menos 10 caracteres.',
+    'about.min' => 'O campo "Sobre o projeto" deve ter pelo menos 10 caracteres.',
 ];

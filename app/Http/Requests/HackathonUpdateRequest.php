@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class HackathonUpdateRequest extends FormRequest
 {
@@ -29,16 +31,16 @@ class HackathonUpdateRequest extends FormRequest
             'type' => ['nullable', 'in:individual,team'],
             'min_team_size' => ['exclude_if:type,individual', 'nullable', 'integer', 'min:1', 'lte:max_team_size'],
             'max_team_size' => ['exclude_if:type,individual', 'nullable', 'integer', 'min:1', 'gte:min_team_size'],
-            'registration_start' => ['nullable', 'date', 'before_or_equal:registration_end'],
-            'registration_end' => ['nullable', 'date', 'before_or_equal:event_start'],
-            'event_start' => ['nullable', 'date', 'before_or_equal:event_end'],
+            'registration_start' => ['nullable', 'date', 'before:registration_end'],
+            'registration_end' => ['nullable', 'date', 'before:event_start'],
+            'event_start' => ['nullable', 'date', 'before:event_end'],
             'event_end' => ['nullable', 'date'],
             'prize_type' => ['nullable', 'in:cash,non-cash'],
-            'prize_pool' => ['nullable', 'numeric', 'min:0'],
-            'work_time_start' => ['nullable', 'date'],
-            'work_time_end' => ['nullable', 'date'],
-            'evaluation_start' => ['nullable', 'date'],
-            'evaluation_end' => ['nullable', 'date'],
+            'prize_pool' => ['nullable', 'numeric', 'min:0', 'max:10000000'],
+            'work_time_start' => ['nullable', 'date', 'after:event_start', 'before:event_end', 'before:work_time_end'],
+            'work_time_end'   => ['nullable', 'date', 'after:work_time_start', 'before:event_end'],
+            'evaluation_start' => ['nullable', 'date', 'after:work_time_end', 'before:evaluation_end'],
+            'evaluation_end' => ['nullable', 'date', 'after:evaluation_start', 'before:event_end'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
         ];
@@ -47,5 +49,25 @@ class HackathonUpdateRequest extends FormRequest
     public function messages(): array
     {
         return trans('validations/hackathon');
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                $data = $this->validated();
+
+                if (!empty($data['registration_end'])) {
+                    $end = Carbon::parse($data['registration_end']);
+
+                    if ($end->lessThanOrEqualTo(now())) {
+                        $validator->errors()->add(
+                            'registration_end',
+                            __('validations/hackathon.registration_end.after')
+                        );
+                    }
+                }
+            }
+        ];
     }
 }
