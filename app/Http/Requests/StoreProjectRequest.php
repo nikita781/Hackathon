@@ -9,8 +9,8 @@ class StoreProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'max:255'],
-            'description' => ['required'],
+            'title' => ['required', 'string', 'max:255', 'min:5'],
+            'description' => ['required', 'string', 'min:10'],
             'preview' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ];
     }

@@ -34,4 +34,8 @@ return [
     'delete_media_ids.array' => 'Die zu löschenden Medien-IDs müssen ein Array sein.',
     'delete_media_ids.*.integer' => 'Jede Medien-ID muss eine Ganzzahl sein.',
     'delete_media_ids.*.exists' => 'Einige der angegebenen Medien wurden nicht gefunden.',
+
+    'title.min' => 'Der Titel muss mindestens 5 Zeichen enthalten.',
+    'description.min' => 'Die Beschreibung muss mindestens 10 Zeichen enthalten.',
+    'about.min' => 'Das Feld "Über das Projekt" muss mindestens 10 Zeichen enthalten.',
 ];

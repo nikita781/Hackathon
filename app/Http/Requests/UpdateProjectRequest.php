@@ -11,10 +11,10 @@ class UpdateProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['nullable', 'max:255'],
-            'description' => ['nullable'],
+            'title' => ['nullable', 'string', 'max:255', 'min:5'],
+            'description' => ['nullable', 'string', 'min:10'],
             'preview' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
-            'about' => ['nullable'],
+            'about' => ['nullable', 'string', 'min:10'],
             'stack' => ['nullable', 'max:255'],
             'project_link' => ['nullable', 'url', 'starts_with:https://github.com/'],
             'presentation' => ['nullable', 'file', 'mimes:pdf,ppt,pptx', 'max:10240'],

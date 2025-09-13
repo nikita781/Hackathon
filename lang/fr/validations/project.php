@@ -34,4 +34,8 @@ return [
     'delete_media_ids.array' => 'Les identifiants des médias à supprimer doivent être un tableau.',
     'delete_media_ids.*.integer' => 'Chaque identifiant de média doit être un nombre entier.',
     'delete_media_ids.*.exists' => 'Certains médias sélectionnés sont introuvables.',
+
+    'title.min' => 'Le titre doit contenir au moins 5 caractères.',
+    'description.min' => 'La description doit contenir au moins 10 caractères.',
+    'about.min' => 'Le champ "À propos du projet" doit contenir au moins 10 caractères.',
 ];

@@ -34,4 +34,8 @@ return [
     'delete_media_ids.array' => '要删除的媒体ID必须是一个数组。',
     'delete_media_ids.*.integer' => '每个媒体ID必须是整数。',
     'delete_media_ids.*.exists' => '找不到指定的媒体文件。',
+
+    'title.min' => '标题必须至少包含5个字符。',
+    'description.min' => '描述必须至少包含10个字符。',
+    'about.min' => '“关于项目”字段必须至少包含10个字符。',
 ];

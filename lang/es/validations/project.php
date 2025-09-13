@@ -34,4 +34,8 @@ return [
     'delete_media_ids.array' => 'Los IDs de medios a eliminar deben estar en un arreglo.',
     'delete_media_ids.*.integer' => 'Cada ID de medio debe ser un número entero.',
     'delete_media_ids.*.exists' => 'Algunos de los medios especificados no fueron encontrados.',
+
+    'title.min' => 'El título debe tener al menos 5 caracteres.',
+    'description.min' => 'La descripción debe tener al menos 10 caracteres.',
+    'about.min' => 'El campo "Sobre el proyecto" debe tener al menos 10 caracteres.',
 ];

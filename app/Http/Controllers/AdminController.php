@@ -2,23 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\ProjectResource;
+use App\Http\Resources\TagResource;
+use App\Models\Award;
+use App\Models\Banner;
 use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Support;
+use App\Models\Tag;
 use App\Models\User;
 use App\Notifications\ModerateNotification;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 
 class AdminController extends Controller
 {
@@ -34,7 +42,7 @@ class AdminController extends Controller
 
         return Inertia::render('Admin/Moderation/Hackathon', [
             'hackathons' => HackathonResource::collection($hackathons),
-            'filters'    => $request->only(
+            'filters' => $request->only(
                 'q', 'status', 'order'
             ),
         ]);
@@ -45,18 +53,20 @@ class AdminController extends Controller
         $perPage = min($request->get('per_page', 12), 12);
 
         $hackathons = Hackathon::whereHas('allProjects', function ($query) use ($request) {
-                $query->adminFilter($request);
-            })
-            ->with(['allProjects' => function ($query) use ($request) {
-                $query->adminFilter($request);
-            }])
+            $query->adminFilter($request);
+        })
+            ->with([
+                'allProjects' => function ($query) use ($request) {
+                    $query->adminFilter($request);
+                }
+            ])
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
 
         return Inertia::render('Admin/Moderation/Project', [
             'hackathons' => HackathonResource::collection($hackathons),
-            'filters'    => $request->only(
+            'filters' => $request->only(
                 'q', 'status', 'order'
             ),
         ]);
@@ -76,7 +86,7 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = "Хакатон \"". $hackathon->title ."\" опубликован";
+        $message = "Хакатон \"".$hackathon->title."\" опубликован";
 
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'accept',
@@ -101,7 +111,7 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = "Хакатон \"". $hackathon->title ."\" отклонен";
+        $message = "Хакатон \"".$hackathon->title."\" отклонен";
 
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'rejected',
@@ -126,7 +136,7 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = "Проект \"". $project->title ."\" опубликован";
+        $message = "Проект \"".$project->title."\" опубликован";
 
         if ($captain = $project->team->captain()->first()) {
             $captain->notify(new ModerateNotification([
@@ -153,7 +163,7 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = "Проект \"". $project->title ."\" отклонен";
+        $message = "Проект \"".$project->title."\" отклонен";
 
         if ($captain = $project->team->captain()->first()) {
             $captain->notify(new ModerateNotification([
@@ -243,5 +253,182 @@ class AdminController extends Controller
         return response()->json([
             'roles' => $roles,
         ]);
+    }
+
+    public function tags(): Response
+    {
+        Gate::authorize('moderate', Hackathon::class);
+
+        $tags = Tag::query()
+            ->orderBy('order')
+            ->get();
+
+        return Inertia::render('Admin/Tag', [
+            'tags' => TagResource::collection($tags),
+        ]);
+    }
+
+    public function storeTag(Request $request): RedirectResponse
+    {
+        Gate::authorize('moderate', Hackathon::class);
+
+        $countTag = Tag::query()->count();
+
+        if ($countTag >= 25) {
+            return back()->with('error', 'Максимальное количество тегов - 25');
+        }
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'min:2', 'max:50'],
+        ]);
+
+        $lastTagOrder = Tag::max('order') ?? 0;
+        $data['order'] = $lastTagOrder + 1;
+
+        $tag = Tag::create($data);
+
+        return back()->with('status', 'Тег успешно добавлен');
+    }
+
+    public function updateTag(Request $request, Tag $tag): RedirectResponse
+    {
+        Gate::authorize('moderate', Hackathon::class);
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'min:2', 'max:50'],
+        ]);
+
+        $tag->update($data);
+
+        return back()->with('status', 'Тег успешно обновлен');
+    }
+
+    public function deleteTag(Tag $tag): RedirectResponse
+    {
+        Gate::authorize('moderate', Hackathon::class);
+
+        $tag->delete();
+
+        return back()->with('status', 'Тег успешно удален');
+    }
+
+    public function changeTagOrder(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'tags' => ['array', 'required'],
+            'tags.*.id' => ['required', 'integer', 'exists:tags,id'],
+            'tags.*.order' => ['required', 'integer'],
+        ]);
+
+        DB::transaction(fn() => Tag::upsert($data['tags'], ['id'], ['order']));
+
+        return back()->with('status', 'Порядок тегов успешно изменен');
+    }
+
+    public function banners(): Response
+    {
+        $banners = Banner::query()
+            ->orderBy('order')
+            ->get();
+
+        return Inertia::render('Admin/Banner', [
+            'banners' => $banners,
+        ]);
+    }
+
+    /**
+     * @throws FileDoesNotExist
+     * @throws FileIsTooBig
+     */
+    public function storeBanner(Request $request): RedirectResponse
+    {
+        $count = Banner::count();
+
+        if ($count >= 10) {
+            return back()->with('error', 'Максимальное количество баннеров — 10');
+        }
+
+        $data = $request->validate([
+            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+        ]);
+
+        $lastOrder = Banner::max('order') ?? 0;
+
+        $banner = Banner::create([
+            'order' => $lastOrder + 1,
+        ]);
+
+        $banner->addMediaFromRequest('image')->toMediaCollection('image');
+
+        return back()->with('status', 'Баннер успешно добавлен');
+    }
+
+    /**
+     * @throws FileDoesNotExist
+     * @throws FileIsTooBig
+     */
+    public function updateBanner(Request $request, Banner $banner): RedirectResponse
+    {
+        $data = $request->validate([
+            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            $banner->clearMediaCollection('image');
+            $banner->addMediaFromRequest('image')->toMediaCollection('image');
+        }
+
+        return back()->with('status', 'Баннер успешно обновлен');
+    }
+
+    public function deleteBanner(Banner $banner): RedirectResponse
+    {
+        $banner->clearMediaCollection('image');
+
+        $banner->delete();
+
+        return back()->with('status', 'Баннер успешно удалён');
+    }
+
+    public function changeBannerOrder(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'banners' => ['required', 'array'],
+            'banners.*.id' => ['required', 'integer', 'exists:banners,id'],
+            'banners.*.order' => ['required', 'integer'],
+        ]);
+
+        Banner::upsert($data['banners'], ['id'], ['order']);
+
+        return back()->with('status', 'Порядок баннеров успешно изменён');
+    }
+
+    public function awards(): Response
+    {
+        $awards = Award::query()
+            ->where('system', true)
+            ->get();
+
+        return Inertia::render('Admin/Award', [
+            'awards' => AwardResource::collection($awards),
+        ]);
+    }
+
+    /**
+     * @throws FileDoesNotExist
+     * @throws FileIsTooBig
+     */
+    public function updateAward(Request $request, Award $award): RedirectResponse
+    {
+        $data = $request->validate([
+            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            $award->clearMediaCollection('image');
+            $award->addMediaFromRequest('image')->toMediaCollection('image');
+        }
+
+        return back()->with('status', 'Изображение награды успешно обновлено');
     }
 }
