@@ -34,4 +34,21 @@ class PdfController extends Controller
 
         return $pdf->download("certificate-{$user->nickname}.pdf");
     }
+
+    public function protocol(Hackathon $hackathon): Response
+    {
+        Gate::authorize('downloadReport', $hackathon);
+
+        $teams = $hackathon->teams()
+            ->with(['users'])
+            ->orderBy('place')
+            ->get();
+
+        $pdf = Pdf::loadView('report', [
+            'hackathon' => $hackathon,
+            'teams' => $teams,
+        ])->setPaper('a4');
+
+        return $pdf->download("protocol-{$hackathon->slug}.pdf");
+    }
 }

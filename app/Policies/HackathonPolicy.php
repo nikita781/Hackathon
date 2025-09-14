@@ -164,4 +164,13 @@ class HackathonPolicy
     {
         return $user->teams()->where('hackathon_id', $hackathon->id)?->first()?->place <= 3;
     }
+
+    public function downloadReport(User $user, Hackathon $hackathon): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $user->hackathons()->where('hackathon_id', $hackathon->id)->wherePivot('role_id', Role::JUDGE)->exists();
+    }
 }

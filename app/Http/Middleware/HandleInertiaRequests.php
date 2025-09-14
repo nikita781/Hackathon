@@ -47,7 +47,7 @@ class HandleInertiaRequests extends Middleware
                 'unread' => $request->user()?->unreadNotifications()->exists(),
             ],
             'can' => [
-                'admin' => Gate::authorize('moderate', Hackathon::class),
+                'admin' => Gate::check('moderate', Hackathon::class),
             ],
         ]);
     }

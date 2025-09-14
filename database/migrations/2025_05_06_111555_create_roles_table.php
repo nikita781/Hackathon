@@ -66,6 +66,7 @@ return new class extends Migration
         ]);
 
         $organizer->assignedRole(Role::ORGANIZER);
+        $organizer->assignedRole(Role::MEMBER);
 
         $judge = User::create([
             'name' => 'Судья',
@@ -74,6 +75,7 @@ return new class extends Migration
         ]);
 
         $judge->assignedRole(Role::JUDGE);
+        $judge->assignedRole(Role::MEMBER);
 
         $mentor = User::create([
             'name' => 'Ментор',
@@ -82,6 +84,7 @@ return new class extends Migration
         ]);
 
         $mentor->assignedRole(Role::MENTOR);
+        $mentor->assignedRole(Role::MEMBER);
 
         $member = User::create([
             'name' => 'Участник',

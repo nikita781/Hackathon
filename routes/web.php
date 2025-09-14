@@ -129,6 +129,7 @@ Route::middleware('auth')->group(function () {
             });
 
             Route::get('/download-users', [HackathonController::class, 'downloadUsers'])->name('download-users');
+            Route::get('/download-report', [PdfController::class, 'protocol'])->name('download-report');
             Route::get('/certificate', [PdfController::class, 'certificate'])->name('certificate');
         });
     });
