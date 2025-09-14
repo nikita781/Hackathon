@@ -214,7 +214,7 @@ onMounted(async () => {
                 <tr v-for="u in rows" :key="u.id">
                     <td>{{ u.nickname ?? '—' }}</td>
                     <td>{{ u.id }}</td>
-                    <td>{{ u.roles?.[0]?.title ?? u.roles?.[0]?.name ?? '—' }}</td>
+                    <td><p v-for="role in u.roles" :key="role.id">{{ role.title }}<br></p></td>
                     <td>{{ [u.surname, u.name, u.patronymic].filter(Boolean).join(' ') || '—' }}</td>
                     <td>{{ u.date_of_birth ?? '—' }}</td>
                     <td>{{ u.email ?? '—' }}</td>

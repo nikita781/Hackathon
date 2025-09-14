@@ -46,10 +46,7 @@ async function save() {
     if (pending.value) return
     const roles = [...new Set(picks.value.filter(v => v != null))]
 
-    if (!roles.length) {
-        alert('У пользователя должна быть хотя бы одна роль')
-        return
-    }
+    console.log(roles)
 
     try {
         pending.value = true
