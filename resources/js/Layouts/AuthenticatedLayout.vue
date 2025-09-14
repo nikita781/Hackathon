@@ -16,13 +16,13 @@ const showingNavigationDropdown = ref(false);
     <div>
         <div class="min-h-screen bg-gray-100">
             <div class="layout">
-                <Header/>
+                <Header style="z-index: 2"/>
 
                 <main class="layout__main">
                     <slot/>
                 </main>
 
-                <Footer />
+                <Footer style="z-index: 2"/>
             </div>
         </div>
     </div>

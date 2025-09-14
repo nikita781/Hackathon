@@ -1,0 +1,105 @@
+.sidebar {
+    position: fixed;
+    left: -168px;
+    top: 0;
+    height: 100%;
+    width: 356px;
+    background-color: #101011;
+    transition: left .35s cubic-bezier(.2,.7,.2,1);
+    z-index: 1;
+
+    &:hover { left: 0; }
+}
+
+
+.sidebar-menu {
+    margin-top: 126px;
+    padding-top: 20px;
+
+    &__container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        margin-right: 20px;
+        gap: 10px;
+    }
+
+    &__item {
+        width: 42px;
+        padding: 12px 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-radius: 100px;
+        text-decoration: none;
+        overflow: hidden;
+        transition: width .35s cubic-bezier(.2,.7,.2,1), background-color .2s;
+
+        &.active { background-color: #F80024; }
+    }
+
+    .sidebar:hover &__item { width: 236px; }
+
+    &__label {
+        margin: 0;
+        color: #fff;
+        text-transform: uppercase;
+        font-family: Cera Bold;
+
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 0;
+        opacity: 0;
+        transform: translateX(-4px);
+        transition:
+            max-width .35s cubic-bezier(.2,.7,.2,1),
+            opacity   .25s ease,
+            transform .35s cubic-bezier(.2,.7,.2,1);
+    }
+
+    .sidebar:hover &__label {
+        max-width: 160px;
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.main-content { transition: margin-left .35s cubic-bezier(.2,.7,.2,1); }
+.sidebar:hover + .main-content { margin-left: 250px; }
+
+.admin {
+    &__content {
+        margin: 0 auto;
+        max-width: 1142px;
+        padding: 60px 80px 100px 220px;
+    }
+    &__table{
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+
+        thead th{
+            background: #E80024;
+            color:#fff;
+            text-transform: uppercase;
+            font-family: "Cera Bold", sans-serif;
+            padding: 13.5px 16px;
+            line-height: 1;
+            text-align: start;
+        }
+
+        thead th:first-child{
+            border-top-left-radius: 100px;
+            border-bottom-left-radius: 100px;
+        }
+        thead th:last-child{
+            border-top-right-radius: 100px;
+            border-bottom-right-radius: 100px;
+        }
+
+        tbody td{
+            padding: 14px 16px;
+            border-bottom: 1px solid #999;
+        }
+    }
+}

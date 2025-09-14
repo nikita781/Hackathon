@@ -8,6 +8,7 @@
 @import './notification.scss';
 @import './error.scss';
 @import './project.scss';
+@import './admin.scss';
 
 /*@tailwind base;*/
 /*@tailwind components;*/
