@@ -35,7 +35,7 @@ class AdminController extends Controller
         $perPage = min($request->get('per_page', 12), 12);
 
         $hackathons = Hackathon::adminFilter($request)
-            ->with('owner')
+            ->with('owner', 'tags')
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
