@@ -229,19 +229,19 @@ class AdminController extends Controller
         Gate::authorize('changeRoles', User::class);
 
         $data = $request->validate([
-            'roles' => ['required', 'array'],
+            'roles'   => [
+                'required',
+                'array',
+                function ($attribute, $value, $fail) {
+                    if (empty($value)) {
+                        $fail('У пользователя должна быть хотя бы одна роль.');
+                    }
+                },
+            ],
             'roles.*' => ['integer', 'exists:roles,id'],
         ]);
 
-        $newRoles = $data['roles'];
-
-        $currentRoles = $user->roles()->pluck('id')->toArray();
-
-        if (empty($newRoles)) {
-            return back()->with('error', 'У пользователя должна быть хотя бы одна роль');
-        }
-
-        $user->roles()->sync($newRoles);
+        $user->roles()->sync($data['roles']);
 
         return back()->with('status', 'Роли пользователя изменены');
     }
