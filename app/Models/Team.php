@@ -58,13 +58,15 @@ class Team extends Model
         });
 
         $query->when($request->status, function ($q, $status) {
-            if ($status === Project::PUBLISHED) {
-                $q->whereHas('projects', fn($q) => $q->where('status', $status));
-            }
-
-            if ($status === Project::DRAFT) {
-                $q->whereHas('projects', fn($q) => $q->where('status', Project::DRAFT)->orWhere('status', Project::BLOCKED)->orWhere('status', Project::MODERATION));
-            }
+            $q->when($status, function ($q, $status) {
+                $q->whereHas('projects', function ($query) use ($status) {
+                    if ($status == Project::PUBLISHED) {
+                        $query->where('status', Project::PUBLISHED);
+                    } else {
+                        $query->whereIn('status', [Project::DRAFT, Project::MODERATION, Project::BLOCKED]);
+                    }
+                });
+            });
         });
 
         $query->when($request->order, function ($q, $order) {
