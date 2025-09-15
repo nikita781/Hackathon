@@ -202,7 +202,6 @@ class HackathonController extends Controller
 
         $hackathonResource = new HackathonResource($hackathon);
         $tabsResource = TabResource::collection($tabs)->additional(['hackathon' => $hackathon->id]);
-        $teamsResource = $teams->isNotEmpty() ? TeamResource::collection($teams) : null;
         $ownTeamResource = $ownTeam ? new TeamResource($ownTeam) : null;
         $allProjects = $teams->isNotEmpty() ? ProjectResource::collection($hackathon->allProjects()->paginate($perPageProject)) : null;
         $positionsResource = PositionResource::collection($positions);
@@ -214,7 +213,6 @@ class HackathonController extends Controller
             return response()->json([
                 "hackathon" => $hackathonResource->response(),
                 "tabs" => $tabsResource->response(),
-                "teams" => optional($teamsResource)->response(),
                 "ownTeam" => optional($ownTeamResource)->response(),
                 "allProjects" => optional($allProjects)->response(),
                 "positions" => $positionsResource->response(),
@@ -224,7 +222,6 @@ class HackathonController extends Controller
         return Inertia::render('Hackathon/Show', [
             'hackathon' => $hackathonResource,
             'tabs' => $tabsResource,
-            'teams' => $teamsResource,
             'ownTeam' => $ownTeamResource,
             'positions' => $positionsResource,
             'hackathonStaff' => $hackathonStaff,
@@ -239,7 +236,8 @@ class HackathonController extends Controller
                     'delete' => Gate::check('delete', $hackathon),
                     'viewTask' => Gate::check('viewTask', $hackathon),
                     'rate' => Gate::check('evaluation', $hackathon),
-                    'moderate' => Gate::check('moderate', Hackathon::class)
+                    'moderate' => Gate::check('moderate', Hackathon::class),
+                    'is_staff' => $isStaffHackathon,
                 ],
                 'team' => [
                     'update' => Gate::check('update', $ownTeam),

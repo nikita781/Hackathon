@@ -51,6 +51,10 @@ class HackathonPolicy
             return true;
         }
 
+        if ($hackathon->event_end < now()) {
+            return false;
+        }
+
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 

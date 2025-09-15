@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
 
 class TeamController extends Controller
 {
-    public function index(Request $request, Hackathon $hackathon)
+    public function index(Request $request, Hackathon $hackathon): JsonResponse
     {
         if (!Gate::check('viewAll', [Team::class, $hackathon])) {
             abort(403);

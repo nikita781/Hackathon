@@ -49,7 +49,7 @@ class ProjectPolicy
 
     public function createProject(User $user, Hackathon $hackathon): bool
     {
-        if ($hackathon->event_end->lessThan(now()) || $hackathon->event_start->greaterThan(now())) {
+        if ($hackathon->work_time_start > now() && $hackathon->work_time_end < now()) {
             return false;
         }
 
