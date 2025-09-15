@@ -11,6 +11,7 @@ const props = defineProps({
     hackathon : { type: Array,   default : () => [] },
     tabs: { type: Array,   default : () => [] },
     allProjects: { type: Array,   default : () => [] },
+    can: { type: Array,   default : () => [] },
 })
 
 const showEditTeam = ref(false)
@@ -90,6 +91,7 @@ onMounted(async () => {
                     type="button"
                     class="main__btn_main hackathon__btn"
                     @click="isForm = true"
+                    v-if="props.can.project.createProject"
                 >
                     Создать
                 </button>
@@ -129,6 +131,7 @@ onMounted(async () => {
                     type="button"
                     class="main__btn_main hackathon__my-project__team_svg"
                     @click="showEditTeam = true"
+                    v-if="props.can.team.update"
                 >
                     <IconsPencilMyProject
                     />
@@ -154,6 +157,8 @@ onMounted(async () => {
                 type="button"
                 class="main__btn_main hackathon__btn"
                 @click="showInvitation = true"
+                v-if="props.can.team.invite
+"
             >
                 Пригласить в команду
             </button>

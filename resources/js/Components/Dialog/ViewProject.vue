@@ -72,8 +72,8 @@ async function getGallery(slugId) {
 }
 
 function close()   { emit('update:modelValue', false) }
-function approve() { emit('approve', props.project) }
-function rejectP() { emit('reject',  props.project) }
+function approve() { emit('approve', props.project); close() }
+function rejectP() { emit('reject',  props.project); close() }
 </script>
 
 <template>

@@ -47,7 +47,7 @@ const availableTabs = computed(() => {
         {key: 'managers', title: 'Управляющие', noVisible: !props.can?.hackathon?.update},
         {key: 'rate', title: 'Оценить', noVisible: !props.can?.hackathon?.rate},
         {key: 'project', title: 'Мой проект', blocked: !props.can?.project.createProject},
-        {key: 'gallery', title: 'Галерея проектов'},
+        {key: 'gallery', title: 'Галерея проектов', blocked: !props.can?.project.viewAll},
         {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
         {key: 'rules', title: 'Правила', blocked: false},
         {key: 'contacts', title: 'Контакты', blocked: false},

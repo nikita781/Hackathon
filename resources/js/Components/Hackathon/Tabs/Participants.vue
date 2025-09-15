@@ -50,8 +50,8 @@ const filterGroups = ref([
         name: 'status',
         label: 'Статус работы',
         options: [
-            { label: 'Черновик',     value: 'draft'     },
-            { label: 'Опубликована', value: 'published' },
+            { label: 'Черновик',     value: 1 },
+            { label: 'Опубликована', value: 3 },
         ],
     },
 ])
@@ -102,6 +102,7 @@ function makePaginationLinks(current, last) {
 async function fetchTeams(page = 1) {
     if (!slug.value) return
     loading.value = true; error.value = ''
+    console.log(buildParams(page))
     try {
         const { data } = await axios.get(
             route('hackathons.teams.index', { hackathon: slug.value }),
