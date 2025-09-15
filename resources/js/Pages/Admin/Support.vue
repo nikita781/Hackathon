@@ -185,14 +185,14 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
                     </thead>
                     <tbody>
                     <tr v-for="s in rows" :key="s.id">
-                        <td>{{ s.messages[0].user_id }}</td>
+                        <td v-if="s.messages[0]">{{ s.messages[0].user_id }}</td>
                         <td>
                             <p v-if="s.type === 'bug'">Сообщение об ошибке</p>
                             <p v-if="s.type === 'suggestion'">Предложение</p>
                             <p v-if="s.type === 'question'">Вопрос</p>
                         </td>
                         <td>{{ formatDate(s.created_at) }}</td>
-                        <td>
+                        <td v-if="s.messages[0]">
                             <a :href="`/hackathons/${s.messages[0].user.slug}`">{{ s.messages[0].user.slug }}</a>
                         </td>
                     </tr>
