@@ -148,7 +148,7 @@ class AdminController extends Controller
         ]);
 
         $project->update([
-            'status' => Project::BLOCKED,
+            'status' => Project::PUBLISHED,
             'published_time' => Carbon::now(),
             'comment' => $comment
         ]);
