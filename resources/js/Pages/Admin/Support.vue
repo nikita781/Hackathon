@@ -56,7 +56,7 @@ function onResize() {
 
 // ------- Поиск + Фильтры
 const search = ref(props.filters.q ?? "")
-const order = ref(props.filters.order ?? "createdD")
+const order = ref(props.filters.order ?? "dateD")
 const selected = ref({
     types: props.filters.types ? String(props.filters.types).split(",") : [], // ['question','suggestion','bug']
 })

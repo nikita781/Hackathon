@@ -5,10 +5,11 @@ import {useToast} from "vue-toastification";
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
     hackathonSlug: { type: String, required: true },
+    org: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue", "sent"]);
 
-const type = ref('question');
+const type = ref('bug');
 const textAppeal = ref('');
 const pending = ref(false);
 const errorMsg = ref('');
@@ -69,7 +70,7 @@ async function submitAppeal() {
                     />
                 </svg></div>
             </div>
-            <div class="dialog__component">
+            <div class="dialog__component" v-if="!props.org">
                 <p class="dialog__title">Выберите тему обращения</p>
                 <select
                     v-model="type"
