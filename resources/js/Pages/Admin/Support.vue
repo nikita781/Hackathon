@@ -242,6 +242,7 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
         <AnswerSupport
             v-model="showAnswer"
             :message="messageAnswer"
+            :admin="true"
         />
     </AuthenticatedLayout>
 </template>

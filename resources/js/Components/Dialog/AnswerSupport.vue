@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed } from "vue";
+import {ref, computed, watch} from "vue";
 import {useToast} from "vue-toastification";
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
     message: { type: Array, required: true },
     can: { type: Boolean, default: true },
+    admin: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue", "sent"]);
 
@@ -14,8 +15,17 @@ const pending = ref(false);
 const errorMsg = ref('');
 
 const toast = useToast();
+const isAdmin = ref(true);
 
 const isDisabled = computed(() => pending.value || !textAppeal.value.trim());
+
+watch(() => props.modelValue, () => {
+    isAdmin.value = true;
+    if (props.admin && props.message.messages[1]) {
+        console.log(props.message.messages[1])
+        isAdmin.value = false;
+    }
+});
 
 function reset() {
     textAppeal.value = '';
@@ -106,7 +116,7 @@ async function submitAppeal() {
                 <p v-if="errorMsg" style="color:#e74c3c; margin-top:8px;">{{ errorMsg }}</p>
             </div>
 <!--            {{props.can}}-->
-            <div class="dialog__btns" v-if="props.can">
+            <div class="dialog__btns" v-if="props.can && isAdmin">
                 <button class="main__btn main__btn_white dialog__btn" @click="close" :disabled="pending">
                     Отменить
                 </button>
