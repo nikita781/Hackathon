@@ -92,20 +92,20 @@ class Project extends Model implements HasMedia
     public function scopeAdminFilter(Builder $query, $request): Builder
     {
         $query->when($request->q, function ($q, $search) {
-            $q->where('title', 'ILIKE', '%' . $search . '%');
+            $q->where('projects.title', 'ILIKE', '%' . $search . '%');
         });
 
         $query->when($request->status, function ($q, $status) {
             $status = is_array($status) ? $status : explode(',', $status);
-            $q->whereIn('status', $status);
+            $q->whereIn('projects.status', $status);
         });
 
         $query->when($request->order, function ($q, $order) {
             return match ($order) {
-                'dateA' => $q->orderBy('created_at', 'asc'),
-                'dateD' => $q->orderBy('created_at', 'desc'),
-                'titleA' => $q->orderBy('title', 'asc'),
-                'titleD' => $q->orderBy('title', 'desc'),
+                'dateA' => $q->orderBy('projects.created_at', 'asc'),
+                'dateD' => $q->orderBy('projects.created_at', 'desc'),
+                'titleA' => $q->orderBy('projects.title', 'asc'),
+                'titleD' => $q->orderBy('projects.title', 'desc'),
                 default => $q,
             };
         });

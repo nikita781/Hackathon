@@ -33,7 +33,7 @@ class Team extends Model
         return $this->hasMany(TeamUser::class);
     }
 
-    public function captain(): BelongsTo
+    public function captain(): mixed
     {
         return $this->users()->wherePivot('position_id', Position::CAPITAN_POSITION)->first();
     }
