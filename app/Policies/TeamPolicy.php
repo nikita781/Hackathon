@@ -24,7 +24,7 @@ class TeamPolicy
 
     public function view(?User $user, Team $team): bool
     {
-        return true;
+        return $user?->teams()->where('teams.id', $team->id)->exists() ?? false;
     }
 
     public function update(User $user, Team $team): bool

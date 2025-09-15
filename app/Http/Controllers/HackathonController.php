@@ -240,6 +240,7 @@ class HackathonController extends Controller
                     'is_staff' => $isStaffHackathon,
                 ],
                 'team' => [
+                    'view' => Gate::check('view', $ownTeam),
                     'update' => Gate::check('update', $ownTeam),
                     'kick' => Gate::check('kick', $ownTeam),
                     'joinTeam' => Gate::check('joinTeam', $ownTeam),

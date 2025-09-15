@@ -41,6 +41,8 @@ class ProjectsController extends Controller
             abort(404);
         }
 
+
+
         return response()->json([
             'projects' => ProjectResource::collection($team->projects()->with(['team.teamUsers.position', 'team.teamUsers.user'])->get()),
         ]);
