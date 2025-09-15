@@ -242,7 +242,7 @@ onBeforeUnmount(() => {
                 </a>
             </div>
 
-<!--            <pre>{{rows}}</pre>-->
+            <pre>{{rows}}</pre>
 
             <Pagination style="margin-top: 30px" :links="pageLinks" />
         </div>

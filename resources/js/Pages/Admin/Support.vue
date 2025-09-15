@@ -12,10 +12,18 @@ import {useLangStore} from "@/store/lang.js"
 import {router} from "@inertiajs/vue3"
 import {computed, nextTick, onMounted, onBeforeUnmount, ref, watch} from "vue"
 import debounce from "lodash.debounce"
+import AnswerSupport from "@/Components/Dialog/AnswerSupport.vue";
 
 const langStore = useLangStore()
 
 const showFilter = ref(false);
+const showAnswer = ref(false);
+const messageAnswer = ref([]);
+
+function openAnswer(message) {
+    messageAnswer.value = message;
+    showAnswer.value = true;
+}
 
 // серверные пропсы
 const props = defineProps({
@@ -82,12 +90,30 @@ const withQ = (url) => {
     })
     return url + (url.includes("?") ? "&" : "?") + usp.toString()
 }
-const pageLinks = computed(() => (props.support?.links ?? []).map(l => ({...l, url: withQ(l.url)})))
+const pageLinks = computed(() => {
+    if (props.support?.meta?.links) {
+        return props.support.meta.links.map(link => ({
+            ...link,
+            url: withQ(link.url)
+        }));
+    }
+    return [];
+});
 
-function formatDate(s) {
+function formatDate(s, { utc = false } = {}) {
     if (!s) return "—"
     const d = new Date(s)
-    return isNaN(+d) ? "—" : d.toLocaleString("ru-RU", {day: "2-digit", month: "2-digit", year: "numeric"})
+    if (isNaN(+d)) return "—"
+
+    const pad = n => String(n).padStart(2, "0")
+
+    const dd = pad(utc ? d.getUTCDate()    : d.getDate())
+    const mm = pad((utc ? d.getUTCMonth()  : d.getMonth()) + 1)
+    const yy = (utc ? d.getUTCFullYear()   : d.getFullYear())
+    const HH = pad(utc ? d.getUTCHours()   : d.getHours())
+    const MM = pad(utc ? d.getUTCMinutes() : d.getMinutes())
+
+    return `${dd}.${mm}.${yy} ${HH}:${MM}`
 }
 
 function openRow(s) {
@@ -180,27 +206,27 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
                         <th>Автор</th>
                         <th>Тип</th>
                         <th>Дата создания</th>
-                        <th>Хакатон</th>
+                        <th>Ссылка на хакатон</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="s in rows" :key="s.id">
-                        <td v-if="s.messages[0]">{{ s.messages[0].user_id }}</td>
+                    <tr v-for="s in rows" :key="s.id" @click="openAnswer(s)">
+                        <td>{{ s.creator.name }}</td>
                         <td>
                             <p v-if="s.type === 'bug'">Сообщение об ошибке</p>
                             <p v-if="s.type === 'suggestion'">Предложение</p>
                             <p v-if="s.type === 'question'">Вопрос</p>
                         </td>
                         <td>{{ formatDate(s.created_at) }}</td>
-                        <td v-if="s.messages[0]">
-                            <a :href="`/hackathons/${s.messages[0].user.slug}`">{{ s.messages[0].user.slug }}</a>
+                        <td @click.stop>
+                            <a :href="`/hackathons/${s.hackathon.slug}`">{{ s.hackathon.slug }}</a>
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
 
-            <pre>{{rows}}</pre>
+<!--            <pre>{{props.support}}</pre>-->
 
             <Pagination style="margin-top: 30px" :links="pageLinks"/>
         </div>
@@ -211,6 +237,11 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
             :selected="selected"
             @apply="({ order:ord, selected:sel }) => { order = ord; selected = sel; runQuery() }"
             @reset="() => { order='createdD'; selected={types:[]}; search=''; runQuery() }"
+        />
+
+        <AnswerSupport
+            v-model="showAnswer"
+            :message="messageAnswer"
         />
     </AuthenticatedLayout>
 </template>

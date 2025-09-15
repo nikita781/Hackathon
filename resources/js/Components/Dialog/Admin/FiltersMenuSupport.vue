@@ -3,7 +3,7 @@ import { reactive, watch } from "vue"
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
-    order: { type: String, default: "createdD" },
+    order: { type: String, default: "dateD" },
     selected: { type: Object, default: () => ({ types: [] }) }, // ['question','suggestion','bug']
 })
 const emit = defineEmits(["update:modelValue","apply","reset"])
@@ -28,7 +28,7 @@ function apply(){
     close()
 }
 function reset(){
-    state.order = "createdD"
+    state.order = "dateD"
     state.types = []
     emit("reset")
     close()
@@ -50,8 +50,8 @@ function reset(){
             <div class="dialog__component">
                 <p class="main__filter_title">Сортировка</p>
                 <select v-model="state.order" class="main__cards_select dialog__select_black dialog__select">
-                    <option value="createdD">По дате создания ↓</option>
-                    <option value="createdA">По дате создания ↑</option>
+                    <option value="dateD">По дате создания ↓</option>
+                    <option value="dateA">По дате создания ↑</option>
                 </select>
             </div>
 
@@ -62,29 +62,29 @@ function reset(){
 
                         <div
                             class="main__filter_input"
-                            :class="{ active: state.types.includes('1') }"
-                            @click="toggleType('2')"
+                            :class="{ active: state.types.includes('question') }"
+                            @click="toggleType('question')"
                         >
                             <div class="custom-checkbox"></div>
-                            <p>На рассмотрении</p>
+                            <p>Вопрос</p>
                         </div>
 
                         <div
                             class="main__filter_input"
-                            :class="{ active: state.types.includes('2') }"
-                            @click="toggleType('3')"
+                            :class="{ active: state.types.includes('suggestion') }"
+                            @click="toggleType('suggestion')"
                         >
                             <div class="custom-checkbox"></div>
-                            <p>Принят</p>
+                            <p>Предложение</p>
                         </div>
 
                         <div
                             class="main__filter_input"
-                            :class="{ active: state.types.includes('3') }"
-                            @click="toggleType('4')"
+                            :class="{ active: state.types.includes('bug') }"
+                            @click="toggleType('bug')"
                         >
                             <div class="custom-checkbox"></div>
-                            <p>Отклонен</p>
+                            <p>Сообщение об ошибке</p>
                         </div>
                     </div>
                 </div>
