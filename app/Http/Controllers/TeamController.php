@@ -30,7 +30,7 @@ class TeamController extends Controller
 
         return response()->json([
             'teams' => TeamResource::collection($hackathon->allTeams()->filter($request)->paginate($perPage)),
-            'count' => $hackathon->countTeams(),
+            'count' => $hackathon->countTeams($request),
         ]);
     }
 

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
@@ -96,9 +97,9 @@ class Hackathon extends Model implements HasMedia
         return $this->teams();
     }
 
-    public function countTeams(): int
+    public function countTeams(Request $request): int
     {
-        return $this->teams()->count();
+        return $this->teams()->filter($request)->count();
     }
 
     public function getAllHackathonStaff(): Collection
