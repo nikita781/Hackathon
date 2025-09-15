@@ -49,6 +49,10 @@ class ProjectPolicy
 
     public function createProject(User $user, Hackathon $hackathon): bool
     {
+        if ($hackathon->event_end->lessThan(now()) || $hackathon->event_start->greaterThan(now())) {
+            return false;
+        }
+
         return $user->isCapitanOfHackathon($hackathon);
     }
 
