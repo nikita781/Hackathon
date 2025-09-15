@@ -10,10 +10,12 @@ import {useLangStore} from "@/store/lang.js";
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
-    allTags  : { type:Array, default:() => [] }
+    allTags  : { type:Array, default:() => [] },
+    admin      : { type:Boolean, default:() => false },
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
 
+const isAdmin = computed(() => !!props.admin)
 const langStore = useLangStore()
 
 const awards = ref([])
@@ -160,7 +162,7 @@ function capitalizeFirstLetter(str) {
         :default-type="defaultType"
         @saved="onSaved"
     />
-    <div class="dialog__btns">
+    <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
         <button class="main__btn" @click="askDone">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>

@@ -1,6 +1,6 @@
 <script setup>
 import EditorField from "@/Components/EditorField.vue";
-import {nextTick, onMounted, ref, watch} from "vue";
+import {computed, nextTick, onMounted, ref, watch} from "vue";
 import DropPDFs from "@/Components/DropPDFs.vue";
 import {router, useForm} from "@inertiajs/vue3";
 import {useLangStore} from "@/store/lang.js";
@@ -9,9 +9,12 @@ const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
     allTags  : { type:Array, default:() => [] },
-    isEdit   : { type:Boolean, default:false }
+    isEdit   : { type:Boolean, default:false },
+    admin      : { type:Boolean, default:() => false },
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const isAdmin = computed(() => !!props.admin)
 
 const rulesText = ref(null)
 const rulesFiles = ref([])
@@ -174,7 +177,7 @@ onMounted(async () => {
             @deleting-ids="handleDeletingIds"
         />
     </div>
-    <div class="dialog__btns">
+    <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
         <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>

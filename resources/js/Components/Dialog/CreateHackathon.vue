@@ -16,7 +16,9 @@ const props = defineProps({
     hackathon  : { type:Array, default:() => [] },
     tabs       : { type:Array, default:() => [] },
     tags       : { type:Array, default:() => [] },
+    admin      : { type:Boolean, default:() => false },
 })
+const isAdmin = computed(() => !!props.admin)
 
 const langStore = useLangStore()
 
@@ -186,7 +188,7 @@ onMounted(async () => {
                     </div>
                 </div>
             </div>
-            <div class="dialog__content">
+            <div class="dialog__content" :class="{ 'is-readonly': isAdmin }">
                 <keep-alive>
                     <component
                         :is="tabs[active]"
@@ -197,6 +199,7 @@ onMounted(async () => {
                         @saved="onTabSaved"
                         @cancel="close"
                         @dirty="onDirty"
+                        :admin="props.admin"
                     />
                 </keep-alive>
             </div>

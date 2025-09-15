@@ -1,0 +1,103 @@
+<script setup>
+import { reactive, watch } from "vue"
+
+const props = defineProps({
+    modelValue: { type: Boolean, default: false },
+    order: { type: String, default: "createdD" },
+    selected: { type: Object, default: () => ({ types: [] }) }, // ['question','suggestion','bug']
+})
+const emit = defineEmits(["update:modelValue","apply","reset"])
+
+const state = reactive({
+    shown: props.modelValue,
+    order: props.order,
+    types: Array.isArray(props.selected?.types) ? [...props.selected.types] : [],
+})
+
+watch(() => props.modelValue, v => state.shown = v)
+watch(() => props.order, v => state.order = v)
+watch(() => props.selected, v => state.types = Array.isArray(v?.types) ? [...v.types] : [])
+
+function close(){ emit("update:modelValue", false) }
+function toggleType(val){
+    const i = state.types.indexOf(val)
+    if (i === -1) state.types.push(val); else state.types.splice(i,1)
+}
+function apply(){
+    emit("apply", { order: state.order, selected:{ types: state.types } })
+    close()
+}
+function reset(){
+    state.order = "createdD"
+    state.types = []
+    emit("reset")
+    close()
+}
+</script>
+
+<template>
+    <div v-if="state.shown" class="dialog" style="z-index:2" @click.self="close">
+        <div class="dialog__container dialog__container_x-small" @click.stop>
+            <div class="dialog__header">
+                <p>Фильтр</p>
+                <div class="dialog__close" @click="close">
+                    <svg width="13" height="12" viewBox="0 0 13 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.91 6l4.3-4.29A1 1 0 0011.5-0c-.27 0-.53.11-.71.29L6.5 4.59 2.21.29A1 1 0 10.79 1.71L5.09 6 .79 10.29a1 1 0 101.42 1.42L6.5 7.41l4.29 4.3a1 1 0 001.42-1.42L7.91 6z" fill="#999"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="dialog__component">
+                <p class="main__filter_title">Сортировка</p>
+                <select v-model="state.order" class="main__cards_select dialog__select_black dialog__select">
+                    <option value="createdD">По дате создания ↓</option>
+                    <option value="createdA">По дате создания ↑</option>
+                </select>
+            </div>
+
+            <div class="dialog__component">
+                <div class="main__filter">
+                    <div class="main__filter_item">
+                        <p class="main__filter_title">Тип обращения</p>
+
+                        <div
+                            class="main__filter_input"
+                            :class="{ active: state.types.includes('1') }"
+                            @click="toggleType('2')"
+                        >
+                            <div class="custom-checkbox"></div>
+                            <p>На рассмотрении</p>
+                        </div>
+
+                        <div
+                            class="main__filter_input"
+                            :class="{ active: state.types.includes('2') }"
+                            @click="toggleType('3')"
+                        >
+                            <div class="custom-checkbox"></div>
+                            <p>Принят</p>
+                        </div>
+
+                        <div
+                            class="main__filter_input"
+                            :class="{ active: state.types.includes('3') }"
+                            @click="toggleType('4')"
+                        >
+                            <div class="custom-checkbox"></div>
+                            <p>Отклонен</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dialog__btns">
+                <button class="main__btn main__btn_white dialog__btn" @click="reset">Сбросить</button>
+                <button class="main__btn dialog__btn" @click="apply">Применить</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style scoped>
+
+</style>

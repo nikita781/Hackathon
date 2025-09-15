@@ -1,5 +1,5 @@
 <script setup>
-import {nextTick, onMounted, ref, watch} from 'vue'
+import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import CreateEvaluation from '@/Components/Dialog/CreateEvaluation.vue'
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import IconsPencil from "@/Components/Icons/Pencil.vue";
@@ -9,9 +9,12 @@ import {useLangStore} from "@/store/lang.js";
 const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
-    allTags       : { type:Array, default:() => [] }
+    allTags       : { type:Array, default:() => [] },
+    admin      : { type:Boolean, default:() => false },
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const isAdmin = computed(() => !!props.admin)
 
 const langStore = useLangStore()
 
@@ -183,7 +186,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
         @saved="onSaved"
     />
 
-    <div class="dialog__btns">
+    <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
         <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>

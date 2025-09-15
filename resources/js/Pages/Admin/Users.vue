@@ -144,21 +144,21 @@ onMounted(async () => {
             <div class="sidebar-menu">
                 <div class="sidebar-menu__container">
                     <div>
-                        <a href="#" class="sidebar-menu__item active">
+                        <a href="/admin/users" class="sidebar-menu__item active">
                             <p class="sidebar-menu__label"></p>
                             <UsersMenu/>
                             <p class="sidebar-menu__label">Пользователи</p>
                         </a>
                     </div>
                     <div>
-                        <a href="#" class="sidebar-menu__item">
+                        <a href="/admin/moderation/hackathons" class="sidebar-menu__item">
                             <p class="sidebar-menu__label"></p>
                             <PencilMenu/>
                             <p class="sidebar-menu__label">Модерация</p>
                         </a>
                     </div>
                     <div>
-                        <a href="#" class="sidebar-menu__item">
+                        <a href="/admin/support" class="sidebar-menu__item">
                             <p class="sidebar-menu__label"></p>
                             <MessageMenu/>
                             <p class="sidebar-menu__label">Обратная связь</p>
@@ -196,6 +196,7 @@ onMounted(async () => {
                 </button>
             </div>
 
+            <div class="admin__table_container">
             <table class="admin__table">
                 <thead>
                 <tr>
@@ -226,6 +227,7 @@ onMounted(async () => {
                 </tr>
                 </tbody>
             </table>
+            </div>
 
             <TableActionsMenu
                 :show="menu.show"

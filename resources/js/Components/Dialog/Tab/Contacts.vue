@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, nextTick, ref, watch } from 'vue'
+import {onMounted, nextTick, ref, watch, computed} from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
 import DialogContact from '@/Components/Dialog/CreateContact.vue'
 
@@ -11,9 +11,12 @@ const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
     allTags       : { type:Array, default:() => [] },
-    isEdit        : { type:Boolean, default:false }
+    isEdit        : { type:Boolean, default:false },
+    admin      : { type:Boolean, default:() => false },
 })
 const emit = defineEmits(['saved','cancel','dirty'])
+
+const isAdmin = computed(() => !!props.admin)
 
 const langStore = useLangStore()
 
@@ -207,7 +210,7 @@ function capitalizeFirstLetter(str) {
         @add="addItem"
         @update="updateItem"
     />
-    <div class="dialog__btns">
+    <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
         <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>

@@ -1,6 +1,6 @@
 <script setup>
 import EditorField from '@/Components/EditorField.vue'
-import {nextTick, onMounted, ref, watch} from "vue";
+import {computed, nextTick, onMounted, ref, watch} from "vue";
 import {router, useForm} from '@inertiajs/vue3'
 import DialogCreateNomination from "@/Components/Dialog/CreateNomination.vue";
 import IconsCup from "@/Components/Icons/Cup.vue";
@@ -14,9 +14,12 @@ const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
     allTags  : { type:Array, default:() => [] },
-    isEdit   : { type:Boolean, default:false }
+    isEdit   : { type:Boolean, default:false },
+    admin      : { type:Boolean, default:() => false },
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
+
+const isAdmin = computed(() => !!props.admin)
 
 const langStore = useLangStore()
 
@@ -296,7 +299,7 @@ onMounted(async () => {
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.partners) }}</p>
         <DropFiles :files="partnerLogos" @update:files="handleFilesUpdate" @deleting-ids="handleDeletingIds" />
     </div>
-    <div class="dialog__btns">
+    <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
         <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>

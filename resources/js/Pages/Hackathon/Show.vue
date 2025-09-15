@@ -1,10 +1,12 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import IconsArrow from '@/Components/Icons/Arrow.vue'
+import IconsEye from '@/Components/Icons/Eye.vue'
 import {computed, defineAsyncComponent, nextTick, onMounted, ref, watch} from "vue";
 import TakePart from "@/Components/Dialog/TakePart.vue";
 import { useToast } from 'vue-toastification';
 import DialogCreateHackathon from "@/Components/Dialog/CreateHackathon.vue";
+import RejectHackathon from "@/Components/Dialog/RejectHackathon.vue";
 
 const props = defineProps({
     hackathon: Object,
@@ -97,6 +99,10 @@ const joined = ref(props.is_join)
 const isOpen = ref(true)
 const showTakePart  = ref(false)
 const showUpdateHackathon  = ref(false)
+const adminMode = ref(false)
+const showRejectHackathon = ref(false)
+
+watch(showUpdateHackathon, (v) => { if (!v) adminMode.value = false })
 
 watch(() => props.is_join, v => (joined.value = v))
 
@@ -121,6 +127,30 @@ const closeMenu = ()=>{
         menuVisible.value = false;
         document.body.style.overflow = 'auto';
     }, 300);
+}
+
+
+function acceptHackathon() {
+    if (!props.can.hackathon.moderate) {
+        return
+    }
+
+    axios.post(route('admin.moderation.hackathonsaccept', { hackathon: props.hackathon.slug }), {
+        comment: ''
+    })
+        .then((response) => {
+            toast.success('Хакатон принят и опубликован', {
+                position: 'top-right',
+                timeout: 5000,
+            })
+        })
+        .catch((error) => {
+            console.error('Ошибка при принятии хакатона:', error)
+            toast.error('Не удалось принять хакатон', {
+                position: 'top-right',
+                timeout: 5000,
+            })
+        })
 }
 
 function formatDate(dateStr) {
@@ -208,23 +238,64 @@ function formatDate(dateStr) {
                                     {{ props.hackathon.prize_pool ? `${Number(props.hackathon.prize_pool).toLocaleString('ru-RU')} ₽` : 'Подарки' }}
                                 </p>
                             </div>
-                            <button
-                                type="button"
-                                class="main__btn_main hackathon__btn"
-                                @click="showTakePart = true"
-                                :class="{ main__btn_white: joined}"
-                                v-if="props.can.hackathon.join"
-                            >
-                                {{joined ? 'Отменить участие' : 'Принять участие'}}
-                            </button>
-                            <button
-                                type="button"
-                                class="main__btn_main hackathon__btn"
-                                @click="showUpdateHackathon = true"
-                                v-if="props.can.hackathon.update"
-                            >
-                                Редактировать
-                            </button>
+                            <div class="hackathon__header_admin-btns">
+                                <button
+                                    type="button"
+                                    class="main__btn_main hackathon__btn"
+                                    @click="showTakePart = true"
+                                    :class="{ main__btn_white: joined}"
+                                    v-if="props.can.hackathon.join"
+                                >
+                                    {{joined ? 'Отменить участие' : 'Принять участие'}}
+                                </button>
+                                <button
+                                    type="button"
+                                    class="main__btn_main hackathon__btn"
+                                    @click="adminMode = false; showUpdateHackathon = true"
+                                    v-if="props.can.hackathon.update && !props.can.hackathon.moderate"
+                                >
+                                    Редактировать
+                                </button>
+                                <button
+                                    type="button"
+                                    class="main__btn_main hackathon__btn hackathon__header_admin-eye"
+                                    @click="adminMode = true; showUpdateHackathon = true"
+                                    v-if="props.can.hackathon.moderate"
+                                >
+                                    <IconsEye class="admin__btn_filters"/>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="main__btn_main hackathon__btn"
+                                    @click="acceptHackathon"
+                                    v-if="props.can.hackathon.moderate && props.hackathon.status === 2"
+                                >
+                                    Принять
+                                </button>
+                                <button
+                                    type="button"
+                                    class="main__btn_main main__btn_white hackathon__btn"
+                                    v-if="props.can.hackathon.moderate && props.hackathon.status === 2"
+                                    @click="showRejectHackathon = true"
+                                >
+                                    Отклонить
+                                </button>
+                                <button
+                                    type="button"
+                                    class="main__btn hackathon__btn blocked"
+                                    v-if="props.can.hackathon.moderate && props.hackathon.status === 4"
+                                >
+                                    Отклонен
+                                </button>
+                                <button
+                                    type="button"
+                                    class="main__btn hackathon__btn blocked"
+                                    v-if="props.can.hackathon.moderate && props.hackathon.status === 3"
+                                    disabled
+                                >
+                                    Принят
+                                </button>
+                            </div>
                             <TakePart
                                 v-model="showTakePart"
                                 :is_join="joined"
@@ -237,6 +308,11 @@ function formatDate(dateStr) {
                                 :hackathon="props.hackathon"
                                 :tabs="props.tabs"
                                 :tags="props.tags ?? []"
+                                :admin="adminMode"
+                            />
+                            <RejectHackathon
+                                v-model="showRejectHackathon"
+                                :hackathon-slug="props.hackathon.slug"
                             />
                         </div>
                     </div>

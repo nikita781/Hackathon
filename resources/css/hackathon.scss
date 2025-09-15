@@ -35,6 +35,16 @@ $x-big: 1829.98px;
                 gap: 20px;
             }
         }
+        &_admin {
+            &-btns {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            &-eye {
+                padding: 8px;
+            }
+        }
         &_img {
             padding-right: 100px;
             @media screen and (max-width: $medium){

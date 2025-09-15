@@ -1,6 +1,6 @@
 <script setup>
 import DropFile   from '../../DropFile.vue'
-import {ref, toRaw, watch, onMounted, nextTick, onBeforeUnmount} from 'vue'
+import {ref, toRaw, watch, onMounted, nextTick, onBeforeUnmount, computed} from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import {useLangStore} from "@/store/lang.js";
 
@@ -8,9 +8,12 @@ const props = defineProps({
     hackathonSlug : { type:String, required:true },
     draft         : Object,
     allTags       : { type:Array,  default:() => [] },
-    isEdit   : { type:Boolean, default:false }
+    isEdit   : { type:Boolean, default:false },
+    admin      : { type:Boolean, default:() => false },
 })
 const emit = defineEmits(['saved','cancel','dirty'])
+
+const isAdmin = computed(() => !!props.admin)
 
 const loaded = ref(false)
 const dirty = ref(false)
@@ -304,7 +307,7 @@ onMounted(async () => {
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_card_preview) }}</p>
         <DropFile v-model:file="form.image_path"/>
     </div>
-    <div class="dialog__btns">
+    <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
         <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>

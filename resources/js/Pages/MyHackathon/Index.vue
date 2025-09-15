@@ -8,6 +8,8 @@ import debounce from 'lodash.debounce'
 import DialogCreateHackathon from '@/Components/Dialog/CreateHackathon.vue'
 import {useLangStore} from "@/store/lang.js";
 import {useNotificationsStore} from "@/store/notification.js";
+import {useToast} from "vue-toastification";
+import ResendHackathon from "@/Components/Dialog/ResendHackathon.vue";
 
 const props = defineProps({
     user: Object,
@@ -21,6 +23,7 @@ const props = defineProps({
 
 const langStore = useLangStore()
 const notificationsStore = useNotificationsStore()
+const toast = useToast();
 
 const search    = ref(usePage().props.query?.q     ?? '')
 const sort      = ref(usePage().props.query?.order ?? 'dateA')
@@ -115,6 +118,36 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+function getCommentText(raw) {
+    if (!raw) return '';
+    try {
+        const v = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (typeof v === 'string') return v;
+        if (v && typeof v.comment === 'string') return v.comment;
+        return '';
+    } catch (e) {
+        return String(raw);
+    }
+}
+
+const commentText = ref('');
+const resendSlug = ref('');
+const showResend = ref(false)
+
+async function publishHackathon(hackathon) {
+    if (hackathon.status === 1) {
+        await router.post(
+            route('hackathons.publish',
+                { hackathon: hackathon.slug })
+            )
+        toast.success('Хакатон отправлен на модерацию', { position:'top-right', timeout:5000 })
+    } else {
+        commentText.value = getCommentText(hackathon.comment)
+        resendSlug.value = hackathon.slug;
+        showResend.value = true;
+    }
+}
+
 </script>
 
 <template>
@@ -168,9 +201,22 @@ function capitalizeFirstLetter(str) {
                 <a v-for="hackathon in hackathons.data" :key="hackathon.id" class="main__card" :href="`/hackathons/${hackathon.slug}`">
                     <div class="main__card_photo">
                         <img :src="hackathon.image_path" alt="Photo">
+                        <p class="main__card_photo-status black" v-if="hackathon.status === 1 && props.can.create">Черновик</p>
+                        <p class="main__card_photo-status yellow" v-if="hackathon.status === 2 && props.can.create">На рассмотрении</p>
+                        <p class="main__card_photo-status red" v-else-if="hackathon.status === 4 && props.can.create">Отклонен</p>
+                        <p class="main__card_photo-status green" v-else-if="hackathon.status === 3 && props.can.create">Принят</p>
                     </div>
                     <div class="main__card_content">
-                        <p class="main__card_title">{{ hackathon.title }}</p>
+                        <div class="main__card_info-long">
+                            <p class="main__card_title">{{ hackathon.title }}</p>
+                            <button
+                                v-if="hackathon.status === 1 || hackathon.status === 4"
+                                class="main__btn_main"
+                                @click.stop.prevent="publishHackathon(hackathon)"
+                            >
+                                Опубликовать
+                            </button>
+                        </div>
                         <div class="main__card_info">
                             <div class="main__card_info-long">
                                 <div class="main__card_item">
@@ -238,6 +284,7 @@ function capitalizeFirstLetter(str) {
             </div>
             <Pagination :links="hackathons.meta.links" @navigate="go" style="margin-top: 30px" />
             <DialogCreateHackathon v-model="showDialog" :tags="props.tags ?? []"/>
+            <ResendHackathon v-model="showResend" :hackathon-slug="resendSlug" :comment-text="commentText" />
         </div>
     </AuthenticatedLayout>
 </template>

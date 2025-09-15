@@ -70,13 +70,20 @@
 .admin {
     &__content {
         margin: 0 auto;
-        max-width: 1142px;
-        padding: 60px 80px 100px 220px;
+        @media screen and (max-width: 1700px){
+            max-width: 1142px;
+            padding: 60px 80px 100px 220px;
+        }
+        max-width: 1280px;
+        padding: 60px 80px 100px 80px;
     }
     &__table{
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
+        &_container {
+            overflow-x: auto;
+        }
 
         thead th{
             background: #E80024;
@@ -100,6 +107,13 @@
         tbody td{
             padding: 14px 16px;
             border-bottom: 1px solid #999;
+        }
+    }
+    &__btn {
+        &_filters {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     }
 }
