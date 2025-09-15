@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
-use App\Http\Resources\ProjectResource;
+use App\Http\Resources\SupportResource;
 use App\Http\Resources\TagResource;
 use App\Models\Award;
 use App\Models\Banner;
@@ -22,7 +22,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
@@ -186,7 +185,7 @@ class AdminController extends Controller
             ->paginate(12);
 
         return Inertia::render('Admin/Support', [
-            'support' => $support,
+            'support' => SupportResource::collection($support),
         ]);
     }
 
