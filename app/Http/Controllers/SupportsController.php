@@ -30,7 +30,7 @@ class SupportsController extends Controller
         $user = auth()->user();
 
         if ($user->isHackathonStaff($hackathon)) {
-            $receivedSupportIds = $hackathon->support()->select('supports.id');
+            $receivedSupportIds = $hackathon->support()->where('type', Support::QUESTION)->orWhere('type', Support::SUGGESTION)->select('supports.id');
             $supportIds = $user->support()->where('hackathon_id', $hackathon->id)->select('supports.id');
 
             $receivedSupportGoing = Support::query()
