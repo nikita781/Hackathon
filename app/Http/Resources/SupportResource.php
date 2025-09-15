@@ -16,6 +16,8 @@ class SupportResource extends JsonResource
             'is_completed' => $this->is_completed,
             'closed_at' => $this->closed_at,
             'messages' => $this->whenLoaded('messages', SupportMessageResource::collection($this->messages)),
+            'hackathon' => $this->whenLoaded('hackathon', new HackathonResource($this->hackathon)),
+            'creator' => $this->whenLoaded('creator', new UserResource($this->creator)),
         ];
     }
 }

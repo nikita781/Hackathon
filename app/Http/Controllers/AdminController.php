@@ -179,8 +179,9 @@ class AdminController extends Controller
     {
         $support = Support::query()
             ->with('messages.user')
+            ->with('hackathon')
+            ->with('creator')
             ->filter($request)
-            ->where('is_completed', false)
             ->latest()
             ->paginate(12);
 
