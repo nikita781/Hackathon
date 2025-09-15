@@ -57,6 +57,7 @@ class AdminController extends Controller
             ->where('status', '!=', Hackathon::STATUS_DRAFT)
             ->with(['owner', 'tags'])
             ->withProjectCounts()
+            ->withUserCounts()
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
