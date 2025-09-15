@@ -159,14 +159,15 @@ Route::get('/banners/{banner}/media', [MediaController::class, 'showBanner'])->n
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::prefix('/moderation')->name('moderation.')->group(function () {
         Route::prefix('/hackathons')->name('hackathons')->group(function () {
-            Route::get('/', [AdminController::class, 'moderationHackathon'])->name('index');
+            Route::get('/', [AdminController::class, 'moderationHackathons'])->name('index');
             Route::prefix('/{hackathon}')->group(function () {
                 Route::post('/accept', [AdminController::class, 'acceptHackathon'])->name('accept');
                 Route::post('/reject', [AdminController::class, 'rejectHackathon'])->name('reject');
             });
         });
         Route::prefix('/projects')->name('projects')->group(function () {
-            Route::get('/', [AdminController::class, 'moderationProject'])->name('index');
+            Route::get('/', [AdminController::class, 'moderationProjectsHackathons'])->name('hackathons');
+            Route::get('/hackathon/{hackathon}', [AdminController::class, 'moderationProjects'])->name('hackathon');
             Route::prefix('/{project}')->group(function () {
                 Route::post('/accept', [AdminController::class, 'acceptProject'])->name('accept');
                 Route::post('/reject', [AdminController::class, 'rejectProject'])->name('reject');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
@@ -39,7 +40,11 @@ class HackathonResource extends JsonResource
             'tabs' => TabResource::collection($this->whenLoaded('tabs')),
             'awards' => AwardResource::collection($this->whenLoaded('awards')),
             'organizer' => new UserResource($this->whenLoaded('owner')),
-            'projects' => ProjectResource::collection($this->whenLoaded('allProjects'))
+            'projects' => ProjectResource::collection($this->whenLoaded('allProjects')),
+            'projects_count' => $this->all_projects_count,
+            'moderation_projects_count' => $this->moderation_projects_count,
+            'accepted_projects_count' => $this->accepted_projects_count,
+            'rejected_projects_count' => $this->rejected_projects_count,
         ];
     }
 }

@@ -74,6 +74,16 @@ class Hackathon extends Model implements HasMedia
         return $this->hasManyThrough(Project::class, Team::class);
     }
 
+    public function scopeWithProjectCounts(Builder $query): Builder
+    {
+        return $query->withCount([
+            'allProjects',
+            'allProjects as moderation_projects_count' => fn($q) => $q->where('status', Project::MODERATION),
+            'allProjects as accepted_projects_count'   => fn($q) => $q->where('status', Project::PUBLISHED),
+            'allProjects as rejected_projects_count'   => fn($q) => $q->where('status', Project::BLOCKED),
+        ]);
+    }
+
     public function allTeams(): HasMany
     {
         return $this->teams();

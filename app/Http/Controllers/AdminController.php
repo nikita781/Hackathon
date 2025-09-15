@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
+use App\Http\Resources\ProjectResource;
 use App\Http\Resources\SupportResource;
 use App\Http\Resources\TagResource;
 use App\Models\Award;
@@ -29,12 +30,13 @@ use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 
 class AdminController extends Controller
 {
-    public function moderationHackathon(Request $request): Response
+    public function moderationHackathons(Request $request): Response
     {
         $perPage = min($request->get('per_page', 12), 12);
 
         $hackathons = Hackathon::adminFilter($request)
-            ->with('owner', 'tags')
+            ->where('status', '!=', Hackathon::STATUS_DRAFT)
+            ->with(['owner', 'tags'])
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
@@ -47,27 +49,42 @@ class AdminController extends Controller
         ]);
     }
 
-    public function moderationProject(Request $request): Response
+    public function moderationProjectsHackathons(Request $request): Response
     {
         $perPage = min($request->get('per_page', 12), 12);
 
-        $hackathons = Hackathon::whereHas('allProjects', function ($query) use ($request) {
-            $query->adminFilter($request);
-        })
-            ->with([
-                'allProjects' => function ($query) use ($request) {
-                    $query->adminFilter($request);
-                }
-            ])
+        $hackathons = Hackathon::adminFilter($request)
+            ->where('status', '!=', Hackathon::STATUS_DRAFT)
+            ->with(['owner', 'tags'])
+            ->withProjectCounts()
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
 
-        return Inertia::render('Admin/Moderation/Project', [
+        return Inertia::render('Admin/Moderation/Projects/Hackathons', [
             'hackathons' => HackathonResource::collection($hackathons),
             'filters' => $request->only(
                 'q', 'status', 'order'
             ),
+        ]);
+    }
+
+    public function moderationProjects(Request $request, Hackathon $hackathon): Response
+    {
+        $perPage = min($request->get('per_page', 9), 9);
+
+        $projects = $hackathon->allProjects()
+            ->where('status', '!=', Project::DRAFT)
+            ->with(['team.teamUsers.user', 'team.teamUsers.position'])
+            ->adminFilter($request)
+            ->orderBy('moderated_time')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return Inertia::render('Admin/Moderation/Projects/List', [
+            'projects' => ProjectResource::collection($projects),
+            'hackathon' => new HackathonResource($hackathon),
+            'filters' => $request->only('q', 'status', 'order'),
         ]);
     }
 
@@ -178,6 +195,7 @@ class AdminController extends Controller
     public function support(Request $request): Response
     {
         $support = Support::query()
+            ->where('type', Support::BUG)
             ->with('messages.user')
             ->with('hackathon')
             ->with('creator')
