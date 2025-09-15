@@ -4,7 +4,7 @@ import { reactive, toRefs, watch } from "vue"
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
-    order: { type: String, default: 'createdD' },
+    order: { type: String, default: 'dateD' },
     selected: { type: Object, default: () => ({ status: [] }) },
 })
 const emit = defineEmits(['update:modelValue','apply','reset'])
@@ -29,7 +29,7 @@ function apply(){
     close()
 }
 function reset(){
-    state.order = 'createdD'
+    state.order = 'dateD'
     state.status = []
     emit('reset')
     close()
@@ -51,8 +51,8 @@ function reset(){
             <div class="dialog__component">
                 <p class="main__filter_title">Сортировка</p>
                 <select v-model="state.order" class="main__cards_select dialog__select_black dialog__select">
-                    <option value="createdD">По дате создания ↓</option>
-                    <option value="createdA">По дате создания ↑</option>
+                    <option value="dateD">По дате создания ↓</option>
+                    <option value="dateA">По дате создания ↑</option>
                     <option value="titleA">По названию A–Z</option>
                     <option value="titleD">По названию Z–A</option>
                 </select>
