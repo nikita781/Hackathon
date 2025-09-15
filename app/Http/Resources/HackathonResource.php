@@ -41,6 +41,7 @@ class HackathonResource extends JsonResource
             'awards' => AwardResource::collection($this->whenLoaded('awards')),
             'organizer' => new UserResource($this->whenLoaded('owner')),
             'projects' => ProjectResource::collection($this->whenLoaded('allProjects')),
+            'users_count' => $this->users_count,
             'projects_count' => $this->all_projects_count,
             'moderation_projects_count' => $this->moderation_projects_count,
             'accepted_projects_count' => $this->accepted_projects_count,

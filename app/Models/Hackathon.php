@@ -84,6 +84,13 @@ class Hackathon extends Model implements HasMedia
         ]);
     }
 
+    public function scopeWithUserCounts(Builder $query): Builder
+    {
+        return $query->withCount([
+            'users',
+        ]);
+    }
+
     public function allTeams(): HasMany
     {
         return $this->teams();
