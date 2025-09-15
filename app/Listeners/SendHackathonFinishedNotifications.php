@@ -26,8 +26,9 @@ class SendHackathonFinishedNotifications
         foreach ($hackathon->members as $member) {
             $member->notify(new HackathonFinishedNotification($hackathon));
 
-            $hasParticipatedBefore = $member->awards()
-                ->where('award_id', Award::SYSTEM_AWARD_FIRST)
+            $hasParticipatedBefore = $member->hackathons()
+                ->where('hackathon_id', '!=', $hackathon->id)
+                ->where('is_finished', true)
                 ->exists();
 
             if (!$hasParticipatedBefore) {
