@@ -74,6 +74,14 @@ class Project extends Model implements HasMedia
             });
         });
 
+        $query->when(isset($request->rated), function ($q, $rated) {
+            if ($rated === 'yes') {
+                $q->whereHas('evaluations');
+            } else if ($rated === 'no') {
+                $q->whereDoesntHave('evaluations');
+            }
+        });
+
         $query->when($request->order, function ($q, $order) {
             return match ($order) {
                 'dateA'   => $q->orderBy('projects.moderated_time', 'asc'),
