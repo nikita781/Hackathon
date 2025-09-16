@@ -34,65 +34,6 @@ return new class extends Migration
             ['id' => Role::MENTOR, 'title' => 'Ментор'],
             ['id' => Role::MEMBER, 'title' => 'Участник'],
         ]);
-
-        $superAdmin = User::create([
-            'name' => 'Главный Админ',
-            'nickname' => 'SuperAdmin',
-            'email' => 'SuperAdmin@SuperAdmin.com',
-        ]);
-
-        $superAdmin->assignedRole(Role::SUPER_ADMIN);
-
-        $admin = User::create([
-            'name' => 'Админ',
-            'nickname' => 'Admin',
-            'email' => 'Admin@Admin.com',
-        ]);
-
-        $admin->assignedRole(Role::ADMIN);
-
-        $moderator = User::create([
-            'name' => 'Модератор',
-            'nickname' => 'Moderator',
-            'email' => 'Moderator@Moderator.com',
-        ]);
-
-        $moderator->assignedRole(Role::MODERATOR);
-
-        $organizer = User::create([
-            'name' => 'Организатор',
-            'nickname' => 'Organizer',
-            'email' => 'Organizer@Organizer.com',
-        ]);
-
-        $organizer->assignedRole(Role::ORGANIZER);
-        $organizer->assignedRole(Role::MEMBER);
-
-        $judge = User::create([
-            'name' => 'Судья',
-            'nickname' => 'Judge',
-            'email' => 'Judge@Judge.com',
-        ]);
-
-        $judge->assignedRole(Role::JUDGE);
-        $judge->assignedRole(Role::MEMBER);
-
-        $mentor = User::create([
-            'name' => 'Ментор',
-            'nickname' => 'Mentor',
-            'email' => 'Mentor@Mentor.com',
-        ]);
-
-        $mentor->assignedRole(Role::MENTOR);
-        $mentor->assignedRole(Role::MEMBER);
-
-        $member = User::create([
-            'name' => 'Участник',
-            'nickname' => 'Member',
-            'email' => 'Member@Member.com',
-        ]);
-
-        $member->assignedRole(Role::MEMBER);
     }
 
     /**

@@ -60,7 +60,7 @@ class HackathonPolicy
 
     public function publish(User $user, Hackathon $hackathon): bool
     {
-        if ($user->status === User::STATUS_BLOCKED) {
+        if (!($hackathon->status === Hackathon::STATUS_DRAFT)) {
             return false;
         }
 

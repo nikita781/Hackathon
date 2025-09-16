@@ -25,9 +25,8 @@ Route::get('/lang/{locale}.json', [LanguageController::class, 'json'])->name('la
 
 // REGISTER ROUTES
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [SessionController::class, 'index'])->name('login');
-    Route::get('/auth/redirect', [SessionController::class, 'redirect'])->name('auth.redirect');
-    Route::get('/auth/callback', [SessionController::class, 'callback'])->name('auth.callback');
+    Route::get('/login', [SessionController::class, 'loginView'])->name('login.view');
+    Route::post('/login', [SessionController::class, 'login'])->name('login');
 });
 
 // HOME

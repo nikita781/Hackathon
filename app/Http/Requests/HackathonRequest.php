@@ -29,7 +29,7 @@ class HackathonRequest extends FormRequest
             'event_start' => ['required', 'date', 'before:event_end'],
             'event_end' => ['required', 'date'],
             'prize_type' => ['required', 'in:cash,non-cash'],
-            'prize_pool' => ['required', 'numeric', 'min:0', 'max:10000000'],
+            'prize_pool' => ['required', 'min:0', 'max:10000000'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
         ];

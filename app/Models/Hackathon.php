@@ -20,6 +20,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Hackathon extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
+
     protected $fillable = [
         'user_id', 'title', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
         'registration_end', 'event_start', 'event_end', 'prize_type', 'prize_pool', 'work_time_start', 'work_time_end',
@@ -203,9 +204,9 @@ class Hackathon extends Model implements HasMedia
                 foreach ($statuses as $s) {
                     $query->orWhere(function ($q2) use ($s) {
                         match ($s) {
-                            'upcoming' => $q2->where('event_start', '>', now()),
-                            'ongoing' => $q2->where('event_start', '<=', now())->where('event_end', '>=', now()),
-                            'completed' => $q2->where('event_end', '<', now()),
+                            'upcoming' => $q2->whereDate('event_start', '>', now()),
+                            'ongoing' => $q2->whereDate('event_start', '<=', now())->whereDate('event_end', '>=', now()),
+                            'completed' => $q2->whereDate('event_end', '<', now()),
                             default => null,
                         };
                     });

@@ -167,6 +167,8 @@ class SupportsController extends Controller
             'closed_at' => now(),
         ]);
 
+        // TODO: добавить уведомление об ответе
+
         return back()->with('status', 'Вопрос закрыт');
     }
 }

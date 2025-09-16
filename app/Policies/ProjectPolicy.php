@@ -19,6 +19,10 @@ class ProjectPolicy
 
     public function viewAll(User $user, Hackathon $hackathon): bool
     {
+        if ($hackathon->event_start < now()) {
+            return true;
+        }
+
         if ($user->isAdmin()) {
             return true;
         }

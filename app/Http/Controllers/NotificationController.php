@@ -11,7 +11,7 @@ class NotificationController extends Controller
 {
     public function index(Request $request): Response
     {
-        $perPage = min($request->get('per_page', 2), 10);
+        $perPage = min($request->get('per_page', 5), 10);
 
         $notifications = $request->user()
             ->notifications()

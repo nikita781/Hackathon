@@ -36,7 +36,7 @@ class HackathonUpdateRequest extends FormRequest
             'event_start' => ['nullable', 'date', 'before:event_end'],
             'event_end' => ['nullable', 'date'],
             'prize_type' => ['nullable', 'in:cash,non-cash'],
-            'prize_pool' => ['nullable', 'numeric', 'min:0', 'max:10000000'],
+            'prize_pool' => ['nullable', 'min:0', 'max:10000000'],
             'work_time_start' => ['nullable', 'date', 'after:event_start', 'before:event_end', 'before:work_time_end'],
             'work_time_end'   => ['nullable', 'date', 'after:work_time_start', 'before:event_end'],
             'evaluation_start' => ['nullable', 'date', 'after:work_time_end', 'before:evaluation_end'],

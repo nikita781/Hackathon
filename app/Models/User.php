@@ -49,8 +49,8 @@ class User extends Authenticatable
         return 'nickname';
     }
 
-    const STATUS_ACTIVE = '1';
-    const STATUS_BLOCKED = '2';
+    public const STATUS_ACTIVE = '1';
+    public const STATUS_BLOCKED = '2';
 
     /**
      * @return BelongsToMany
