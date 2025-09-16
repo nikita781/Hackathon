@@ -39,6 +39,7 @@ class UserSyncCommand extends Command
                             'email' => $mainUser->email,
                             'password' => $mainUser->password,
                             'birthday' => $mainUser->birthday,
+                            'photo' => $mainUser?->photo,
                             'status' => User::STATUS_ACTIVE,
                             'created_at' => now(),
                             'updated_at' => $mainUser->updated_at,
@@ -55,6 +56,7 @@ class UserSyncCommand extends Command
                                     'email' => $mainUser->email,
                                     'password' => $mainUser->password,
                                     'birthday' => $mainUser->birthday,
+                                    'photo' => $mainUser?->photo,
                                     'status' => User::STATUS_ACTIVE,
                                     'updated_at' => $mainUser->updated_at,
                                 ]);

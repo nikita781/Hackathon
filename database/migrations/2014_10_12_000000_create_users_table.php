@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('password');
             $table->date('birthday')->nullable();
             $table->string('phone_number')->nullable();
+            $table->string('photo')->nullable();
             $table->integer('status')->default(User::STATUS_ACTIVE);
             $table->timestamps();
         });
