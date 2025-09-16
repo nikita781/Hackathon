@@ -14,12 +14,12 @@ class UserResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'related_id' => $this->related_id,
             'name' => $this->name,
             'nickname' => $this->nickname,
             'email' => $this->email,
-            'date_of_birth' => $this->date_of_birth,
+            'birthday' => $this->birthday,
             'phone_number' => $this->phone_number,
+            'photo' => $this->photo,
             'status' => $this->status,
 
             'hackathons' => $this->whenLoaded('hackathons', function () {
