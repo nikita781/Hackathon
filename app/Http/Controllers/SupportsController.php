@@ -12,6 +12,7 @@ use App\Models\Support;
 use App\Models\SupportMessage;
 use App\Models\User;
 use App\Notifications\NewSupportNotification;
+use App\Notifications\SupportAnsweredNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -119,6 +120,8 @@ class SupportsController extends Controller
             'message' => $message,
         ]);
 
+        $support->load(['hackathon', 'messages']);
+
         switch ($type) {
             case Support::BUG:
                 $admins = User::whereHas('roles', function ($query) {
@@ -167,7 +170,9 @@ class SupportsController extends Controller
             'closed_at' => now(),
         ]);
 
-        // TODO: добавить уведомление об ответе
+        $support->load(['hackathon', 'closer', 'messages', 'creator']);
+
+        $support->creator->notify(new SupportAnsweredNotification($support));
 
         return back()->with('status', 'Вопрос закрыт');
     }

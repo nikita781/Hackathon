@@ -23,12 +23,13 @@ class ModerateNotification extends Notification
         return ['database'];
     }
 
-    public function toDatabase(object $notifiable): array
+    public function toArray(object $notifiable): array
     {
         return [
             'status' => $this->data['status'],
             'comment' => $this->data['comment'],
             'message' => $this->data['message'],
+            'send_at' => $this->data['send_at'],
         ];
     }
 }

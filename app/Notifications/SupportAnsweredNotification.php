@@ -4,12 +4,9 @@ namespace App\Notifications;
 
 use App\Http\Resources\HackathonResource;
 use App\Models\Support;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewSupportNotification extends Notification
+class SupportAnsweredNotification extends Notification
 {
     public Support $support;
 
@@ -26,6 +23,8 @@ class NewSupportNotification extends Notification
     public function toArray($notifiable): array
     {
         return [
+            'title' => 'Ответ на обращение',
+            'description' => "Пользователь \"{$this->support->closer->nickname}\" ответил на ваше обращение на хакатоне \"{$this->support->hackathon->title}\".",
             'support_id' => $this->support->id,
             'type' => $this->support->type,
             'message' => $this->support->messages()->latest()->first()?->message,

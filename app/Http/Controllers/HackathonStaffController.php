@@ -9,6 +9,7 @@ use App\Models\HackathonInvite;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\InviteNotification;
+use App\Notifications\KickNotification;
 use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -141,10 +142,18 @@ class HackathonStaffController extends Controller
 
         $data = $request->validated();
 
-        foreach ($data['staff'] as $userId) {
-            $hackathon->users()->detach($userId);
-        }
+        $hackathon->load('owner');
 
+        foreach ($data['staff'] as $userId) {
+            $user = User::findOrFail($userId);
+            $hackathon->users()->detach($user->id);
+
+            $user->notify(new KickNotification([
+                'title' => "Вас исключили из хакатона \"{$hackathon->title}\"",
+                'description' => "Если произошла ошибка напишите организатору на почту: {$hackathon->owner->email}",
+                'send_at' => now()->toDateString(),
+            ]));
+        }
         return back()->with('status', 'Пользователь успешно исключен с хакатона');
     }
 }

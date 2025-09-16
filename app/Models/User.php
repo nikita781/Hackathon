@@ -21,8 +21,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'oauth_id', 'name', 'nickname', 'email', 'date_of_birth', 'phone_number', 'tshort_size',
-        'favorite_programming_lang', 'status'
+        'name', 'nickname', 'email', 'birthday', 'phone_number', 'status', 'password',
     ];
 
     /**
@@ -40,7 +39,7 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'date_of_birth' => 'date',
+        'birthday' => 'date',
         'password' => 'hashed',
     ];
 

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,9 +26,17 @@ class SessionController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('name', $credentials['login'])
+        $user = User::where('nickname', $credentials['login'])
             ->orWhere('email', $credentials['login'])
             ->first();
+
+        if (!$user) {
+            $user = DB::connection('main_site')
+                ->table('users')
+                ->where('name', $credentials['login'])
+                ->orWhere('email', $credentials['login'])
+                ->first();
+        }
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             return back()->withErrors([

@@ -19,19 +19,12 @@ class HackathonFinishedNotification extends Notification
         return ['database'];
     }
 
-    public function toDatabase(object $notifiable): array
+    public function toArray(object $notifiable): array
     {
         return [
             'title' => 'Хакатон завершён',
             'description' => "Хакатон «{$this->hackathon->title}» завершился. Узнайте своё место!",
             'url' => route('hackathons.show', $this->hackathon),
-        ];
-    }
-
-    public function toArray(object $notifiable): array
-    {
-        return [
-            //
         ];
     }
 }

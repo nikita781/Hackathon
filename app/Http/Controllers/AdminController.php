@@ -109,6 +109,7 @@ class AdminController extends Controller
             'status' => 'accept',
             'comment' => $comment,
             'message' => $message,
+            'send_at' => now()->toDateString(),
         ]));
 
         return back()->with('status', $message);
@@ -134,6 +135,7 @@ class AdminController extends Controller
             'status' => 'rejected',
             'comment' => $comment,
             'message' => $message,
+            'send_at' => now()->toDateString(),
         ]));
 
         return back()->with('status', $message);
@@ -160,6 +162,7 @@ class AdminController extends Controller
                 'status' => 'rejected',
                 'comment' => $comment,
                 'message' => $message,
+                'send_at' => now()->toDateString(),
             ]));
         }
 
@@ -187,6 +190,7 @@ class AdminController extends Controller
                 'status' => 'rejected',
                 'comment' => $comment,
                 'message' => $message,
+                'send_at' => now()->toDateString(),
             ]));
         }
 

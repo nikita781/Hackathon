@@ -11,6 +11,7 @@ use App\Models\Team;
 use App\Models\TeamInvite;
 use App\Models\User;
 use App\Notifications\InviteNotification;
+use App\Notifications\KickNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -75,6 +76,12 @@ class TeamController extends Controller
             $newTeam->users()->attach($user->id, [
                 'position_id' => Position::CAPITAN_POSITION,
             ]);
+
+            $user->notify(new KickNotification([
+                'title' => "Вас исключили из команды \"{$team->title}\"",
+                'description' => "Теперь у вас новая команда \"{$newTeam->title}\" посмотрите в хакатоне \"{$hackathon->title}\"",
+                'send_at' => now()->toDateString(),
+            ]));
         }
 
         return back()->with('status', 'Участник команды успешно исключен');
@@ -207,10 +214,11 @@ class TeamController extends Controller
                 'expires_at' => now()->addDay(),
             ]);
 
+            $sender = auth()->user();
 
             $invitedUser->notify(new InviteNotification([
                 'title' => 'Приглашение в команду',
-                'description' => "Пользователь {$invitedUser->nickname} пригласил Вас в свою команду для хакатона «{$hackathon->title}» на роль “{$invitedUserPosition->title}”.",
+                'description' => "Пользователь {$sender->nickname} пригласил Вас в свою команду для хакатона «{$hackathon->title}» на роль “{$invitedUserPosition->title}”.",
                 'url' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
                 'send_at' => now()->toDateString(),
                 'is_active' => true,
