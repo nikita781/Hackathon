@@ -240,6 +240,8 @@ const links = computed(() => ({
                     <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select">
                         <option value="dateA">По дате ↑</option>
                         <option value="dateD">По дате ↓</option>
+                        <option value="scoreAA">По оценке ↑</option>
+                        <option value="scoreAD">По оценке ↓</option>
                         <option value="titleA">По названию ↑</option>
                         <option value="titleD">По названию ↓</option>
                     </select>

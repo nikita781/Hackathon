@@ -102,7 +102,6 @@ function makePaginationLinks(current, last) {
 async function fetchTeams(page = 1) {
     if (!slug.value) return
     loading.value = true; error.value = ''
-    console.log(buildParams(page))
     try {
         const { data } = await axios.get(
             route('hackathons.teams.index', { hackathon: slug.value }),

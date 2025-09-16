@@ -43,10 +43,12 @@ const tabComponents = {
 const availableTabs = computed(() => {
     return [
         {key: 'overview', title: 'Обзор', blocked: false},
-        {key: 'participants', title: 'Участники', noVisible: !props.can?.hackathon?.update},
-        {key: 'managers', title: 'Управляющие', noVisible: !props.can?.hackathon?.update},
+        {key: 'participants', title: 'Участники', noVisible: !props.can?.hackathon?.is_staff
+        },
+        {key: 'managers', title: 'Управляющие', noVisible: !props.can?.hackathon?.update
+        },
         {key: 'rate', title: 'Оценить', noVisible: !props.can?.hackathon?.rate},
-        {key: 'project', title: 'Мой проект', blocked: !props.can?.project.createProject},
+        {key: 'project', title: 'Мой проект', blocked: !props.can?.team.view, noVisible: props.can?.hackathon?.is_staff},
         {key: 'gallery', title: 'Галерея проектов', blocked: !props.can?.project.viewAll},
         {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
         {key: 'rules', title: 'Правила', blocked: false},

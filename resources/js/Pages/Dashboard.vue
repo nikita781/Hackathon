@@ -5,7 +5,11 @@ import {computed, nextTick, onMounted, ref} from "vue";
 
 const props = defineProps({
     user: Object,
+    awards: Object,
+    projects: Object
 })
+
+console.log(props.projects)
 
 const activeTab = ref(usePage().props.query?.tab   === 'past' ? 1 : 0)
 
@@ -66,6 +70,22 @@ onMounted(async () => {
         e.target.value = formatted;
     });
 });
+
+function previewSrc(project) {
+    const slug = project?.slug ?? project?.id;
+    const hackSlug =
+        props.hackathon?.slug
+
+    if (slug && hackSlug && typeof route === "function") {
+        try {
+            return route("hackathons.projects.image", {
+                hackathon: hackSlug,
+                project: slug,
+            });
+        } catch (_) { /* no-op */ }
+    }
+    return "/project.jpg";
+}
 </script>
 
 <template>
@@ -134,40 +154,46 @@ onMounted(async () => {
             </div>
             <div class="profile__tabs">
                 <div v-if="currentTabBody === 'awards'" class="profile__tabs_awards">
-                    <div class="profile__tabs_awards_item">
-                        <img src="/test.jpg" alt="Prize">
+                    <div v-for="(award, index) in props.awards" :key="index" class="profile__tabs_awards_item">
+                        <img :src="award.image || '/default-award.jpg'" alt="Prize">
                         <div class="profile__tabs_awards_item_content">
                             <div class="profile__tabs_awards_item_header">
-                                <p class="profile__tabs_awards_item_title">Добро пожаловать в хакатон</p>
-                                <p class="profile__tabs_awards_item_text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Assumenda, debitis deserunt, ducimus earum eum, eveniet facilis fuga itaque iusto libero maiores nam nisi numquam officiis placeat rem similique unde voluptates?</p>
+                                <p class="profile__tabs_awards_item_title">{{ award.title }}</p>
+                                <p class="profile__tabs_awards_item_text">{{ award.description }}</p>
                             </div>
-                            <p class="profile__tabs_awards_item_date">Получено 12.04.2025</p>
-                        </div>
-                    </div>
-                    <div class="profile__tabs_awards_item">
-                        <img src="/test.jpg" alt="Prize">
-                        <div class="profile__tabs_awards_item_content">
-                            <div class="profile__tabs_awards_item_header">
-                                <p class="profile__tabs_awards_item_title">Добро пожаловать в хакатон</p>
-                                <p class="profile__tabs_awards_item_text">Получи свою первую награду на сайте </p>
-                            </div>
-                            <p class="profile__tabs_awards_item_date">Получено 12.04.2025</p>
-                        </div>
-                    </div>
-                    <div class="profile__tabs_awards_item">
-                        <img src="/test.jpg" alt="Prize">
-                        <div class="profile__tabs_awards_item_content">
-                            <div class="profile__tabs_awards_item_header">
-                                <p class="profile__tabs_awards_item_title">Добро пожаловать в хакатон</p>
-                                <p class="profile__tabs_awards_item_text">Получи свою первую награду на сайте </p>
-                            </div>
-                            <p class="profile__tabs_awards_item_date">Получено 12.04.2025</p>
+                            <p class="profile__tabs_awards_item_date">
+                                Получено {{ new Date(award.awarded_at).toLocaleDateString("ru-RU") }}
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                <div v-else class="profile__tabs_certificates">
+                <div v-else class="hackathon__gallery_container">
+<!--                    <pre>{{props.projects}}</pre>-->
+                    <div
+                        v-for="project in props.projects.data"
+                        class="hackathon__my-project__item"
+                        style="cursor: pointer"
+                    >
+                        <div class="hackathon__my-project__item_header">
+                            <img :src="previewSrc(project)" alt="">
+                        </div>
 
+                        <div class="hackathon__my-project__item_content">
+                            <div>
+                                <p class="hackathon__my-project__item_title">{{ project.title }}</p>
+                                <p class="hackathon__my-project__item_text">{{ project.description }}</p>
+                            </div>
+
+                            <ul class="hackathon__my-project__item_avatar">
+                                <li><img src="/profile.jpg" alt="Avatar"></li>
+                                <li><img src="/profile.jpg" alt="Avatar"></li>
+                                <li><img src="/profile.jpg" alt="Avatar"></li>
+                            </ul>
+
+                            <a :href="project.certificate_url" class="main__btn_main" style="width: fit-content; margin-top: -10px">Сертификат</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

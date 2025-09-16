@@ -106,6 +106,7 @@ onMounted(async () => {
                             type="button"
                             class="main__btn_main hackathon__my-project__team_svg"
                             @click="updateProject(project)"
+                            v-if="project.can.update"
                         >
                             <IconsPencilMyProject/>
                         </button>
