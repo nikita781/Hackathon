@@ -63,6 +63,6 @@ class UserSyncCommand extends Command
                     }
                 }
             });
-        $this->info("Синхронизация завершена. Создано: {$countCreated}, обновлено: {$countUpdated}}");
+        $this->info("Синхронизация завершена. Создано: {$countCreated}, обновлено: {$countUpdated}");
     }
 }
