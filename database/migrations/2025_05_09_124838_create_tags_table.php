@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('title');
             $table->smallInteger('order');
             $table->string('slug')->unique();
+            $table->timestamps();
         });
 
         Schema::create('hackathon_tag', function (Blueprint $table) {
@@ -28,17 +29,17 @@ return new class extends Migration
         });
 
         Tag::insert([
-           ['title' => 'UX/UI', 'order' => 1, 'slug' => 'ux-ui'],
-           ['title' => 'Тестировщики', 'order' => 2, 'slug' => 'testers'],
-           ['title' => 'Веб-дизайнеры', 'order' => 3, 'slug' => 'web-designers'],
-           ['title' => 'Product-менеджеры', 'order' => 4, 'slug' => 'product-managers'],
-           ['title' => 'Веб-разработчики', 'order' => 5, 'slug' => 'web-developers'],
-           ['title' => 'Android-разработчики', 'order' => 6, 'slug' => 'android-developers'],
-           ['title' => 'iOS-разработчики', 'order' => 7, 'slug' => 'ios-developers'],
-           ['title' => 'Frontend-разработчики', 'order' => 8, 'slug' => 'frontend-developers'],
-           ['title' => 'Backend-разработчики', 'order' => 9, 'slug' => 'backend-developers'],
-           ['title' => 'QA-инженеры', 'order' => 10, 'slug' => 'qa-engineers'],
-           ['title' => 'DevOps', 'order' => 11, 'slug' => 'devops'],
+           ['title' => 'UX/UI', 'order' => 1, 'slug' => 'ux-ui', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'Тестировщики', 'order' => 2, 'slug' => 'testers', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'Веб-дизайнеры', 'order' => 3, 'slug' => 'web-designers', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'Product-менеджеры', 'order' => 4, 'slug' => 'product-managers', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'Веб-разработчики', 'order' => 5, 'slug' => 'web-developers', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'Android-разработчики', 'order' => 6, 'slug' => 'android-developers', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'iOS-разработчики', 'order' => 7, 'slug' => 'ios-developers', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'Frontend-разработчики', 'order' => 8, 'slug' => 'frontend-developers', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'Backend-разработчики', 'order' => 9, 'slug' => 'backend-developers', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'QA-инженеры', 'order' => 10, 'slug' => 'qa-engineers', 'created_at' => now(), 'updated_at' => now()],
+           ['title' => 'DevOps', 'order' => 11, 'slug' => 'devops', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 

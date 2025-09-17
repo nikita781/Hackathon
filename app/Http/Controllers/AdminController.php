@@ -305,6 +305,8 @@ class AdminController extends Controller
             'title' => ['required', 'string', 'min:2', 'max:50'],
         ]);
 
+        $data['slug'] = Tag::generateUniqueSlug($data['title']);
+
         $lastTagOrder = Tag::max('order') ?? 0;
         $data['order'] = $lastTagOrder + 1;
 
@@ -320,6 +322,8 @@ class AdminController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'min:2', 'max:50'],
         ]);
+
+        $data['slug'] = Tag::generateUniqueSlug($data['title']);
 
         $tag->update($data);
 
@@ -338,12 +342,12 @@ class AdminController extends Controller
     public function changeTagOrder(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'tags' => ['array', 'required'],
-            'tags.*.id' => ['required', 'integer', 'exists:tags,id'],
+            'tags' => ['required', 'array'],
+            'tags.*.slug' => ['required', 'string', 'exists:tags,slug'],
             'tags.*.order' => ['required', 'integer'],
         ]);
 
-        DB::transaction(fn() => Tag::upsert($data['tags'], ['id'], ['order']));
+        DB::transaction(fn() => Tag::upsert($data['tags'], ['slug'], ['order']));
 
         return back()->with('status', 'Порядок тегов успешно изменен');
     }
