@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Resources\UserResource;
 use App\Models\Hackathon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -40,7 +41,7 @@ class HandleInertiaRequests extends Middleware
                 ];
             },
             'auth' => [
-                'user' => $user,
+                'user' => new UserResource($user),
                 'roles' => $user?->roles?->pluck('title'),
             ],
             'notifications' => [

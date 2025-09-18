@@ -19,7 +19,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'birthday' => $this->birthday,
             'phone_number' => $this->phone_number,
-            'photo' => $this->photo,
+            'photo' => "https://foncode.ru/storage/users/" . $this->photo,
             'status' => $this->status,
 
             'hackathons' => $this->whenLoaded('hackathons', function () {

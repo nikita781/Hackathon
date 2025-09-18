@@ -34,11 +34,11 @@ class UserSyncCommand extends Command
                     if (!$localUser) {
                         DB::table('users')->insert([
                             'id' => $mainUser->id,
-                            'name' => $mainUser->fio,
+                            'name' => $mainUser?->fio,
                             'nickname' => $mainUser->name,
                             'email' => $mainUser->email,
                             'password' => $mainUser->password,
-                            'birthday' => $mainUser->birthday,
+                            'birthday' => $mainUser?->birthday,
                             'photo' => $mainUser?->photo,
                             'status' => User::STATUS_ACTIVE,
                             'created_at' => now(),
@@ -51,11 +51,11 @@ class UserSyncCommand extends Command
                                 ->table('users')
                                 ->where('id', $localUser->id)
                                 ->update([
-                                    'name' => $mainUser->fio,
+                                    'name' => $mainUser?->fio,
                                     'nickname' => $mainUser->name,
                                     'email' => $mainUser->email,
                                     'password' => $mainUser->password,
-                                    'birthday' => $mainUser->birthday,
+                                    'birthday' => $mainUser?->birthday,
                                     'photo' => $mainUser?->photo,
                                     'status' => User::STATUS_ACTIVE,
                                     'updated_at' => $mainUser->updated_at,

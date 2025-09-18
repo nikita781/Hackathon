@@ -31,11 +31,34 @@ class SessionController extends Controller
             ->first();
 
         if (!$user) {
-            $user = DB::connection('main_site')
+            $externalUser = DB::connection('main_site')
                 ->table('users')
                 ->where('name', $credentials['login'])
                 ->orWhere('email', $credentials['login'])
                 ->first();
+
+            if ($externalUser) {
+                User::insert([
+                    'id'        => $externalUser->id,
+                    'name'      => $externalUser?->fio,
+                    'nickname'  => $externalUser->name,
+                    'email'     => $externalUser->email,
+                    'password'  => $externalUser->password,
+                    'birthday'  => $externalUser?->birthday,
+                    'photo'     => $externalUser?->photo,
+                    'status'    => User::STATUS_ACTIVE,
+                    'created_at'=> now(),
+                    'updated_at'=> $externalUser->updated_at,
+                ]);
+
+                $user = User::where('nickname', $credentials['login'])
+                    ->orWhere('email', $credentials['login'])
+                    ->first();
+            } else {
+                return back()->withErrors([
+                    'login' => 'Неверный логин или пароль',
+                ]);
+            }
         }
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
