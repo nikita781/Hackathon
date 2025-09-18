@@ -22,7 +22,7 @@ class SessionController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'login' => ['required', 'string'],
+            'login'    => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
@@ -30,50 +30,65 @@ class SessionController extends Controller
             ->orWhere('email', $credentials['login'])
             ->first();
 
-        if (!$user) {
-            $externalUser = DB::connection('main_site')
-                ->table('users')
-                ->where('name', $credentials['login'])
-                ->orWhere('email', $credentials['login'])
-                ->first();
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            $user = $this->syncUserFromMainSite($credentials['login']);
 
-            if ($externalUser) {
-                User::insert([
-                    'id'        => $externalUser->id,
-                    'name'      => $externalUser?->fio,
-                    'nickname'  => $externalUser->name,
-                    'email'     => $externalUser->email,
-                    'password'  => $externalUser->password,
-                    'birthday'  => $externalUser?->birthday,
-                    'photo'     => $externalUser?->photo,
-                    'status'    => User::STATUS_ACTIVE,
-                    'created_at'=> now(),
-                    'updated_at'=> $externalUser->updated_at,
-                ]);
-
-                $user = User::where('nickname', $credentials['login'])
-                    ->orWhere('email', $credentials['login'])
-                    ->first();
-            } else {
+            if (!$user || !Hash::check($credentials['password'], $user->password)) {
                 return back()->withErrors([
                     'login' => 'Неверный логин или пароль',
                 ]);
             }
         }
 
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            return back()->withErrors([
-                'login' => 'Неверный логин или пароль',
-            ]);
-        }
-
         if (!$user->hasRole(Role::MEMBER)) {
-            $user->assignedRole(Role::MEMBER);
+            $user->assignRole(Role::MEMBER);
         }
 
         Auth::login($user);
 
         return redirect()->route('home');
+    }
+
+    private function syncUserFromMainSite(string $login): ?User
+    {
+        $externalUser = DB::connection('main_site')
+            ->table('users')
+            ->where('name', $login)
+            ->orWhere('email', $login)
+            ->first();
+
+        if (!$externalUser) {
+            return null;
+        }
+
+        $user = User::where('email', $externalUser->email)->first();
+
+        if (!$user) {
+            return User::create([
+                'id'        => $externalUser->id,
+                'name'      => $externalUser?->fio,
+                'nickname'  => $externalUser->name,
+                'email'     => $externalUser->email,
+                'password'  => $externalUser->password,
+                'birthday'  => $externalUser?->birthday,
+                'photo'     => $externalUser?->photo,
+                'status'    => User::STATUS_ACTIVE,
+                'created_at'=> now(),
+                'updated_at'=> $externalUser->updated_at,
+            ]);
+        }
+
+        $user->update([
+            'name'      => $externalUser?->fio,
+            'nickname'  => $externalUser->name,
+            'email'     => $externalUser->email,
+            'password'  => $externalUser->password,
+            'birthday'  => $externalUser?->birthday,
+            'photo'     => $externalUser?->photo,
+            'updated_at'=> $externalUser->updated_at,
+        ]);
+
+        return User::find($user->id);
     }
 
     public function logout(): RedirectResponse

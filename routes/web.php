@@ -26,7 +26,7 @@ Route::get('/lang/{locale}.json', [LanguageController::class, 'json'])->name('la
 // REGISTER ROUTES
 Route::middleware('guest')->group(function () {
     Route::get('/login', [SessionController::class, 'loginView'])->name('login.view');
-    Route::post('/login', [SessionController::class, 'login'])->name('login');
+    Route::post('/login', [SessionController::class, 'login'])->name('login')->middleware('throttle:10,1');
 });
 
 // HOME
@@ -208,7 +208,10 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
             Route::get('/', [AdminController::class, 'awards'])->name('index');
             Route::patch('/{award}', [AdminController::class, 'updateAward'])->name('update');
         });
+
     });
+
+    Route::post('/sync-user', [AdminController::class, 'syncUser'])->name('sync-user')->middleware('throttle:2,1');
 });
 
 // REFBOOK ROUTES

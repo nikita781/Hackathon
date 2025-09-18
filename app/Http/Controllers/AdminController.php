@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\SyncUsers;
 use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\ProjectResource;
@@ -457,5 +458,16 @@ class AdminController extends Controller
         }
 
         return back()->with('status', 'Изображение награды успешно обновлено');
+    }
+
+    public function syncUser(): JsonResponse
+    {
+        $action = new SyncUsers;
+        $counters = $action();
+
+        return response()->json([
+            'created' => $counters['created'],
+            'updated' => $counters['created'],
+        ]);
     }
 }
