@@ -42,7 +42,7 @@ class SessionController extends Controller
         }
 
         if (!$user->hasRole(Role::MEMBER)) {
-            $user->assignRole(Role::MEMBER);
+            $user->assignedRole(Role::MEMBER);
         }
 
         Auth::login($user);
