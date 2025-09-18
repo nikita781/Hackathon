@@ -41,7 +41,7 @@ class HandleInertiaRequests extends Middleware
                 ];
             },
             'auth' => [
-                'user' => new UserResource($user),
+                'user' => $user ? new UserResource($user) : null,
                 'roles' => $user?->roles?->pluck('title'),
             ],
             'notifications' => [
