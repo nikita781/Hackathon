@@ -272,6 +272,15 @@ class AdminController extends Controller
 
     public function allRoles(): JsonResponse
     {
+        $roles = Role::where('id', '!=', Role::SUPER_ADMIN)->orderBy('id')->get();
+
+        return response()->json([
+            'roles' => $roles,
+        ]);
+    }
+
+    public function staffRoles(): JsonResponse
+    {
         $roles = Role::whereIn('id', Role::STAFF)->get();
 
         return response()->json([

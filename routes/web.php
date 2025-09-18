@@ -209,11 +209,12 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
             Route::get('/', [AdminController::class, 'awards'])->name('index');
             Route::patch('/{award}', [AdminController::class, 'updateAward'])->name('update');
         });
-
     });
+
+    Route::get('/roles', [AdminController::class, 'allRoles'])->name('roles');
 
     Route::post('/sync-user', [AdminController::class, 'syncUser'])->name('sync-user')->middleware('throttle:2,1');
 });
 
 // REFBOOK ROUTES
-Route::get('/refbook/roles', [AdminController::class, 'allRoles'])->name('roles');
+Route::get('/refbook/roles', [AdminController::class, 'staffRoles'])->name('roles');
