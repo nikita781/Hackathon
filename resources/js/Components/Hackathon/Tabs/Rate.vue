@@ -1,11 +1,11 @@
 <script setup>
 import { useLangStore } from '@/store/lang.js'
-import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from "vue";
-import IconsPencilMyProject from "@/Components/Icons/PencilMyProject.vue";
-import RateProject from "@/Components/Dialog/RateProject.vue";
-import axios from "axios";
-import Document from "@/Components/Icons/Document.vue";
-import Hyperlink from "@/Components/Icons/Hyperlink.vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import IconsPencilMyProject from '@/Components/Icons/PencilMyProject.vue'
+import RateProject from '@/Components/Dialog/RateProject.vue'
+import axios from 'axios'
+import Document from '@/Components/Icons/Document.vue'
+import Hyperlink from '@/Components/Icons/Hyperlink.vue'
 
 const showRate = ref(false)
 
@@ -19,34 +19,63 @@ const props = defineProps({
 
 const langStore = useLangStore()
 
-const search = ref('')
-const sort   = ref('dateA')
-const page   = ref(1)
+const search  = ref('')
+const sort    = ref('dateA')
+const page    = ref(1)
 const perPage = ref(12)
 const loading = ref(false)
 
-const items = ref([])
-const total = ref(0)
-const lastPage = ref(1)
-const previews = ref(Object.create(null))
+const items     = ref([])
+const total     = ref(0)
+const lastPage  = ref(1)
+const previews  = ref(Object.create(null))
 
 const oneProject = ref(null)
-const isOne = computed(() => !!oneProject.value)
+const isOne      = computed(() => !!oneProject.value)
 const oneGallery = ref([])
 const galleryLoading = ref(false)
 
 let abortCtrl = null
 let searchTimer = null
 
+// --- ТАБЫ «Оценить / Оценено» ---
+// 0 = Оценить (еще не оцененные) → rated=no
+// 1 = Оценено (уже оцененные)    → rated=yes
+const activeTab = ref(0)
+function setActiveTab (idx) {
+    if (activeTab.value === idx) return
+    activeTab.value = idx
+    fetchGallery(1)
+}
+
+// Анимация слайдера как в примере my-hackathons
+const tabsRef = ref([])
+const sliderStyle = ref({})
+function recalcSlider () {
+    nextTick(() => {
+        const els = document.querySelectorAll('.my-hackathon__tabs_item')
+        tabsRef.value = els
+        const el = els?.[activeTab.value]
+        if (!el) return
+        sliderStyle.value = {
+            left : `${el.offsetLeft}px`,
+            width: `${el.offsetWidth}px`,
+        }
+    })
+}
+
 onMounted(async () => {
     await langStore.fetchTranslations()
     await fetchGallery(1)
+    recalcSlider()
+    window.addEventListener('resize', recalcSlider)
 })
 
 onBeforeUnmount(() => {
     Object.values(previews.value).forEach((url) => URL.revokeObjectURL(url))
     previews.value = {}
     if (abortCtrl) abortCtrl.abort()
+    window.removeEventListener('resize', recalcSlider)
 })
 
 const mapSortToBackend = (v) => {
@@ -63,8 +92,10 @@ const buildParams = (pageNum = 1) => {
     const s = mapSortToBackend(sort.value)
     const q = (search.value || '').trim()
     const params = {
-        page   : pageNum,
+        page    : pageNum,
         per_page: perPage.value,
+        // фильтр по табу
+        rated   : activeTab.value === 0 ? 'no' : 'yes',
     }
     if (q) {
         params.search = q
@@ -84,15 +115,13 @@ async function fetchGallery (toPage = 1) {
     abortCtrl = new AbortController()
     loading.value = true
 
+    console.log(buildParams(toPage))
+
     try {
         const { data } = await axios.get(
             route('hackathons.gallery', { hackathon: props.hackathon.slug }),
             { params: buildParams(toPage), signal: abortCtrl.signal }
         )
-
-        // console.log(buildParams(toPage))
-        // console.log(abortCtrl.signal)
-        // console.log(data)
 
         const payload = data.gallery ?? data
         const paged = payload?.data && Array.isArray(payload.data)
@@ -129,9 +158,7 @@ async function loadPreviewSafe (projectKey) {
             { responseType: 'blob' }
         )
         previews.value[projectKey] = URL.createObjectURL(blob)
-    } catch (_) {
-
-    }
+    } catch (_) {}
 }
 
 watch(sort, () => fetchGallery(1))
@@ -141,6 +168,18 @@ watch(search, () => {
     searchTimer = setTimeout(() => fetchGallery(1), 400)
 })
 
+// При смене таба — перерисовываем слайдер
+watch(activeTab, () => {
+    recalcSlider()
+})
+
+// Когда обновляются переводы (может поменяться ширина текста табов) — пересчитать слайдер
+watch(
+    () => langStore.translations,
+    () => recalcSlider(),
+    { deep: true }
+)
+
 const canPrev = computed(() => page.value > 1)
 const canNext = computed(() => page.value < lastPage.value)
 
@@ -149,7 +188,7 @@ function goNext () { if (canNext.value) fetchGallery(page.value + 1) }
 function goPage (p) { if (p >= 1 && p <= lastPage.value) fetchGallery(p) }
 
 const pagesWindow = computed(() => {
-    const W = 2 // по 2 с каждой стороны
+    const W = 2
     const cur = page.value
     const last = lastPage.value
     const start = Math.max(1, cur - W)
@@ -189,11 +228,11 @@ async function loadProjectGallery (project) {
         )
         const raw = data?.gallery ?? []
         oneGallery.value = raw.map(it => ({
-            id:      typeof it === 'object' ? (it.id ?? it.media_id ?? it.key ?? null) : null,
-            url:     typeof it === 'string'
+            id  : typeof it === 'object' ? (it.id ?? it.media_id ?? it.key ?? null) : null,
+            url : typeof it === 'string'
                 ? it
                 : (it.url ?? it.original_url ?? it.preview_url ?? it.path ?? ''),
-            name:    typeof it === 'object' ? (it.name ?? it.filename ?? '') : '',
+            name: typeof it === 'object' ? (it.name ?? it.filename ?? '') : '',
         })).filter(it => it.url)
     } catch (e) {
         console.error('project-gallery', e?.response ?? e)
@@ -209,15 +248,15 @@ const oneDesc  = computed(() => oneProject.value?.about || '')
 const oneStack = computed(() => oneProject.value?.stack || '')
 const onePreview = computed(() => oneProject.value ? getPreviewSrc(oneProject.value) : '/project.jpg')
 const links = computed(() => ({
-    project:      oneProject.value?.project_link || '',
+    project     : oneProject.value?.project_link || '',
     presentation: oneProject.value?.presentation_path || oneProject.value?.presentation_url || '',
-    video:        oneProject.value?.video_link || '',
+    video       : oneProject.value?.video_link || '',
 }))
 
-const idProject = ref(null);
+const idProject = ref(null)
 function setIdProject (id) {
-    console.log('Selected project id:', id);
-    idProject.value = id;
+    console.log('Selected project id:', id)
+    idProject.value = id
     showRate.value = true
 }
 </script>
@@ -227,6 +266,24 @@ function setIdProject (id) {
         <div v-if="!isOne" class="hackathon__tab_main">
             <div class="hackathon__tab_container">
                 <p class="hackathon__my-project__title">Оценить Проекты</p>
+
+                <!-- Табы с анимированным слайдером -->
+                <div class="my-hackathon__tabs">
+                    <p
+                        :class="['my-hackathon__tabs_item',{active:activeTab===0}]"
+                        @click="setActiveTab(0)"
+                    >
+                        Оценить
+                    </p>
+                    <p
+                        :class="['my-hackathon__tabs_item',{active:activeTab===1}]"
+                        @click="setActiveTab(1)"
+                    >
+                        Оценено
+                    </p>
+                    <div class="slider" :style="sliderStyle"></div>
+                </div>
+
                 <div class="hackathon__gallery_filter">
                     <div class="main__search my-hackathon__search">
                         <div class="main__search_container">
@@ -255,6 +312,7 @@ function setIdProject (id) {
                         </select>
                     </div>
                 </div>
+
                 <div class="hackathon__gallery_container">
                     <template v-if="loading">
                         <div v-for="i in 6" :key="'s'+i" class="hackathon__my-project__item">
@@ -295,6 +353,7 @@ function setIdProject (id) {
                             </div>
                         </div>
                     </template>
+
                     <RateProject
                         v-model="showRate"
                         :hackathon="props.hackathon"
@@ -303,6 +362,7 @@ function setIdProject (id) {
                 </div>
             </div>
         </div>
+
         <div v-else class="hackathon__tab_main">
             <div class="hackathon__tab_container">
                 <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">

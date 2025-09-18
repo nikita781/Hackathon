@@ -116,7 +116,7 @@ onMounted(async () => {
                         </a>
                     </div>
                     <div>
-                        <a href="#" class="sidebar-menu__item">
+                        <a href="/admin/contents/tags" class="sidebar-menu__item">
                             <p class="sidebar-menu__label"></p>
                             <GridMenu/>
                             <p class="sidebar-menu__label">Контент</p>

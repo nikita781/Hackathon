@@ -27,6 +27,7 @@
         "editorjs-html": "^4.0.5",
         "lodash.debounce": "^4.0.8",
         "pinia": "^3.0.3",
+        "sortablejs": "^1.15.6",
         "vue-toastification": "^2.0.0-rc.5"
     }
 }

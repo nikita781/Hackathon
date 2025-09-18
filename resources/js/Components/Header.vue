@@ -4,6 +4,7 @@ import {computed, nextTick, onMounted, ref} from 'vue'
 import LangArrow from "@/Components/Icons/LangArrow.vue";
 import {useLangStore} from '@/store/lang'
 import {useNotificationsStore} from "@/store/notification.js";
+import Login from "@/Components/Dialog/Login.vue";
 
 const page = usePage()
 const menuOpen = ref(false)
@@ -79,7 +80,6 @@ function capitalizeFirstLetter(str) {
 
 onMounted(async () => {
     await langStore.fetchTranslations()
-    console.log(currentLang.value.flag)
 })
 
 async function changeLanguage(lang) {
@@ -89,6 +89,8 @@ async function changeLanguage(lang) {
         console.error("Ошибка при смене языка:", error)
     }
 }
+
+const showLogin = ref(false)
 
 const langMap = {
     ru: { flag: '/language/ru.jpg', label: 'RU' },
@@ -121,10 +123,13 @@ const currentLang = computed(() => {
                         <a href="/my-hackathons" class="header__link" :class="{ active: isActiveMyHackathons }"
                            v-if="isAuthenticated">{{ langStore.translations.my_hackathons }}</a>
                         <div class="header__btns" v-else>
-                            <a href="/login" class="main__btn">{{ langStore.translations.Login }}</a>
-                            <a href="#" class="main__btn main__btn_white"
+                            <a @click="showLogin = true" class="main__btn">{{ langStore.translations.Login }}</a>
+                            <a href="https://foncode.ru/register" target="_blank" class="main__btn main__btn_white"
                                style="color: white !important">{{ langStore.translations.Register }}</a>
                         </div>
+                        <Login
+                            v-model="showLogin"
+                        />
                         <div class="header__btns_phone" v-if="isAuthenticated">
                             <a href="/notification" class="header__notification">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
