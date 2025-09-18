@@ -155,12 +155,20 @@ function acceptHackathon() {
         })
 }
 
-function formatDate(dateStr) {
-    const date = new Date(dateStr)
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const year = date.getFullYear()
-    return `${day}.${month}.${year}`
+function formatDate(s, { utc = false } = {}) {
+    if (!s) return "—"
+    const d = new Date(s)
+    if (isNaN(+d)) return "—"
+
+    const pad = n => String(n).padStart(2, "0")
+
+    const dd = pad(utc ? d.getUTCDate()    : d.getDate())
+    const mm = pad((utc ? d.getUTCMonth()  : d.getMonth()) + 1)
+    const yy = (utc ? d.getUTCFullYear()   : d.getFullYear())
+    const HH = pad(utc ? d.getUTCHours()   : d.getHours())
+    const MM = pad(utc ? d.getUTCMinutes() : d.getMinutes())
+
+    return `${dd}.${mm}.${yy} ${HH}:${MM}`
 }
 </script>
 

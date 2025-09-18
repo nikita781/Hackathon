@@ -1,81 +1,89 @@
 <script setup>
-import {onMounted, reactive, watch} from 'vue'
+import { onMounted, reactive, watch } from 'vue'
 import IconsCancel from '@/Components/Icons/Cancel.vue'
-import {router} from "@inertiajs/vue3";
-import {useLangStore} from "@/store/lang.js";
+import { router } from "@inertiajs/vue3"
+import { useLangStore } from "@/store/lang.js"
 
 const props = defineProps({
-    modelValue : Boolean,
+    modelValue   : Boolean,
     hackathonSlug: { type:String, default:null },
-    initial    : { type:Object, default:null }
+    initial      : { type:Object, default:null },
 })
 const emit = defineEmits(['update:modelValue','saved'])
 
 const langStore = useLangStore()
 
-const empty = () => ({ id:null, title:'', items:[''] })
-const form  = reactive(empty())
+const uid = () => Math.random().toString(36).slice(2)
 
-watch(
-    () => props.initial,
-      v => {
-        if (!v) {
-              Object.assign(form, empty())
-              return
-            }
-                Object.assign(form, {
-                      id   : v.id,
-              title: v.title,
-              items: (v.criteria ?? []).map(c => c.title).concat().length
-                   ? v.criteria.map(c => c.title)
-                       : ['']
-            })
-      },
-    { immediate:true }
-)
+const empty = () => ({
+    id: null,
+    title: '',
+    items: [{ id: null, title: '', _key: uid() }],
+})
+const form = reactive(empty())
 
-function close(){ emit('update:modelValue',false) }
+/* ---- ОСТАВИТЬ ТОЛЬКО ЭТОТ WATCH ---- */
+watch(() => props.initial, v => {
+    if (!v) { Object.assign(form, empty()); return }
+    const items = (v.criteria ?? []).map(c => ({
+        id   : c.id ?? null,
+        title: c.title ?? '',
+        _key : c.id ?? uid(),
+    }))
+    Object.assign(form, {
+        id   : v.id,
+        title: v.title ?? '',
+        items: items.length ? items : [{ id:null, title:'', _key:uid() }],
+    })
+}, { immediate:true })
 
-function addItem(){ form.items.push('') }
-
-function removeItem(idx){ if (form.items.length>1) form.items.splice(idx,1) }
+function close(){ emit('update:modelValue', false) }
+function addItem(){ form.items.push({ id:null, title:'', _key:uid() }) }
+function removeItem(key){
+    form.items = form.items.filter(x => (x.id ?? x._key) !== key)
+}
 
 async function submit () {
+    const titles = form.items
+        .map(c => typeof c === 'string' ? c : c.title)
+        .map(t => (t ?? '').trim())
+        .filter(Boolean)
+
     const payload = {
-        title:  form.title.trim(),
-        criteria: form.items
-            .map(t => t.trim())
-            .filter(Boolean)
-            .map(t => ({ title: t, max_score: 10 }))
+        title   : (form.title ?? '').trim(),
+        criteria: titles.map(t => ({ title: t, max_score: 10 })),
     }
 
     try {
-        if (form.id){                                         /* UPDATE */
+        const opts = {
+            preserveScroll: true,
+            preserveState : true,
+            replace       : true,
+            onSuccess     : () => {
+                emit('saved')
+                Object.assign(form, empty())
+                close()
+            },
+        }
+        if (form.id) {
             await router.patch(
-                route('hackathons.criteria.update',
-                    { hackathon: props.hackathonSlug, criterionGroup: form.id }),
+                route('hackathons.criteria.update', { hackathon: props.hackathonSlug, criterionGroup: form.id }),
                 payload,
-                { preserveScroll:true }
+                opts
             )
-        } else {                                              /* CREATE */
+        } else {
             await router.post(
-                route('hackathons.criteria.store',
-                    { hackathon: props.hackathonSlug }),
+                route('hackathons.criteria.store', { hackathon: props.hackathonSlug }),
                 payload,
-                { preserveScroll:true }
+                opts
             )
         }
-        emit('saved')
-        Object.assign(form, empty())
-        close()
     } catch (err) {
         console.error('criteria-save-error', err?.response ?? err)
     }
 }
 
-onMounted(async () => {
-    await langStore.fetchTranslations()
-})
+onMounted(async () => { await langStore.fetchTranslations() })
 
 function capitalizeFirstLetter(str) {
     if (!str) return str;
@@ -84,9 +92,7 @@ function capitalizeFirstLetter(str) {
 </script>
 
 <template>
-    <div v-if="modelValue"
-         class="dialog"
-         style="z-index:3">
+    <div v-if="modelValue" class="dialog" style="z-index:3">
         <div class="dialog__container dialog__container_small" @click.stop>
             <div class="dialog__header">
                 <p>{{ props.initial ? 'Редактировать группу критериев' : capitalizeFirstLetter(langStore.translations.addCriteriaGroup) }}</p>
@@ -97,10 +103,12 @@ function capitalizeFirstLetter(str) {
                     />
                 </svg></div>
             </div>
+
             <div class="dialog__component">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.criteriaCategory) }}</p>
                 <input v-model="form.title" class="dialog__input" :placeholder="capitalizeFirstLetter(langStore.translations.enterCriteriaCategory)" />
             </div>
+
             <div class="dialog__title_header">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.criterion) }}</p>
                 <div class="dialog__plus" @click="addItem">
@@ -114,26 +122,16 @@ function capitalizeFirstLetter(str) {
                  v-for="(it,idx) in form.items"
                  :key="idx">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.criterionTitle) }}</p>
-
                 <div class="dialog__input_btns">
-                    <input v-model="form.items[idx]"
-                           class="dialog__input"
-                           :placeholder="capitalizeFirstLetter(langStore.translations.enterCriterionTitle)"  style="width: 100%"/>
-                    <IconsCancel class="clickable" style="cursor: pointer" @click="removeItem(idx)" />
+                    <input v-model="it.title" class="dialog__input" :placeholder="capitalizeFirstLetter(langStore.translations.enterCriterionTitle)" style="width:100%"/>
+                    <IconsCancel class="clickable" style="cursor:pointer" @click="removeItem(it.id ?? it._key)" />
                 </div>
             </div>
+
             <div class="dialog__btns">
-                <button class="main__btn main__btn_white dialog__btn" @click="close">
-                    {{ capitalizeFirstLetter(langStore.translations.cansel) }}
-                </button>
-                <button class="main__btn dialog__btn" @click="submit">
-                    {{ props.initial ? 'Изменить' : 'Добавить' }}
-                </button>
+                <button class="main__btn main__btn_white dialog__btn" @click="close">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
+                <button class="main__btn dialog__btn" @click="submit">{{ props.initial ? 'Изменить' : 'Добавить' }}</button>
             </div>
         </div>
     </div>
 </template>
-
-<style scoped>
-
-</style>

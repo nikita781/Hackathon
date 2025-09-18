@@ -65,6 +65,7 @@ function openModal(url) {
 <!--            <pre>{{props.notifications}}</pre>-->
             <h2 class="notification__title">Уведомления</h2>
             <div class="notification__container">
+<!--                <pre>{{props.notifications}}</pre>-->
                 <div v-for="n in props.notifications.data" :key="n.id"
                      class="notification__item"
                      >

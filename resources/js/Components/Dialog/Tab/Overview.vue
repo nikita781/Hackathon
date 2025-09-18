@@ -45,6 +45,8 @@ const taskEnd   = ref(null)
 const description     = ref(null)
 const plan            = ref(null)
 const partnerLogos    = ref([])
+const newPartnerFiles = ref([])   // File[]
+const deletedMediaIds = ref([])   // number[]
 
 const nominations = ref(null)
 
@@ -57,13 +59,14 @@ async function fetchHackathon () {
         if (props.isEdit) {
             const hackathon = data.tabs.original[0];
 
-            form.sections[0].content = hackathon.sections.find(s => s.title === 'Описание')?.content || '';
-            form.sections[1].content = hackathon.sections.find(s => s.title === 'План проведения')?.content || '';
-            form.sections[2].content = hackathon.sections.find(s => s.title === 'Время на выполнение')?.content || '';
+            const overviewTab = data.tabs.original[0];      // сам таб «Обзор»
+            const h = data.hackathon.original;              // <- сам хакатон
 
-            const timeContent = JSON.parse(form.sections[2].content);
-            taskStart.value = timeContent?.start || '';
-            taskEnd.value = timeContent?.end || '';
+            form.sections[0].content = overviewTab.sections.find(s => s.title === 'Описание')?.content || '';
+            form.sections[1].content = overviewTab.sections.find(s => s.title === 'План проведения')?.content || '';
+
+            taskStart.value = h.work_time_start ? h.work_time_start.slice(0,16) : '';
+            taskEnd.value   = h.work_time_end   ? h.work_time_end.slice(0,16)   : '';
 
             description.value = form.sections[0].content
             plan.value = form.sections[1].content
@@ -84,7 +87,9 @@ async function getPartner(tabId) {
             route('hackathons.tabs.partner-images', { hackathon: props.hackathonSlug, tab: tabId }),
             { headers: { Accept: 'application/json' } }
         );
-        partnerLogos.value = response.data.partners;
+        partnerLogos.value = response.data.partners || []
+        newPartnerFiles.value = []
+        deletedMediaIds.value = []
     } catch (e) {
         console.error('hackathon-load', e?.response ?? e);
     }
@@ -116,33 +121,14 @@ watch(description,  v => { form.sections[0].content = v ?? '' })
 watch(plan,         v => { form.sections[1].content = v ?? '' })
 
 const handleFilesUpdate = (newFiles) => {
-    // Проверяем, что newFiles это массив
-    if (Array.isArray(newFiles)) {
-        partnerLogos.value = newFiles;
-    } else {
-        console.error("newFiles is not an array", newFiles);
-    }
-};
+    newPartnerFiles.value = Array.isArray(newFiles) ? newFiles : []
+}
 
-const deletedMediaIds = ref([]);
-
-const handleDeletingIds = (deletedIds) => {
-    deletedMediaIds.value = deletedIds;
-};
-
-
-watch(
-    [partnerLogos],
-    () => {
-        if (!loaded.value) return;
-
-        if (!dirty.value) {
-            dirty.value = true;
-            emit('dirty', true);
-        }
-    },
-    { deep: true }
-);
+const handleDeletingIds = (ids) => {
+    deletedMediaIds.value = Array.isArray(ids)
+        ? ids.filter(n => Number.isFinite(+n)).map(n => +n)
+        : []
+}
 
 watch(
     [description, plan, partnerLogos, taskStart, taskEnd],
@@ -159,28 +145,34 @@ watch(
 async function save () {
     form.sections[0].content = description.value ?? ''
     form.sections[1].content = plan.value        ?? ''
-    form.sections[2] = {
-        title: 'Время на выполнение',
-        content: JSON.stringify({ start: taskStart.value, end: taskEnd.value })
-    }
+
+    console.log(taskStart.value)
+
+    const fdHack = new FormData()
+    fdHack.append('work_time_start', taskStart.value || '')
+    fdHack.append('work_time_end',   taskEnd.value   || '')
+    fdHack.append('_method','PATCH')
+
+    await axios.post(
+        route('hackathons.update', { hackathon: props.hackathonSlug }),
+        fdHack,
+        { headers:{ 'Content-Type':'multipart/form-data', Accept:'application/json' } }
+    )
 
     const fd = new FormData();
     fd.append('title', 'Обзор');
     form.sections.forEach((s, si) => {
+        if (s.title === 'Время на выполнение') return;
         fd.append(`sections[${si}][title]`, s.title);
         const content = s.content == null ? '' : (typeof s.content === 'object' ? JSON.stringify(s.content) : String(s.content));
         fd.append(`sections[${si}][content]`, content);
     });
-    partnerLogos.value.forEach((logo, index) => {
-        if (logo instanceof File) {
-            fd.append('partners[]', logo);
-        }
-    });
-    if (deletedMediaIds.value.length) {
-        deletedMediaIds.value.forEach(id => {
-            fd.append('delete_media_ids[]', id);
-        });
-    }
+    newPartnerFiles.value.forEach(f => {
+        if (f instanceof File) fd.append('partners[]', f)
+    })
+    deletedMediaIds.value.forEach(id => {
+        fd.append('delete_media_ids[]', String(id))
+    })
 
     fd.append('_method', 'PATCH');
 
@@ -197,6 +189,8 @@ async function save () {
             }
         )
     } catch (e) {
+        const errs = e?.response?.data?.errors
+        if (errs) console.error(humanizeErrors(errs, newPartnerFiles.value))
         console.log('tab-errors', e)
         console.log(e.response?.data)
         return
@@ -205,6 +199,25 @@ async function save () {
     loaded.value = true
     emit('dirty', false)
     emit('saved', { slug : props?.hackathonSlug })
+}
+
+function humanizeErrors(errors, files) {
+    if (!errors || typeof errors !== 'object') return 'Ошибка валидации'
+    const out = []
+    for (const [k, msgs] of Object.entries(errors)) {
+        const msg = Array.isArray(msgs) ? msgs[0] : String(msgs)
+        const m = k.match(/^partners\.(\d+)/)
+        if (m) {
+            const i = +m[1]
+            const name = files?.[i]?.name || `файл №${i+1}`
+            out.push(`«${name}»: ${msg}`)
+        } else if (k.startsWith('delete_media_ids')) {
+            out.push(`Удаление файла: ${msg}`)
+        } else {
+            out.push(msg)
+        }
+    }
+    return out.join('\n')
 }
 
 defineExpose({ save })
@@ -297,7 +310,11 @@ onMounted(async () => {
     />
     <div class="dialog__component">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.partners) }}</p>
-        <DropFiles :files="partnerLogos" @update:files="handleFilesUpdate" @deleting-ids="handleDeletingIds" />
+        <DropFiles
+            :files="partnerLogos"
+            @update:files="handleFilesUpdate"
+            @deleting-ids="handleDeletingIds"
+        />
     </div>
     <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>

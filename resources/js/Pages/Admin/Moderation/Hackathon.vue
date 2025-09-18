@@ -93,10 +93,20 @@ function capitalizeFirstLetter(str) {
     return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''
 }
 
-function formatDate(s) {
-    if (!s) return '—'
+function formatDate(s, { utc = false } = {}) {
+    if (!s) return "—"
     const d = new Date(s)
-    return isNaN(+d) ? '—' : d.toLocaleDateString('ru-RU')
+    if (isNaN(+d)) return "—"
+
+    const pad = n => String(n).padStart(2, "0")
+
+    const dd = pad(utc ? d.getUTCDate()    : d.getDate())
+    const mm = pad((utc ? d.getUTCMonth()  : d.getMonth()) + 1)
+    const yy = (utc ? d.getUTCFullYear()   : d.getFullYear())
+    const HH = pad(utc ? d.getUTCHours()   : d.getHours())
+    const MM = pad(utc ? d.getUTCMinutes() : d.getMinutes())
+
+    return `${dd}.${mm}.${yy} ${HH}:${MM}`
 }
 
 onMounted(async () => {

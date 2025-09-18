@@ -27,23 +27,43 @@ const groups   = ref([])
 const dlgShown = ref(false)
 const editingIdx = ref(null)
 const deleted = []
+const editingId = ref(null)
 
-function openAdd ()    { editingIdx.value=null; dlgShown.value=true ; fetchData() }
-function openEdit(idx) { editingIdx.value=idx;  dlgShown.value=true ; fetchData() }
-async function removeGroup(idx){
-    const { id } = groups.value[idx]
+function openAdd () {
+    editingId.value = null
+    dlgShown.value = true
+    fetchData()
+}
+function openEdit(id) {
+    editingId.value = Number(id)
+    dlgShown.value = true
+    fetchData()
+}
+async function removeGroup(id) {
+    const gid = Number(id)
+    const idx = groups.value.findIndex(g => Number(g.id) === gid)
+    if (idx === -1) return
+
     try {
         await router.delete(
-            route('hackathons.criteria.destroy', { hackathon: props.hackathonSlug, criterionGroup: id }),
-            { preserveScroll:true }
+            route('hackathons.criteria.destroy', {
+                hackathon: props.hackathonSlug,
+                criterionGroup: gid,
+            }),
+            { preserveScroll: true }
         )
         groups.value.splice(idx, 1)
-    } catch (err){
+    } catch (err) {
         console.error('nomination-delete-error', err?.response ?? err)
     }
+
     await fetchData()
 }
-function onSaved(){ dlgShown.value = false; fetchData() }
+
+function onSaved () {
+    dlgShown.value = false
+    fetchData()
+}
 
 /* ===== ЗАГРУЗКА: подхватываем даты из таба "Оценка" ===== */
 const fetchData = async () => {
@@ -161,16 +181,18 @@ onMounted(async () => { await langStore.fetchTranslations() })
             </div>
         </div>
 
-        <div class="dialog__prize" v-for="(grp,idx) in groups" :key="idx">
+<!--        <pre>{{groups}}</pre>-->
+
+        <div class="dialog__prize" v-for="grp in groups" :key="grp.id">
             <div class="dialog__eva_container">
                 <p class="dialog__eva">{{ grp.title }}</p>
                 <div class="dialog__prize_btns">
-                    <IconsPencil style="padding: 5px" class="clickable" @click="openEdit(idx)" />
-                    <IconsCancel class="clickable" @click="removeGroup(idx)" />
+                    <IconsPencil style="padding: 5px" class="clickable" @click="openEdit(grp.id)" />
+                    <IconsCancel class="clickable" @click="removeGroup(grp.id)" />
                 </div>
             </div>
 
-            <div class="dialog__eva_item" v-for="(it,i) in grp.criteria" :key="i">
+            <div class="dialog__eva_item" v-for="it in (grp.criteria || [])" :key="it.id || it.title">
                 <p class="dialog__eva_title">{{ it.title }}</p>
                 <div class="dialog__eva_number">
                     <p v-for="n in 10" :key="n">{{ n }}</p>
@@ -181,7 +203,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
 
     <CreateEvaluation
         v-model="dlgShown"
-        :initial="editingIdx!==null ? groups[editingIdx] : null"
+        :initial="editingId!==null ? groups.find(g => Number(g.id) === Number(editingId)) : null"
         :hackathonSlug="props.hackathonSlug"
         @saved="onSaved"
     />

@@ -161,6 +161,10 @@ onMounted(async () => {
     });
 });
 onBeforeUnmount(() => { sortableRef.value?.destroy(); });
+
+function bannerSrc(row) {
+    return route('banners.image', { banner: row.id })
+}
 </script>
 
 <template>
@@ -239,7 +243,7 @@ onBeforeUnmount(() => { sortableRef.value?.destroy(); });
                 >
                     <td>{{ u.order ?? '—' }}</td>
                     <td>
-                        <img :src="u.image_path ?? ''" alt="" class="banner-thumb">
+                        <img :src="bannerSrc(u)" alt="" class="banner-thumb" />
                     </td>
                     <td style="text-align:end; padding: 14px 5px 14px 16px">
                         <button class="drag-handle btn-drop" aria-label="Переместить" title="Переместить" @click.stop>
@@ -267,7 +271,7 @@ onBeforeUnmount(() => { sortableRef.value?.destroy(); });
                 </tbody>
             </table>
 
-            <pre>{{props.banners}}</pre>
+<!--            <pre>{{props.banners}}</pre>-->
 
             <CreateBanners
                 v-model="showBanner"
@@ -295,10 +299,11 @@ onBeforeUnmount(() => { sortableRef.value?.destroy(); });
     cursor: pointer;
 }
 .banner-thumb {
-    max-height: 80px;
-    max-width: 240px;
-    object-fit: contain;
+    max-height: 96px;
+    max-width: 153px;
+    object-fit: cover;
     display: block;
+    border-radius: 10px;
 }
 
 /* строка кликабельна для редактирования */
