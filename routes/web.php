@@ -121,6 +121,7 @@ Route::middleware('auth')->group(function () {
             });
 
             Route::prefix('/staff')->name('staff.')->group(function () {
+                Route::patch('/', [HackathonStaffController::class, 'update'])->name('update');
                 Route::post('/kick', [HackathonStaffController::class, 'kick'])->name('kick');
                 Route::post('/invite', [HackathonStaffController::class, 'createInvite'])->name('create-invite');
                 Route::get('/invite/{token}', [HackathonStaffController::class, 'acceptInvite'])->name('accept-invite');
