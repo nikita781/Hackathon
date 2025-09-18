@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Hackathon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -15,6 +16,41 @@ class HackathonUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $routeParam = $this->route('hackathon') ?? $this->route('id');
+        $hackathon = null;
+
+        if ($routeParam instanceof Hackathon) {
+            $hackathon = $routeParam;
+        } elseif (is_numeric($routeParam)) {
+            $hackathon = Hackathon::find($routeParam);
+        }
+
+        if (!$hackathon) {
+            return;
+        }
+
+        $fields = [
+            'registration_start', 'registration_end',
+            'event_start', 'event_end',
+            'work_time_start', 'work_time_end',
+            'evaluation_start', 'evaluation_end',
+        ];
+
+        $merge = [];
+        foreach ($fields as $f) {
+            if (!$this->has($f) && !is_null($hackathon->{$f})) {
+                $val = $hackathon->{$f};
+                $merge[$f] = $val instanceof Carbon ? $val->toDateTimeString() : (string)$val;
+            }
+        }
+
+        if (!empty($merge)) {
+            $this->merge($merge);
+        }
     }
 
     /**
