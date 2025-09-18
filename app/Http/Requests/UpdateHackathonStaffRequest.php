@@ -15,8 +15,8 @@ class UpdateHackathonStaffRequest extends FormRequest
         ];
     }
 
-    public function messages()
-    {
-        return trans('validations/hackathon_staff');
-    }
+//    public function messages()
+//    {
+//        return trans('validations/hackathon_staff');
+//    }
 }
