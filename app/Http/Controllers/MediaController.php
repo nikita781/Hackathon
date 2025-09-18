@@ -92,7 +92,7 @@ class MediaController extends Controller
 
     public function showAwardMedia(Award $award): BinaryFileResponse
     {
-        $media = $award->getFirstMedia('main_image');
+        $media = $award->getFirstMedia('image');
 
         if (!$media) {
             abort(404);
