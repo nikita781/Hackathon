@@ -348,7 +348,13 @@ class AdminController extends Controller
             'tags.*.order' => ['required', 'integer'],
         ]);
 
-        DB::transaction(fn() => Tag::upsert($data['tags'], ['slug'], ['order']));
+        DB::transaction(function () use ($data) {
+            foreach ($data['tags'] as $tag) {
+                DB::table('tags')
+                    ->where('slug', $tag['slug'])
+                    ->update(['order' => $tag['order']]);
+            }
+        });
 
         return back()->with('status', 'Порядок тегов успешно изменен');
     }
@@ -427,6 +433,14 @@ class AdminController extends Controller
         ]);
 
         Banner::upsert($data['banners'], ['id'], ['order']);
+
+        DB::transaction(function () use ($data) {
+            foreach ($data['banners'] as $banner) {
+                DB::table('banners')
+                    ->where('id', $banner['id'])
+                    ->update(['order' => $banner['order']]);
+            }
+        });
 
         return back()->with('status', 'Порядок баннеров успешно изменён');
     }
