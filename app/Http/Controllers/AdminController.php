@@ -218,6 +218,7 @@ class AdminController extends Controller
     {
         $users = User::query()
             ->with('roles')
+            ->orderBy('id')
             ->filter($request)
             ->paginate(12);
 
