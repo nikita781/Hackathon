@@ -18,6 +18,8 @@ const langStore = useLangStore()
 const props = defineProps({
     hackathons: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 })
 
 const activeTab = ref(0)
@@ -120,7 +122,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
         <div class="sidebar">
             <div class="sidebar-menu">
                 <div class="sidebar-menu__container">

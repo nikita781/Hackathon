@@ -79,6 +79,23 @@ onMounted(async () => {
     await fetchProjects();
     await loadProjectPreviews();
 });
+
+const PLACEHOLDER = '/profile.jpg';
+
+function avatarSrc(photo) {
+    if (!photo) return PLACEHOLDER;
+    const url = String(photo).trim();
+
+    const hasFileName = /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url);
+    if (!hasFileName) return PLACEHOLDER;
+
+    return url;
+}
+
+function imgFallback(e) {
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
+}
 </script>
 
 <template>
@@ -116,10 +133,8 @@ onMounted(async () => {
                             <p class="hackathon__my-project__item_title">{{ project.title }}</p>
                             <p class="hackathon__my-project__item_text">{{ project.description }}</p>
                         </div>
-                        <ul class="hackathon__my-project__item_avatar">
-                            <li><img src="/profile.jpg" alt="Avatar"></li>
-                            <li><img src="/profile.jpg" alt="Avatar"></li>
-                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                        <ul class="hackathon__my-project__item_avatar" v-if="project?.team?.users">
+                            <li v-for="user in project.team.users"><img :src="avatarSrc(user.user.photo)" @error="imgFallback" alt="Avatar"></li>
                         </ul>
                     </div>
                 </div>
@@ -148,8 +163,8 @@ onMounted(async () => {
             <div class="hackathon__my-project__list">
                 <div class="hackathon__my-project__list_item" v-for="(person,idx) in props.ownTeam.users" :key="idx">
                     <div class="hackathon__my-project__list_container">
-                        <img src="/profile.jpg" alt="Avatar">
-                        <p class="hackathon__my-project__list_text">{{ person.user.name }}</p>
+                        <img :src="avatarSrc(person.user.photo)" @error="imgFallback" alt="Avatar">
+                        <p class="hackathon__my-project__list_text">{{ person.user.nickname }}</p>
                     </div>
                     <p class="hackathon__my-project__list_text">{{ person.position.name }}</p>
                 </div>
@@ -158,8 +173,7 @@ onMounted(async () => {
                 type="button"
                 class="main__btn_main hackathon__btn"
                 @click="showInvitation = true"
-                v-if="props.can.team.invite
-"
+                v-if="props.can.team.invite"
             >
                 Пригласить в команду
             </button>

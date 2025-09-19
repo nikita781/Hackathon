@@ -105,6 +105,23 @@ async function save () {
         pendingSave.value = false
     }
 }
+
+const PLACEHOLDER = '/profile.jpg';
+
+function avatarSrc(photo) {
+    if (!photo) return PLACEHOLDER;
+    const url = String(photo).trim();
+
+    const hasFileName = /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url);
+    if (!hasFileName) return PLACEHOLDER;
+
+    return url;
+}
+
+function imgFallback(e) {
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
+}
 </script>
 
 <template>
@@ -125,8 +142,8 @@ async function save () {
                 :key="person.id ?? idx"
             >
                 <div class="hackathon__my-project__list_container" style="width: 100%">
-                    <img src="/profile.jpg" alt="Avatar">
-                    <p class="hackathon__my-project__list_text">{{ person.name }}</p>
+                    <img :src="avatarSrc(person.photo)" @error="imgFallback" alt="Avatar">
+                    <p class="hackathon__my-project__list_text">{{ person.nickname }}</p>
                 </div>
 
                 <div class="dialog__input_reset">

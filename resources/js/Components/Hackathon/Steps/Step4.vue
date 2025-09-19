@@ -68,6 +68,24 @@ async function publishProject() {
         agree.value = false;
     }
 }
+
+const PLACEHOLDER = '/profile.jpg';
+
+function avatarSrc(photo) {
+    console.log(photo)
+    if (!photo) return PLACEHOLDER;
+    const url = String(photo).trim();
+
+    const hasFileName = /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url);
+    if (!hasFileName) return PLACEHOLDER;
+
+    return url;
+}
+
+function imgFallback(e) {
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
+}
 </script>
 
 <template>
@@ -85,15 +103,14 @@ async function publishProject() {
                             <p class="hackathon__my-project__item_title">{{ props.project.title }}</p>
                             <p class="hackathon__my-project__item_text">{{ props.project.description }}</p>
                         </div>
-                        <ul class="hackathon__my-project__item_avatar">
-                            <li><img src="/profile.jpg" alt="Avatar"></li>
-                            <li><img src="/profile.jpg" alt="Avatar"></li>
-                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                        <ul class="hackathon__my-project__item_avatar" v-if="props.oneProject?.team?.users">
+                            <li v-for="user in props.oneProject?.team.users"><img :src="avatarSrc(user.user.photo)" @error="imgFallback" alt="Avatar"></li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
+<!--        <pre>>{{props.oneProject}}</pre>-->
         <div class="dialog__component">
             <p class="dialog__title">Правила и условия</p>
             <div class="dialog__checkbox" style="margin-top: 10px">

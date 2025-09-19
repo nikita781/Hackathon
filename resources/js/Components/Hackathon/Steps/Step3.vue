@@ -15,12 +15,16 @@ const emit = defineEmits(['success', 'cancel'])
 watch(() => props.oneProject, () => {
     if (props.oneProject.slug) {
         videoLink.value = props.oneProject.video_link
-        pptx.value = getPresentation(props.oneProject.presentation_path)
+        pptx.value = props.oneProject.presentation_path
+            ? getPresentation(props.oneProject.presentation_path)
+            : null
     }
 });
 
 function getPresentation(presentation_path) {
-    return presentation_path.split('/').pop();
+    if (typeof presentation_path !== 'string' || !presentation_path) return null
+    const i = presentation_path.lastIndexOf('/')
+    return i >= 0 ? presentation_path.slice(i + 1) : presentation_path
 }
 
 async function getGallery(slugId) {
@@ -34,15 +38,17 @@ async function getGallery(slugId) {
             }
         );
 
-        projectImages.value = response.data.gallery
-        console.log(projectImages.value)
+        existingGallery.value = response.data.gallery ?? []
+        newGalleryFiles.value = []
+        deletedMediaIds.value = []
     } catch (e) {
         console.error('hackathon-load', e?.response ?? e);
     }
 }
 
 const pptx = ref(null);
-const projectImages = ref([])
+const existingGallery = ref([])
+const newGalleryFiles = ref([])
 const videoLink = ref('')
 const deletedMediaIds = ref([]);
 
@@ -51,11 +57,11 @@ const errors = ref({})
 
 
 const handleFilesUpdate = (newFiles) => {
-    projectImages.value = newFiles;
+    newGalleryFiles.value = Array.isArray(newFiles) ? newFiles : []
 };
 
 const handleDeletingIds = (deletedIds) => {
-    deletedMediaIds.value = deletedIds;
+    deletedMediaIds.value = Array.isArray(deletedIds) ? deletedIds : []
 };
 
 function cancel () {
@@ -65,16 +71,20 @@ function cancel () {
 
 const resetState = () => {
     pptx.value = null
-    projectImages.value = []
+    existingGallery.value = []
+    newGalleryFiles.value = []
     videoLink.value = ''
     errors.value      = {}
     pending.value     = false
+    deletedMediaIds.value = []
 }
 
 onMounted(() => {
     if (props.oneProject.slug) {
         videoLink.value = props.oneProject.video_link
-        pptx.value = getPresentation(props.oneProject.presentation_path)
+        pptx.value = props.oneProject.presentation_path
+            ? getPresentation(props.oneProject.presentation_path)
+            : null
         getGallery(props.oneProject.slug)
     }
 })
@@ -89,11 +99,9 @@ async function submit() {
         if (pptx.value && pptx.value instanceof File) {
             fd.append('presentation', pptx.value)
         }
-        projectImages.value.forEach(file => {
-            if (file instanceof File) {
-                fd.append('gallery[]', file);
-            }
-        });
+        for (const file of newGalleryFiles.value) {
+            if (file instanceof File) fd.append('gallery[]', file)
+        }
         // Если есть удалённые медиафайлы, передаём их
         // if (deletedMediaIds.value.length) {
         //     fd.append('delete_media_ids', deletedMediaIds.value); // передаем массив удалённых файлов
@@ -135,7 +143,11 @@ async function submit() {
         </div>
         <div class="dialog__component">
             <p class="dialog__title">Галерея проекта</p>
-            <DropFiles :files="projectImages" @update:files="handleFilesUpdate" @deleting-ids="handleDeletingIds" />
+            <DropFiles
+                :files="existingGallery"
+                @update:files="handleFilesUpdate"
+                @deleting-ids="handleDeletingIds"
+            />
             <span v-if="errors.gallery" class="error">{{ errors.gallery[0] }}</span>
         </div>
         <div class="dialog__component">

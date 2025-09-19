@@ -29,6 +29,8 @@ function openAnswer(message) {
 const props = defineProps({
     support: {type: Object, required: true}, // пагинатор
     filters: {type: Object, default: () => ({})}, // если вдруг добавишь на бэке
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 });
 
 // ------- Табы (локальные, без навигации)
@@ -131,7 +133,10 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
 </script>
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
         <div class="sidebar">
             <div class="sidebar-menu">
                 <div class="sidebar-menu__container">
@@ -198,7 +203,6 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
                     <IconsFilters class="admin__btn_filters"/>
                 </button>
             </div>
-
             <div class="admin__table_container" style="margin-top: 20px">
                 <table class="admin__table admin__table_clickable">
                     <thead>
@@ -211,7 +215,7 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
                     </thead>
                     <tbody>
                     <tr v-for="s in rows" :key="s.id" @click="openAnswer(s)">
-                        <td>{{ s.creator.name }}</td>
+                        <td>{{ s.creator.nickname }}</td>
                         <td>
                             <p v-if="s.type === 'bug'">Сообщение об ошибке</p>
                             <p v-if="s.type === 'suggestion'">Предложение</p>

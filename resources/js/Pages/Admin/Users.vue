@@ -15,6 +15,7 @@ import TableActionsMenu from '@/Components/TableActionsMenu.vue'
 import { reactive } from 'vue'
 import {useToast} from "vue-toastification";
 import ChangeRole from "@/Components/Dialog/Admin/ChangeRole.vue";
+import axios from "axios";
 
 const menu = reactive({
     show: false,
@@ -23,13 +24,14 @@ const menu = reactive({
     user: null,
     anchorKey: null,
 })
-const allRoles = computed(() => {
-    const map = new Map()
-    ;(rows.value || []).forEach(u => (u.roles || []).forEach(r => {
-        if (r && !map.has(r.id)) map.set(r.id, { id: r.id, title: r.title, name: r.name })
-    }))
-    return Array.from(map.values())
-})
+const rolesResp = ref({ roles: [] })
+async function getRoles () {
+    try {
+        const { data } = await axios.get(route('admin.roles'))
+        rolesResp.value = data ?? { roles: [] }
+        console.log(rolesResp.value)
+    } catch (e) { console.error('roles-error', e) }
+}
 
 function openMenu(e, user, key) {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -85,6 +87,8 @@ const langStore = useLangStore()
 const props = defineProps({
     users: { type: Object, required: true },
     flash: Object,
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 })
 
 const toast = useToast();
@@ -109,6 +113,7 @@ watch(() => props.flash, (newFlash) => {
     }
 });
 
+const syncing = ref(false)
 
 const search = ref(new URLSearchParams(window.location.search).get('q') ?? '')
 
@@ -132,14 +137,39 @@ watch(search, debounce(runSearch, 400))
 
 onMounted(async () => {
     await langStore.fetchTranslations()
+    await getRoles()
     nextTick(() => {
         showToast();
     });
 })
+
+async function updateUsers() {
+    if (syncing.value) return
+    syncing.value = true
+    try {
+        await axios.post(route('admin.sync-user'))
+        await router.reload({ only: ['users'], preserveState: true, preserveScroll: true })
+        toast.success('Данные пользователей успешно обновлены!', {
+            position: 'top-right',
+            timeout: 5000,
+        })
+    } catch (e) {
+        console.error('Ошибка синхронизации данных пользователей', e?.response ?? e)
+        toast.error('Ошибка при обновлении данных пользователей.', {
+            position: 'top-right',
+            timeout: 5000,
+        })
+    } finally {
+        syncing.value = false
+    }
+}
 </script>
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
         <div class="sidebar">
             <div class="sidebar-menu">
                 <div class="sidebar-menu__container">
@@ -177,6 +207,16 @@ onMounted(async () => {
 
         <div class="admin__content">
             <p class="hackathon__my-project__title" style="margin-bottom: 40px">Пользователи</p>
+
+            <button
+                type="button"
+                class="main__btn_main"
+                style="margin-bottom: 30px"
+                @click="updateUsers"
+                :disabled="syncing"
+            >
+                {{ syncing ? 'Обновляем…' : 'Обновить данные' }}
+            </button>
 
             <div class="main__search my-hackathon__search" style="margin-bottom: 20px">
                 <div class="main__search_container">
@@ -242,7 +282,7 @@ onMounted(async () => {
             <ChangeRole
                 v-model="showChangeRole"
                 :user="roleUser"
-                :options="allRoles"
+                :options="rolesResp.roles"
                 @saved="onRoleSaved"
             />
 
@@ -264,4 +304,10 @@ onMounted(async () => {
     cursor: pointer;
 }
 .dots:hover{ background: rgba(0,0,0,.06); }
+
+.main__btn_main[disabled] {
+    opacity: .6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 </style>

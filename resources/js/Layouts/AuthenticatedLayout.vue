@@ -10,13 +10,22 @@ import Header from "@/Components/Header.vue";
 import Footer from "@/Components/Footer.vue";
 
 const showingNavigationDropdown = ref(false);
+
+const props = defineProps({
+    auth: { type: Object, required: true },
+    notifications: { type: Object, required: true },
+})
 </script>
 
 <template>
     <div>
         <div class="min-h-screen bg-gray-100">
             <div class="layout">
-                <Header style="z-index: 2"/>
+                <Header
+                    :auth="props.auth"
+                    :notifications="props.notifications"
+                    style="z-index: 2"
+                />
 
                 <main class="layout__main">
                     <slot/>

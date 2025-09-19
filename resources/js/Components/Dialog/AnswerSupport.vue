@@ -96,7 +96,7 @@ async function submitAppeal() {
                 />
             </div>
             <div class="dialog__component" v-if="message.messages[1] || !props.can">
-                <p class="dialog__title">Текст ответа</p>
+                <p class="dialog__title" v-if="message.messages[1]">Текст ответа</p>
                 <textarea
                     v-if="message.messages[1]"
                     style="min-height: 170px"

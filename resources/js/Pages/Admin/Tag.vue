@@ -16,6 +16,8 @@ const langStore = useLangStore();
 
 const props = defineProps({
     tags: { type: Object, required: true }, // массив или пагинация {data:[]}
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 });
 
 const activeTab = ref(0);
@@ -168,7 +170,10 @@ onBeforeUnmount(() => { sortableRef.value?.destroy(); });
 </script>
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
         <div class="sidebar">
             <div class="sidebar-menu">
                 <div class="sidebar-menu__container">

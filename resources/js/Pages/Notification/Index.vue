@@ -7,7 +7,8 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import AcceptInvitationToJoin from "@/Components/Dialog/AcceptInvitationToJoin.vue";
 
 const props = defineProps({
-    notifications: Object
+    notifications: Object,
+    auth : { type:Object, required:true },
 })
 
 const showAcceptInvitationToJoin  = ref(false)
@@ -60,7 +61,9 @@ function openModal(url) {
 </script>
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+    >
         <div class="notification">
 <!--            <pre>{{props.notifications}}</pre>-->
             <h2 class="notification__title">Уведомления</h2>
