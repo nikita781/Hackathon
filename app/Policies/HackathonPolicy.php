@@ -64,6 +64,10 @@ class HackathonPolicy
             return false;
         }
 
+        if ($hackathon->work_time_start > now() || $hackathon->work_time_end < now()) {
+            return false;
+        }
+
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 
@@ -151,6 +155,10 @@ class HackathonPolicy
     {
         if ($user->hasRole(Role::ADMIN)) {
             return true;
+        }
+
+        if ($hackathon->evaluation_start > now() || $hackathon->evaluation_end < now()) {
+            return false;
         }
 
         return $user->hackathons()

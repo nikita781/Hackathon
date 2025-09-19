@@ -50,6 +50,49 @@ class NotificationController extends Controller
                     ]);
                 }
 
+                // === HackathonFinishedNotification ===
+                if ($type === 'HackathonFinishedNotification') {
+                    return array_merge($base, [
+                        'title' => $data['title'] ?? '',
+                        'description' => $data['description'] ?? '',
+                        'url' => $data['url'] ?? '',
+                        'send_at' => $data['send_at'] ?? null,
+                    ]);
+                }
+
+                // === KickNotification ===
+                if ($type === 'KickNotification') {
+                    return array_merge($base, [
+                        'title' => $data['title'] ?? '',
+                        'description' => $data['description'] ?? '',
+                        'send_at' => $data['send_at'] ?? null,
+                    ]);
+                }
+
+                // === ModerateNotification ===
+                if ($type === 'ModerateNotification') {
+                    return array_merge($base, [
+                        'status' => $data['status'] ?? null,
+                        'comment' => $data['comment'] ?? null,
+                        'message' => $data['message'] ?? '',
+                        'send_at' => $data['send_at'] ?? null,
+                    ]);
+                }
+
+                // === SupportAnsweredNotification ===
+                if ($type === 'SupportAnsweredNotification' && isset($data['support_id'])) {
+                    $support = \App\Models\Support::find($data['support_id']);
+
+                    return array_merge($base, [
+                        'title' => $data['title'] ?? '',
+                        'description' => $data['description'] ?? '',
+                        'support_id' => $data['support_id'],
+                        'message' => $data['message'] ?? '',
+                        'is_completed' => $support?->is_completed ?? false,
+                        'send_at' => $data['send_at'] ?? null,
+                    ]);
+                }
+
                 // fallback
                 return array_merge($base, [
                     'message' => 'Неизвестное уведомление',
