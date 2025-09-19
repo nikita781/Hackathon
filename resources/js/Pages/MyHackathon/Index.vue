@@ -18,7 +18,8 @@ const props = defineProps({
     pastHackathons: Object,
     query: Object,
     tags: Object,
-    notifications: Object
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 })
 
 const langStore = useLangStore()
@@ -159,7 +160,10 @@ async function publishHackathon(hackathon) {
 </script>
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
 <!--        {{ notifications }}-->
         <div class="my-hackathon">
             <div class="my-hackathon__header">

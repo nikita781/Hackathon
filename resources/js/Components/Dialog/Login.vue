@@ -32,18 +32,33 @@ watch(
     }
 );
 
+watch(() => [form.login, form.password], ([l, p]) => {
+    agree.value = !!(l && p)
+})
+
 async function submit () {
+    if (pending.value) return
     pending.value = true
 
-    try {
-        form.post(route('login'))
-        toast.success('Успешная авторизация', { position:'top-right', timeout:5000 })
-        close()
-    } catch (e) {
-        toast.error('Ошибка авторизации', { position:'top-right', timeout:5000 })
-    } finally {
-        pending.value = false
-    }
+    await form.post(route('login'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Успешная авторизация', { position:'top-right', timeout:5000 })
+            close()
+        },
+        onError: (errors) => {
+            // errors — это bag валидации от Inertia/Laravel
+            const msg =
+                errors.login ??
+                errors.email ??
+                errors.password ??
+                Object.values(errors)[0] ??
+                'Неверный логин или пароль'
+            toast.error(msg, { position:'top-right', timeout:5000 })
+            form.reset('password') // на ошибке очищаем пароль
+        },
+        onFinish: () => { pending.value = false },
+    })
 }
 
 function handleKeyPress(event) {
@@ -91,11 +106,11 @@ function handleKeyPress(event) {
                 </button>
                 <button
                     class="main__btn dialog__btn"
+                    :disabled="pending || !form.login || !form.password"
+                    :class="{ blocked: pending || !form.login || !form.password }"
                     @click="submit"
                 >
-                    {{ pending
-                    ? 'Отправляем…'
-                    : 'Авторизоваться' }}
+                    {{ pending ? 'Отправляем…' : 'Авторизоваться' }}
                 </button>
             </div>
         </div>
@@ -103,5 +118,5 @@ function handleKeyPress(event) {
 </template>
 
 <style scoped>
-
+.dialog__error { color:#E80024; font-size:13px; margin-top:6px; display:block; }
 </style>

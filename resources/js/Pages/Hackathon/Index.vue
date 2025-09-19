@@ -15,6 +15,8 @@ const props = defineProps({
     can: Object,
     tags: Object,
     filters: Object,
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 })
 const { data, links, current_page, last_page } = props.hackathons
 
@@ -226,7 +228,10 @@ onMounted(async () => {
 <template>
 <!--    <Head title="Dashboard" />-->
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
 <!--        <pre>{{langStore.translations}}</pre>-->
         <div>
         <div class="head">

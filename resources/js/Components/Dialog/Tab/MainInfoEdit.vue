@@ -103,10 +103,15 @@ onMounted(async () => {
     }
 })
 
+function clearFieldError(field) {
+    form.clearErrors(field)
+}
+
 watch(
     () => form.image_path,
     file => {
-        if (!file) revokePreview()
+        if (!file) { revokePreview(); return }
+        form.clearErrors('image_path')
     }
 )
 
@@ -189,7 +194,7 @@ onBeforeUnmount(revokePreview)
 
 function capitalizeFirstLetter(str) {
     if (!str) return str;
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();Дк 
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();Дк
 }
 
 onMounted(async () => {
@@ -205,8 +210,10 @@ onMounted(async () => {
             type="text"
             class="dialog__input"
             :placeholder="capitalizeFirstLetter(langStore.translations.enter_title)"
-        >
-        <small v-if="form.errors.title" class="error">{{ form.errors.title }}</small>
+            :class="{ 'error': form.errors.title }"
+            @input="clearFieldError('title')"
+        />
+        <small v-if="form.errors.title" class="error__text">{{ form.errors.title }}</small>
     </div>
     <div class="dialog__block">
         <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
@@ -229,13 +236,30 @@ onMounted(async () => {
             <div class="dialog__horizontal">
                 <div class="dialog__info">
                     <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
-                    <input v-model.number="form.min_team_size" type="number" class="dialog__input dialog__input_short" :placeholder="capitalizeFirstLetter(langStore.translations.amount)">
+                    <input
+                        v-model.number="form.min_team_size"
+                        type="number"
+                        class="dialog__input dialog__input_short"
+                        :placeholder="capitalizeFirstLetter(langStore.translations.amount)"
+                        :class="{ 'error': form.errors.min_team_size }"
+                        @input="clearFieldError('min_team_size')"
+                    />
                 </div>
                 <div class="dialog__info">
                     <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
-                    <input v-model.number="form.max_team_size" type="number" class="dialog__input dialog__input_short" :placeholder="capitalizeFirstLetter(langStore.translations.amount)">
+                    <input
+                        v-model.number="form.max_team_size"
+                        type="number"
+                        class="dialog__input dialog__input_short"
+                        :placeholder="capitalizeFirstLetter(langStore.translations.amount)"
+                        :class="{ 'error': form.errors.max_team_size }"
+                        @input="clearFieldError('max_team_size')"
+                    />
                 </div>
             </div>
+            <small v-if="form.errors.min_team_size || form.errors.max_team_size" class="error__text">
+                {{ form.errors.min_team_size }}<br>{{ form.errors.max_team_size }}
+            </small>
         </div>
     </div>
     <div class="dialog__component">
@@ -274,20 +298,43 @@ onMounted(async () => {
     <div class="dialog__block">
         <div class="dialog__component medium">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.registration_deadline) }}</p>
-            <input v-model="form.registration_end" type="datetime-local" id="datepicker" class="dialog__input" placeholder="Выберите дату" />
+            <input
+                v-model="form.registration_end"
+                type="datetime-local"
+                id="datepicker"
+                class="dialog__input"
+                :class="{ 'error': form.errors.registration_end }"
+                @input="clearFieldError('registration_end')"
+            />
+            <small v-if="form.errors.registration_end" class="error__text">{{ form.errors.registration_end }}</small>
         </div>
         <div class="dialog__component large">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.event_date) }}</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
                     <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
-                    <input v-model="form.event_start" type="datetime-local" class="dialog__input dialog__input_medium" placeholder="Кол-во">
+                    <input
+                        v-model="form.event_start"
+                        type="datetime-local"
+                        class="dialog__input dialog__input_medium"
+                        :class="{ 'error': form.errors.event_start }"
+                        @input="clearFieldError('event_start')"
+                    />
                 </div>
                 <div class="dialog__info">
                     <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
-                    <input v-model="form.event_end" type="datetime-local" class="dialog__input dialog__input_medium" placeholder="Кол-во">
+                    <input
+                        v-model="form.event_end"
+                        type="datetime-local"
+                        class="dialog__input dialog__input_medium"
+                        :class="{ 'error': form.errors.event_end }"
+                        @input="clearFieldError('event_end')"
+                    />
                 </div>
             </div>
+            <small v-if="form.errors.event_start || form.errors.event_end" class="error__text">
+                {{ form.errors.event_start }}<br>{{ form.errors.event_end }}
+            </small>
         </div>
     </div>
     <div class="dialog__block">
@@ -300,12 +347,21 @@ onMounted(async () => {
         </div>
         <div class="dialog__component large">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.prize_fund) }}</p>
-            <input v-model="form.prize_pool" type="text" class="dialog__input" :placeholder="capitalizeFirstLetter(langStore.translations.enter_prize_hint)">
+            <input
+                v-model="form.prize_pool"
+                type="text"
+                class="dialog__input"
+                :placeholder="capitalizeFirstLetter(langStore.translations.enter_prize_hint)"
+                :class="{ 'error': form.errors.prize_pool }"
+                @input="clearFieldError('prize_pool')"
+            />
+            <small v-if="form.errors.prize_pool" class="error__text">{{ form.errors.prize_pool }}</small>
         </div>
     </div>
     <div class="dialog__component">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_card_preview) }}</p>
         <DropFile v-model:file="form.image_path"/>
+        <small v-if="form.errors.image_path" class="error__text">{{ form.errors.image_path }}</small>
     </div>
     <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>

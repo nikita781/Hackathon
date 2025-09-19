@@ -130,6 +130,10 @@ const handleDeletingIds = (ids) => {
         : []
 }
 
+function clearFieldError(field) {
+    form.clearErrors(field)
+}
+
 watch(
     [description, plan, partnerLogos, taskStart, taskEnd],
     () => {
@@ -153,11 +157,26 @@ async function save () {
     fdHack.append('work_time_end',   taskEnd.value   || '')
     fdHack.append('_method','PATCH')
 
-    await axios.post(
-        route('hackathons.update', { hackathon: props.hackathonSlug }),
-        fdHack,
-        { headers:{ 'Content-Type':'multipart/form-data', Accept:'application/json' } }
-    )
+    form.clearErrors('work_time_start')
+    form.clearErrors('work_time_end')
+
+    try {
+        await axios.post(
+            route('hackathons.update', { hackathon: props.hackathonSlug }),
+            fdHack,
+            { headers:{ 'Content-Type':'multipart/form-data', Accept:'application/json' } }
+        )
+    } catch (e) {
+        if (e.response?.status === 422) {
+            const errors = e.response.data.errors || {}
+            Object.entries(errors).forEach(([field, messages]) => {
+                form.setError(field, Array.isArray(messages) ? messages[0] : String(messages))
+            })
+        } else {
+            console.error('hackathon-update', e)
+        }
+        return
+    }
 
     const fd = new FormData();
     fd.append('title', 'Обзор');
@@ -259,13 +278,30 @@ onMounted(async () => {
         <div class="dialog__horizontal">
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
-                <input type="datetime-local" v-model="taskStart" class="dialog__input" placeholder="Кол-во" style="width: 100%">
+                <input
+                    type="datetime-local"
+                    v-model="taskStart"
+                    class="dialog__input"
+                    :class="{ 'error': form.errors.work_time_start }"
+                    @input="clearFieldError('work_time_start')"
+                    style="width: 100%"
+                >
             </div>
+
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
-                <input type="datetime-local" v-model="taskEnd" class="dialog__input" placeholder="Кол-во" style="width: 100%">
+                <input
+                    type="datetime-local"
+                    v-model="taskEnd"
+                    class="dialog__input"
+                    :class="{ 'error': form.errors.work_time_end }"
+                    @input="clearFieldError('work_time_end')"
+                    style="width: 100%"
+                >
             </div>
         </div>
+        <small v-if="form.errors.work_time_start" class="error__text">{{ form.errors.work_time_start }}</small>
+        <small v-if="form.errors.work_time_end" class="error__text">{{ form.errors.work_time_end }}</small>
     </div>
     <div class="dialog__component" v-if="!isEdit || loaded">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.description) }}</p>

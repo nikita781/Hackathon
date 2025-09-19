@@ -6,10 +6,12 @@ import {computed, nextTick, onMounted, ref} from "vue";
 const props = defineProps({
     user: Object,
     awards: Object,
-    projects: Object
+    projects: Object,
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 })
 
-console.log(props.projects)
+console.log(props.auth)
 
 const activeTab = ref(usePage().props.query?.tab   === 'past' ? 1 : 0)
 
@@ -86,23 +88,45 @@ function previewSrc(project) {
     }
     return "/project.jpg";
 }
+
+const PLACEHOLDER = '/profile.jpg';
+
+function avatarSrc(photo) {
+    if (!photo) return PLACEHOLDER;
+    const url = String(photo).trim();
+
+    const hasFileName = /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url);
+    if (!hasFileName) return PLACEHOLDER;
+
+    return url;
+}
+
+function imgFallback(e) {
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
+}
 </script>
 
 <template>
     <Head title="Dashboard" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
 <!--        <pre>{{props.user}}</pre>-->
         <div class="profile">
             <div class="profile__header">
                 <h2 class="profile__nickname">{{props.user?.nickname}}</h2>
-                <button
+                <a
                     type="button"
                     class="main__btn_main hackathon__btn"
                     style="max-width: unset"
+                    href="https://foncode.ru/cabinet/profile"
+                    target="_blank"
                 >
                     Редактировать
-                </button>
+                </a>
             </div>
             <div class="profile__role">
                 <p>{{props.user?.roles[0]?.title}}</p>
@@ -133,7 +157,7 @@ function previewSrc(project) {
                 </div>
                 <div class="profile__content_image">
                     <div>
-                        <img src="/profile.jpg" alt="Profile" />
+                        <img :src="avatarSrc(props.auth.user.photo)" @error="imgFallback" alt="Profile" />
                     </div>
                 </div>
             </div>
@@ -185,10 +209,8 @@ function previewSrc(project) {
                                 <p class="hackathon__my-project__item_text">{{ project.description }}</p>
                             </div>
 
-                            <ul class="hackathon__my-project__item_avatar">
-                                <li><img src="/profile.jpg" alt="Avatar"></li>
-                                <li><img src="/profile.jpg" alt="Avatar"></li>
-                                <li><img src="/profile.jpg" alt="Avatar"></li>
+                            <ul class="hackathon__my-project__item_avatar" v-if="project?.team?.users">
+                                <li v-for="user in project.team.users"><img :src="avatarSrc(user.photo)" @error="imgFallback" alt="Avatar"></li>
                             </ul>
 
                             <a :href="project.certificate_url" class="main__btn_main" style="width: fit-content; margin-top: -10px">Сертификат</a>

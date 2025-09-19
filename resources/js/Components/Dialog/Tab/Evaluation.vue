@@ -29,6 +29,8 @@ const editingIdx = ref(null)
 const deleted = []
 const editingId = ref(null)
 
+const errors = ref({ evaluation_start: '', evaluation_end: '' })
+
 function openAdd () {
     editingId.value = null
     dlgShown.value = true
@@ -77,23 +79,9 @@ const fetchData = async () => {
         // группы критериев (как и было)
         groups.value = data?.hackathon?.original?.criteria_groups ?? []
 
-        // таб "Оценка" → секция "Даты проверки"
-        const evalTab =
-            data?.tabs?.original?.find(t => t.title === 'Оценка')
-            ?? data?.tabs?.original?.[5] // запасной вариант по индексу
-
-        const dateSec = evalTab?.sections?.find(s => s.title === 'Даты проверки')
-
-        let parsed = {}
-        if (dateSec?.content){
-            try { parsed = typeof dateSec.content === 'string'
-                ? JSON.parse(dateSec.content)
-                : dateSec.content }
-            catch(e){ parsed = {} }
-        }
-
-        evaluationStart.value = parsed?.start ?? ''
-        evaluationEnd.value   = parsed?.end   ?? ''
+        const h = data?.hackathon?.original
+        evaluationStart.value = h?.evaluation_start ? h.evaluation_start.slice(0,16) : ''
+        evaluationEnd.value   = h?.evaluation_end   ? h.evaluation_end.slice(0,16)   : ''
 
         await nextTick()
         loaded.value = true
@@ -113,27 +101,35 @@ watch([evaluationStart, evaluationEnd], () => {
     }
 })
 
-/* ===== Сохранение: только даты ===== */
 async function save() {
+    // чистим старые ошибки
+    errors.value.evaluation_start = ''
+    errors.value.evaluation_end   = ''
+
     const fd = new FormData()
-    fd.append('title','Оценка')
-    fd.append('sections[0][title]','Даты проверки')
-    fd.append('sections[0][content]', JSON.stringify({
-        start: evaluationStart.value || '',
-        end  : evaluationEnd.value   || ''
-    }))
+    fd.append('evaluation_start', evaluationStart.value || '')
+    fd.append('evaluation_end',   evaluationEnd.value   || '')
     fd.append('_method','PATCH')
 
-    try{
+    try {
         await axios.post(
-            route('hackathons.tabs.update', { hackathon: props.hackathonSlug }),
-            fd, { headers:{'Content-Type':'multipart/form-data'} }
+            route('hackathons.update', { hackathon: props.hackathonSlug }),
+            fd,
+            { headers:{ 'Content-Type':'multipart/form-data', Accept:'application/json' } }
         )
         dirty.value = false
         emit('dirty', false)
-        emit('saved',{slug:props.hackathonSlug})
-    } catch (err){
-        console.error('evaluation-save', err?.response ?? err)
+        emit('saved', { slug: props.hackathonSlug })
+    } catch (e) {
+        if (e?.response?.status === 422) {
+            const err = e.response.data?.errors || {}
+            errors.value.evaluation_start = Array.isArray(err.evaluation_start) ? err.evaluation_start[0] : (err.evaluation_start || '')
+            errors.value.evaluation_end   = Array.isArray(err.evaluation_end)   ? err.evaluation_end[0]   : (err.evaluation_end   || '')
+        } else {
+            console.error('evaluation-save', e?.response ?? e)
+        }
+        // если валидация не прошла — не продолжаем
+        return
     }
 }
 
@@ -163,13 +159,30 @@ onMounted(async () => { await langStore.fetchTranslations() })
         <div class="dialog__horizontal">
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
-                <input type="datetime-local" v-model="evaluationStart" class="dialog__input" style="width: 100%">
+                <input
+                    type="datetime-local"
+                    v-model="evaluationStart"
+                    class="dialog__input"
+                    :class="{ error: !!errors.evaluation_start }"
+                    @input="errors.evaluation_start=''"
+                    style="width: 100%"
+                >
             </div>
+
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
-                <input type="datetime-local" v-model="evaluationEnd" class="dialog__input" style="width: 100%">
+                <input
+                    type="datetime-local"
+                    v-model="evaluationEnd"
+                    class="dialog__input"
+                    :class="{ error: !!errors.evaluation_end }"
+                    @input="errors.evaluation_end=''"
+                    style="width: 100%"
+                >
             </div>
         </div>
+        <small v-if="errors.evaluation_start" class="error__text">{{ errors.evaluation_start }}</small>
+        <small v-if="errors.evaluation_end" class="error__text">{{ errors.evaluation_end }}</small>
     </div>
 
     <div class="dialog__prize">

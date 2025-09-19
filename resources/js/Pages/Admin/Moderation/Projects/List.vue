@@ -24,6 +24,8 @@ const props = defineProps({
     filters: { type: Object, default: () => ({}) },
     // если на странице есть сам хакатон — он нужен для fallback превью
     hackathon: { type: Object, default: () => null },
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 });
 
 const search   = ref(props.filters.q ?? "");
@@ -139,11 +141,31 @@ function previewSrc(project) {
     }
     return "/project.jpg";
 }
+
+const PLACEHOLDER = '/profile.jpg';
+
+function avatarSrc(photo) {
+    if (!photo) return PLACEHOLDER;
+    const url = String(photo).trim();
+
+    const hasFileName = /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url);
+    if (!hasFileName) return PLACEHOLDER;
+
+    return url;
+}
+
+function imgFallback(e) {
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
+}
 </script>
 
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
         <div class="sidebar">
             <div class="sidebar-menu">
                 <div class="sidebar-menu__container">
@@ -199,7 +221,7 @@ function previewSrc(project) {
                     <IconsFilters class="admin__btn_filters" />
                 </button>
             </div>
-
+<!--            <pre>{{props.projects.data}}</pre>-->
             <div class="project-container">
                 <div
                     v-for="project in props.projects.data"
@@ -227,10 +249,8 @@ function previewSrc(project) {
                             <p class="hackathon__my-project__item_text">{{ project.description }}</p>
                         </div>
 
-                        <ul class="hackathon__my-project__item_avatar">
-                            <li><img src="/profile.jpg" alt="Avatar"></li>
-                            <li><img src="/profile.jpg" alt="Avatar"></li>
-                            <li><img src="/profile.jpg" alt="Avatar"></li>
+                        <ul class="hackathon__my-project__item_avatar" v-if="project?.team?.users">
+                            <li v-for="user in project.team.users"><img :src="avatarSrc(user.user.photo)" @error="imgFallback" alt="Avatar"></li>
                         </ul>
                     </div>
                 </div>

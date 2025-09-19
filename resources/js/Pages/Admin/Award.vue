@@ -15,6 +15,8 @@ const langStore = useLangStore();
 
 const props = defineProps({
     awards: { type: Object, required: true },
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 });
 
 // нормализуем входящие награды
@@ -66,7 +68,10 @@ function onSaved() {
 </script>
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
         <div class="sidebar">
             <div class="sidebar-menu">
                 <div class="sidebar-menu__container">

@@ -21,6 +21,8 @@ const props = defineProps({
     allProjects: Object,
     flash: Object,
     supports: Object,
+    auth : { type:Object, required:true },
+    notifications : { type:Object, required:true },
 })
 
 console.log(props.can)
@@ -173,7 +175,10 @@ function formatDate(s, { utc = false } = {}) {
 </script>
 
 <template>
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+        :auth="props.auth"
+        :notifications="props.notifications"
+    >
         <div class="hackathon__header">
             <div class="hackathon__header_btn" @click="toggleHeader">
                 <h1 class="hackathon__title">{{props.hackathon.title}}</h1>

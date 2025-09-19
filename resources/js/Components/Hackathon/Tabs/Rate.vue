@@ -321,6 +321,7 @@ function setIdProject (id) {
                         </div>
                     </template>
                     <template v-else>
+<!--                        <pre>{{items}}</pre>-->
                         <div
                             v-for="project in items"
                             :key="getKey(project)"

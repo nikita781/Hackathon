@@ -81,6 +81,23 @@ const saveChanges = async () => {
         console.error("Ошибка при сохранении изменений", error);
     }
 };
+
+const PLACEHOLDER = '/profile.jpg';
+
+function avatarSrc(photo) {
+    if (!photo) return PLACEHOLDER;
+    const url = String(photo).trim();
+
+    const hasFileName = /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url);
+    if (!hasFileName) return PLACEHOLDER;
+
+    return url;
+}
+
+function imgFallback(e) {
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
+}
 </script>
 
 <template>
@@ -98,8 +115,8 @@ const saveChanges = async () => {
 <!--            <pre>{{team}}</pre>-->
             <div class="dialog__input_btns dialog__input_btns_small dialog__input_btns-phone" v-for="(person,idx) in filteredUsers" :key="idx">
                 <div class="hackathon__my-project__list_container" style="width: 100%">
-                    <img src="/profile.jpg" alt="Avatar">
-                    <p class="hackathon__my-project__list_text">{{ person.user.name }}</p>
+                    <img :src="avatarSrc(person.user.photo)" @error="imgFallback" alt="Avatar">
+                    <p class="hackathon__my-project__list_text">{{ person.user.nickname }}</p>
                 </div>
                 <div class="dialog__input_reset">
                     <select v-model="person.position.id" class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
