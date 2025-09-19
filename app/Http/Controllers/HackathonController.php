@@ -299,6 +299,10 @@ class HackathonController extends Controller
     {
         Gate::authorize('publish', $hackathon);
 
+        if ($hackathon->work_time_start !== null || $hackathon->work_time_end !== null || $hackathon->evaluation_start !== null || $hackathon->evaluation_end !== null) {
+            return back()->with('error', 'Все даты хакатона должны быть заполнены');
+        }
+
         $hackathon->update([
             'status' => Hackathon::STATUS_MODERATION,
             'moderated_time' => Carbon::now(),
