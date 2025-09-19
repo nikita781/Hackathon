@@ -388,7 +388,7 @@ class HackathonController extends Controller
     public function gallery(Request $request, Hackathon $hackathon): JsonResponse
     {
         return response()->json([
-            'gallery' => $hackathon->allProjects()->with(['team.teamUsers.user', 'team.teamUsers.position'])->filter($request)->published()->get()
+            'gallery' => ProjectResource::collection($hackathon->allProjects()->with(['team.teamUsers.user', 'team.teamUsers.position'])->filter($request)->published()->get())
         ]);
     }
 }
