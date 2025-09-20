@@ -236,6 +236,7 @@ class HackathonController extends Controller
                     'delete' => Gate::check('delete', $hackathon),
                     'viewTask' => Gate::check('viewTask', $hackathon),
                     'rate' => Gate::check('evaluation', $hackathon),
+                    'publish' => Gate::check('publish', $hackathon),
                     'moderate' => Gate::check('moderate', Hackathon::class),
                     'is_staff' => $isStaffHackathon,
                 ],
@@ -297,7 +298,9 @@ class HackathonController extends Controller
 
     public function publish(Hackathon $hackathon): RedirectResponse
     {
-        Gate::authorize('publish', $hackathon);
+        if (!Gate::check('publish', $hackathon)) {
+            return back()->with('error', 'Вы не можете опубликовать хакатон');
+        }
 
         if ($hackathon->work_time_start !== null || $hackathon->work_time_end !== null || $hackathon->evaluation_start !== null || $hackathon->evaluation_end !== null) {
             return back()->with('error', 'Все даты хакатона должны быть заполнены');
