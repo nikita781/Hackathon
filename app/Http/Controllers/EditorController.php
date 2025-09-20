@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\EditorUpload;
+use App\Models\Hackathon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 
@@ -16,6 +18,8 @@ class EditorController extends Controller
      */
     public function upload(Request $request): JsonResponse
     {
+        Gate::authorize('create', Hackathon::class);
+
         $request->validate([
             'image' => ['required', 'image', 'max:3000'],
         ]);
