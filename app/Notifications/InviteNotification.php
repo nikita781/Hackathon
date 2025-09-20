@@ -2,6 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Http\Resources\HackathonResource;
+use App\Http\Resources\ProjectResource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\DatabaseMessage;
@@ -40,6 +42,7 @@ class InviteNotification extends Notification
             'url' => $this->data['url'],
             'send_at' => $this->data['send_at'],
             'is_active' => $this->data['is_active'],
+            'hackathon' => $this->data['hackathon'] ? new HackathonResource($this->data['hackathon']) : null,
         ];
     }
 }

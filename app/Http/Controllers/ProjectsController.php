@@ -79,7 +79,7 @@ class ProjectsController extends Controller
         ]);
     }
 
-    public function show(Project $project): JsonResponse
+    public function show(Hackathon $hackathon, Project $project): JsonResponse
     {
         if (!Gate::check('view', $project)) {
             abort(404);

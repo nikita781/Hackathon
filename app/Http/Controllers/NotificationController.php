@@ -45,7 +45,7 @@ class NotificationController extends Controller
 
                     return array_merge($base, [
                         'support_id' => $data['support']['id'],
-                        'message' => $data['support']['title'] ?? '',
+                        'title' => $data['support']['title'] ?? '',
                         'is_completed' => $support?->is_completed ?? false,
                     ]);
                 }
@@ -72,9 +72,9 @@ class NotificationController extends Controller
                 // === ModerateNotification ===
                 if ($type === 'ModerateNotification') {
                     return array_merge($base, [
+                        'title' => $data['message'] ?? '',
                         'status' => $data['status'] ?? null,
                         'comment' => $data['comment'] ?? null,
-                        'message' => $data['message'] ?? '',
                         'send_at' => $data['send_at'] ?? null,
                     ]);
                 }
@@ -95,7 +95,7 @@ class NotificationController extends Controller
 
                 // fallback
                 return array_merge($base, [
-                    'message' => 'Неизвестное уведомление',
+                    'title' => 'Неизвестное уведомление',
                 ]);
             });
 

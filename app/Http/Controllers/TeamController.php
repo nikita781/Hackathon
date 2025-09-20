@@ -81,6 +81,7 @@ class TeamController extends Controller
                 'title' => "Вас исключили из команды \"{$team->title}\"",
                 'description' => "Теперь у вас новая команда \"{$newTeam->title}\" посмотрите в хакатоне \"{$hackathon->title}\"",
                 'send_at' => now()->toDateString(),
+                'hackathon' => $hackathon,
             ]));
         }
 
@@ -222,6 +223,7 @@ class TeamController extends Controller
                 'url' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
                 'send_at' => now()->toDateString(),
                 'is_active' => true,
+                'hackathon' => $hackathon,
             ]));
         }
 

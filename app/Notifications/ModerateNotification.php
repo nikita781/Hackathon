@@ -2,6 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Http\Resources\HackathonResource;
+use App\Http\Resources\ProjectResource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -28,8 +30,10 @@ class ModerateNotification extends Notification
         return [
             'status' => $this->data['status'],
             'comment' => $this->data['comment'],
-            'message' => $this->data['message'],
+            'title' => $this->data['message'],
             'send_at' => $this->data['send_at'],
+            'hackathon' => $this->data['hackathon'] ? new HackathonResource($this->data['hackathon']) : null,
+            'project' => $this->data['project'] ? new ProjectResource($this->data['project']) : null,
         ];
     }
 }

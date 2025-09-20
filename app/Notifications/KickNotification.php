@@ -2,6 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Http\Resources\HackathonResource;
+use App\Http\Resources\ProjectResource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -27,6 +29,7 @@ class KickNotification extends Notification
             'title' => $this->data['title'],
             'description' => $this->data['description'],
             'send_at' => $this->data['send_at'],
+            'hackathon' => $this->data['hackathon'] ? new HackathonResource($this->data['hackathon']) : null,
         ];
     }
 }

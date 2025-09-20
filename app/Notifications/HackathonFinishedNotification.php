@@ -2,6 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Http\Resources\HackathonResource;
+use App\Http\Resources\ProjectResource;
 use App\Models\Hackathon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -24,6 +26,7 @@ class HackathonFinishedNotification extends Notification
         return [
             'title' => 'Хакатон завершён',
             'description' => "Хакатон «{$this->hackathon->title}» завершился. Узнайте своё место!",
+            'hackathon' => new HackathonResource($this->hackathon),
             'url' => route('hackathons.show', $this->hackathon),
         ];
     }

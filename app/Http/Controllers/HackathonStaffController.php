@@ -109,6 +109,7 @@ class HackathonStaffController extends Controller
                 'url' => route('hackathons.staff.accept-invite', [$hackathon, $invite->token]),
                 'send_at' => now()->toDateString(),
                 'is_active' => true,
+                'hackathon' => $hackathon,
             ]));
         }
 
@@ -152,6 +153,7 @@ class HackathonStaffController extends Controller
                 'title' => "Вас исключили из хакатона \"{$hackathon->title}\"",
                 'description' => "Если произошла ошибка напишите организатору на почту: {$hackathon->owner->email}",
                 'send_at' => now()->toDateString(),
+                'hackathon' => $hackathon,
             ]));
         }
         return back()->with('status', 'Пользователь успешно исключен с хакатона');
