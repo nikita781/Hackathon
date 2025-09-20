@@ -26,7 +26,6 @@ Route::get('/lang/{locale}.json', [LanguageController::class, 'json'])->name('la
 
 // REGISTER ROUTES
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [SessionController::class, 'loginView'])->name('login.view');
     Route::post('/login', [SessionController::class, 'login'])->name('login')->middleware('throttle:10,1');
 });
 
@@ -51,7 +50,6 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
 Route::get('/profile/{user}', [UserController::class, 'show'])->name('profile.show');
 
 // NOTIFICATION ROUTES
-Route::get('/notification', [NotificationController::class, 'index'])->name('notification.index');
 Route::patch('/notification/mark-as-read', [NotificationController::class, 'markAsRead'])->middleware('auth')->name('notification.mark-as-read');
 
 Route::prefix('support')->name('support.')->group(function () {
@@ -60,6 +58,7 @@ Route::prefix('support')->name('support.')->group(function () {
 
 // AUTH ROUTES
 Route::middleware('auth')->group(function () {
+    Route::get('/notification', [NotificationController::class, 'index'])->name('notification.index');
     Route::post('/editorjs/upload', [EditorController::class, 'upload'])->name('editorjs.upload');
     Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');

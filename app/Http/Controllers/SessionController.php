@@ -15,11 +15,6 @@ use Inertia\Response;
 
 class SessionController extends Controller
 {
-    public function loginView(): Response
-    {
-        return Inertia::render('Auth/Login');
-    }
-
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
