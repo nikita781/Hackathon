@@ -157,7 +157,7 @@ class TabController extends Controller
             return;
         }
 
-        $mediaItems = Media::whereIn('id', $mediaIds)->pluck('id');
+        $mediaItems = Media::whereIn('uuid', $mediaIds)->pluck('id');
 
         Media::whereIn('id', $mediaItems)
             ->where('model_type', '!=', Hackathon::class)
