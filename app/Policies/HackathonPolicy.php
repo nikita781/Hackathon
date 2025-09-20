@@ -64,10 +64,6 @@ class HackathonPolicy
             return false;
         }
 
-        if ($hackathon->work_time_start > now() || $hackathon->work_time_end < now()) {
-            return false;
-        }
-
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 

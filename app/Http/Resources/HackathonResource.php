@@ -39,6 +39,11 @@ class HackathonResource extends JsonResource
             'moderated_time' => $this->moderated_time,
             'blocked_time' => $this->blocked_time,
             'comment' => $this->comment,
+
+            'can' => [
+                'publish' => Gate::check('publish', $this->resource),
+            ],
+
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'nominations' => NominationResource::collection($this->whenLoaded('nominations')),
             'criteria_groups' => CriterionGroupResource::collection($this->whenLoaded('criteriaGroups')),
