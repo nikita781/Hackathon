@@ -1,4 +1,5 @@
 import edjsHTML from 'editorjs-html'
+import VkVideoTool from '../Components/VkVideoTool.js';
 
 const escapeHtml = (s = '') =>
     String(s)
@@ -30,21 +31,26 @@ function renderList(items = [], style = 'unordered', start = 1) {
 const parser = edjsHTML({
     header    : ({ data }) => `<h${data.level}>${data.text}</h${data.level}>`,
     paragraph : ({ data }) => `<p>${data.text ?? ''}</p>`,
-    list      : ({ data }) => renderList(data.items, data.style, data.meta?.start), // передаем start
+    list      : ({ data }) => renderList(data.items, data.style, data.meta?.start),
     delimiter : () => '<hr />',
     quote     : ({ data }) => `<blockquote><p>${data.text ?? ''}</p>${data.caption ? `<cite>${data.caption}</cite>` : ''}</blockquote>`,
-    table     : ({ data }) =>
-        `<table>${(data.content || [])
-            .map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`)
-            .join('')}</table>`,
+    table     : ({ data }) => `<table>${(data.content || []).map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</table>`,
     image     : ({ data }) => {
-        const url = data.file?.url || data.url
-        const caption = data.caption || ''
-        return url ? `<figure><img src="${url}" alt="${caption}">${caption ? `<figcaption>${caption}</figcaption>` : ''}</figure>` : ''
+        const url = data.file?.url || data.url;
+        const caption = data.caption || '';
+        return url ? `<figure><img src="${url}" alt="${caption}">${caption ? `<figcaption>${caption}</figcaption>` : ''}</figure>` : '';
     },
     code      : ({ data }) => `<pre><code>${escapeHtml(data.code ?? '')}</code></pre>`,
-    raw       : ({ data }) => data?.html ?? ''
-})
+    raw       : ({ data }) => data?.html ?? '',
+    // НОВОЕ:
+    vkvideo   : ({ data }) => {
+        const tool = new VkVideoTool({ data });
+        const embed = tool.buildEmbedUrl(data?.code || '');
+        return embed
+            ? `<div class="vkvideo-wrap"><iframe src="${embed}" width="100%" height="360" frameborder="0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" allowfullscreen></iframe></div>`
+            : '';
+    }
+});
 
 /**
  * @param {string|object|null} raw — поле `content` из БД/бэка

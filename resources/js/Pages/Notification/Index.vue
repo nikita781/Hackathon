@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed }      from 'vue'
+import {ref, computed, watch} from 'vue'
 import Pagination from "@/Components/Pagination.vue";
 import { router } from "@inertiajs/vue3";
 
@@ -9,7 +9,28 @@ import AcceptInvitationToJoin from "@/Components/Dialog/AcceptInvitationToJoin.v
 const props = defineProps({
     notifications: Object,
     auth : { type:Object, required:true },
+    flash: Object,
 })
+
+const showToast = () => {
+    if (props.flash?.error) {
+        toast.error(props.flash.error, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    } else if (props.flash?.status) {
+        toast.success(props.flash.status, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    }
+};
+
+watch(() => props.flash, (newFlash) => {
+    if (newFlash) {
+        showToast();
+    }
+});
 
 const showAcceptInvitationToJoin  = ref(false)
 
@@ -76,12 +97,13 @@ function openModal(url) {
                         <img src="/test.jpg" alt="">
                     </div>
 
-<!--                    <pre>{{n}}</pre>-->
+                    <pre>{{n}}</pre>
 
                     <div class="notification__content">
                         <div class="notification__main">
                             <p  class="notification__name">{{ n?.title }}</p>
                             <p  class="notification__text">{{ n?.description }}</p>
+                            <p  class="notification__text">{{ n?.message }}</p>
                             <button
                                 v-if="n?.url"
                                 type="button"

@@ -23,7 +23,15 @@ const dragging = ref(false)
 const deletedIds = ref([])
 
 /* Внутренние карточки: и новые, и существующие */
-const items = reactive([]) // { kind:'existing'|'new', id?, name, url, file? }
+const items = reactive([]) // { kind:'existing'|'new', key, id?, name, url, file? }
+const seenKeys = reactive(new Set())
+
+function keyOfExisting(x) {
+    return `e:${x?.id ?? x?.url ?? x?.name ?? ''}`
+}
+function keyOfFile(f) {
+    return `n:${f?.name ?? ''}#${f?.size ?? 0}#${f?.lastModified ?? 0}`
+}
 
 /* ----- helpers ------------------------------------------------------- */
 function revokeNewURLs() {
@@ -36,14 +44,22 @@ function rebuildFromProp(list) {
     // очищаем и пересобираем (revoking для новых)
     revokeNewURLs()
     items.splice(0, items.length)
+    seenKeys.clear()
 
     ;(list ?? []).forEach(x => {
         if (x instanceof File) {
+            const k = keyOfFile(x)
+            if (seenKeys.has(k)) return
+            seenKeys.add(k)
             const url = URL.createObjectURL(x)
-            items.push({kind: 'new', name: x.name, url, file: x})
+            items.push({kind: 'new', key: k, name: x.name, url, file: x})
         } else if (x && (x.url || x.download_url)) {
+            const k = keyOfExisting(x)
+            if (seenKeys.has(k)) return
+            seenKeys.add(k)
             items.push({
                 kind: 'existing',
+                key: k,
                 id: x.id,
                 name: x.name || x.original_name || (x.url || '').split('/').pop(),
                 url: x.url || x.download_url
@@ -69,8 +85,11 @@ function addFiles(fileList) {
     ;[...fileList].forEach(f => {
         if (f.type !== 'application/pdf') return
         if (props.maxSizeMb && f.size > props.maxSizeMb * 1024 * 1024) return
+        const k = keyOfFile(f)
+        if (seenKeys.has(k)) return
+        seenKeys.add(k)
         const url = URL.createObjectURL(f)
-        items.push({kind: 'new', name: f.name, url, file: f})
+        items.push({kind: 'new', key: k, name: f.name, url, file: f})
     })
     emitFiles()
 }
@@ -90,6 +109,7 @@ function remove(idx) {
     }
     if (it.kind === 'new') URL.revokeObjectURL(it.url)
 
+    if (it.key) seenKeys.delete(it.key)
     items.splice(idx, 1)
     emitFiles()
 }

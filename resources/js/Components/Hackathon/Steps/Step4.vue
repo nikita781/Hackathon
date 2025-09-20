@@ -19,6 +19,33 @@ const pending = ref(false)
 const disabled = computed(() => !agree.value || pending.value)
 function toggleAgree () { agree.value = !agree.value }
 
+const loadedProject = ref(null);
+const loadingProject = ref(false);
+
+async function fetchProject () {
+    loadingProject.value = true;
+    try {
+        const { data } = await axios.get(
+            route('hackathons.projects.show', {
+                hackathon: props.hackathonSlug,
+                project:   props.project.slug,
+            })
+        );
+        // сервер возвращает { project: ... }
+        loadedProject.value = data.project;
+        console.log(data)
+    } catch (e) {
+        console.error('project-fetch', e?.response ?? e);
+        // по желанию: показать тост
+        // const toast = useToast(); toast.error('Не удалось загрузить проект');
+    } finally {
+        loadingProject.value = false;
+    }
+}
+
+const projectData = computed(() => loadedProject.value ?? props.oneProject);
+const teamUsers   = computed(() => projectData.value?.team?.users ?? []);
+
 function cancel () {
     agree.value = false
     pending.value = false
@@ -36,16 +63,15 @@ async function getPreview() {
         console.error('hackathon-load',e?.response??e)
     }
 }
-onMounted(() => {
-    nextTick(() => {
-        previewUrl.value = null;
-        getPreview();
-    });
+onMounted(async () => {
+    await nextTick();
+    previewUrl.value = null;
+    await Promise.all([ fetchProject(), getPreview() ]); // <-- загружаем проект при входе
 });
 
-watch(() => props.project, () => {
+watch(() => props.project, async () => {
     previewUrl.value = null;
-    getPreview();
+    await Promise.all([ fetchProject(), getPreview() ]);
 });
 
 async function publishProject() {
@@ -100,17 +126,19 @@ function imgFallback(e) {
                     </div>
                     <div class="hackathon__my-project__item_content">
                         <div>
-                            <p class="hackathon__my-project__item_title">{{ props.project.title }}</p>
-                            <p class="hackathon__my-project__item_text">{{ props.project.description }}</p>
+                            <p class="hackathon__my-project__item_title">{{ projectData?.title }}</p>
+                            <p class="hackathon__my-project__item_text">{{ projectData?.description }}</p>
                         </div>
-                        <ul class="hackathon__my-project__item_avatar" v-if="props.oneProject?.team?.users">
-                            <li v-for="user in props.oneProject?.team.users"><img :src="avatarSrc(user.user.photo)" @error="imgFallback" alt="Avatar"></li>
+                        <ul class="hackathon__my-project__item_avatar" v-if="teamUsers.length">
+                            <li v-for="user in teamUsers" :key="user.id">
+                                <img :src="avatarSrc(user.user?.photo)" @error="imgFallback" alt="Avatar">
+                            </li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
-<!--        <pre>>{{props.oneProject}}</pre>-->
+        <pre>>{{props.oneProject}}</pre>
         <div class="dialog__component">
             <p class="dialog__title">Правила и условия</p>
             <div class="dialog__checkbox" style="margin-top: 10px">

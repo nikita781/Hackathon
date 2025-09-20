@@ -20,7 +20,28 @@ const props = defineProps({
     tags: Object,
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
+    flash: Object,
 })
+
+const showToast = () => {
+    if (props.flash?.error) {
+        toast.error(props.flash.error, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    } else if (props.flash?.status) {
+        toast.success(props.flash.status, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    }
+};
+
+watch(() => props.flash, (newFlash) => {
+    if (newFlash) {
+        showToast();
+    }
+});
 
 const langStore = useLangStore()
 const notificationsStore = useNotificationsStore()
@@ -149,7 +170,7 @@ async function publishHackathon(hackathon) {
             route('hackathons.publish',
                 { hackathon: hackathon.slug })
             )
-        toast.success('Хакатон отправлен на модерацию', { position:'top-right', timeout:5000 })
+        // toast.success('Хакатон отправлен на модерацию', { position:'top-right', timeout:5000 })
     } else {
         commentText.value = getCommentText(hackathon.comment)
         resendSlug.value = hackathon.slug;
@@ -209,6 +230,7 @@ async function publishHackathon(hackathon) {
                     :style="sliderStyle"
                 ></div>
             </div>
+<!--            <pre>{{hackathons.data}}</pre>-->
             <div class="main__cards" style="margin-top: 40px">
                 <a v-for="hackathon in hackathons.data" :key="hackathon.id" class="main__card" :href="`/hackathons/${hackathon.slug}`">
                     <div class="main__card_photo">

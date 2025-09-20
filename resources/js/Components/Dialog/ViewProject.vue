@@ -166,6 +166,11 @@ function rejectP() { emit('reject',  props.project); close() }
                 <div v-else class="view-block">
                     <div class="dialog__component">
                         <p class="dialog__title">Презентация</p>
+                        <div v-if="pptx" class="upload-row">
+                            <a class="main__btn allow-pointer" :href="links.presentation" download :title="getPresentation(links.presentation)">
+                                Скачать презентацию
+                            </a>
+                        </div>
                         <DropPPTX v-model:file="pptx" />
                     </div>
 
@@ -200,5 +205,24 @@ function rejectP() { emit('reject',  props.project); close() }
     display: flex;
     flex-direction: column;
     gap: 30px
+}
+
+.dialog__content.is-readonly .allow-pointer {
+    pointer-events: auto;
+}
+
+.upload-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.file-hint {
+    color: #666;
+    font-size: 13px;
+    max-width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>

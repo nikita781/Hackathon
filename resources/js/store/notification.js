@@ -6,7 +6,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
     const setNotifications = (data) => {
         hasNotifications.value = data;
-        console.log(hasNotifications.value)
+        // console.log(hasNotifications.value)
     };
 
     const getNotifications = () => {

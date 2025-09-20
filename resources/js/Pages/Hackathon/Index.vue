@@ -17,7 +17,28 @@ const props = defineProps({
     filters: Object,
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
+    flash: Object,
 })
+
+const showToast = () => {
+    if (props.flash?.error) {
+        toast.error(props.flash.error, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    } else if (props.flash?.status) {
+        toast.success(props.flash.status, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    }
+};
+
+watch(() => props.flash, (newFlash) => {
+    if (newFlash) {
+        showToast();
+    }
+});
 const { data, links, current_page, last_page } = props.hackathons
 
 function go(pageUrl) {

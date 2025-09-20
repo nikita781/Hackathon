@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref } from "vue";
+import {computed, nextTick, onMounted, ref, toRaw, watch} from "vue";
 import { usePage } from "@inertiajs/vue3";
 import WriteAppeal from "@/Components/Dialog/WriteAppeal.vue";
 import AnswerSupport from "@/Components/Dialog/AnswerSupport.vue";
@@ -23,7 +23,7 @@ async function fetchSupport() {
             route('hackathons.support.index', { hackathon: props.hackathon.slug })
         )
         supports.value = data
-        console.log(supports.value)
+        // console.log(supports.value)
     } catch (e) {
         console.error('support-fetch', e?.response ?? e)
     }
@@ -66,6 +66,18 @@ const currentBucketKey = computed(() => {
 function setStatus(v) {
     statusFilter.value = v;
 }
+
+watch(showAnswer, async (val, oldVal) => {
+    if (oldVal && !val) {
+        await fetchSupport()
+    }
+})
+
+watch(isForm, async (val, oldVal) => {
+    if (oldVal && !val) {
+        await fetchSupport()
+    }
+})
 
 const TYPE_LABEL = {question: "Вопрос", suggestion: "Предложение", bug: "Ошибка"};
 
