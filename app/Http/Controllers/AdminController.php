@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\FinishHackathons;
 use App\Actions\SyncUsers;
 use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
@@ -496,6 +497,16 @@ class AdminController extends Controller
         return response()->json([
             'created' => $counters['created'],
             'updated' => $counters['created'],
+        ]);
+    }
+
+    public function finishHackathons(): JsonResponse
+    {
+        $action = new FinishHackathons;
+        $hackathonTitles = $action();
+
+        return response()->json([
+            'titles' => $hackathonTitles,
         ]);
     }
 }

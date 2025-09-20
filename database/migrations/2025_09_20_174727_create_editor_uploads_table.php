@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Tab;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tab_sections', function (Blueprint $table) {
+        Schema::create('editor_uploads', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Tab::class)->index()->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('title');
-            $table->jsonb('content')->nullable();
+            $table->nullableMorphs('used_in');
             $table->timestamps();
         });
     }
@@ -26,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tab_sections');
+        Schema::dropIfExists('editor_uploads');
     }
 };

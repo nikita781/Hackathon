@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Gate;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\MediaCannotBeDeleted;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class TabController extends Controller
 {
@@ -59,6 +60,10 @@ class TabController extends Controller
                     ]);
                 }
 
+                if (!empty($sectionData['content'])) {
+                    $this->syncEditorImages($sectionData['content'], $hackathon);
+                }
+
                 $existingSectionIds[] = $section->id;
                 $existingItemIdsBySection[$section->id] = [];
 
@@ -90,7 +95,10 @@ class TabController extends Controller
                         if (!empty($itemData['image'])) {
                             $item->clearMediaCollection('image');
                             $item->addMedia($itemData['image_path'])->toMediaCollection('image');
+
+                            $this->syncEditorImages($sectionData['content'], $hackathon);
                         }
+
 
                         $existingItemIdsBySection[$section->id][] = $item->id;
                     }
@@ -133,4 +141,33 @@ class TabController extends Controller
             'message' => 'Таб успешно обновлен',
         ]);
     }
-}
+
+    protected function syncEditorImages(string $json, Hackathon $hackathon): void
+    {
+        $blocks = json_decode($json, true)['blocks'] ?? [];
+
+        $mediaIds = collect($blocks)
+            ->filter(fn($block) => $block['type'] === 'image' && !empty($block['data']['file']['id']))
+            ->pluck('data.file.id')
+            ->unique()
+            ->values();
+
+        if ($mediaIds->isEmpty()) {
+            $hackathon->clearMediaCollection('editorjs');
+            return;
+        }
+
+        $mediaItems = Media::whereIn('id', $mediaIds)->pluck('id');
+
+        Media::whereIn('id', $mediaItems)
+            ->where('model_type', '!=', Hackathon::class)
+            ->update([
+                'model_type' => Hackathon::class,
+                'model_id' => $hackathon->id,
+            ]);
+
+        Media::where('model_type', Hackathon::class)
+            ->where('model_id', $hackathon->id)
+            ->whereNotIn('id', $mediaItems)
+            ->delete();
+    }}

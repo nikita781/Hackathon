@@ -6,23 +6,21 @@ use App\Events\HackathonFinished;
 use App\Models\Hackathon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
+use Laravel\Telescope\Telescope;
 
 class FinishHackathons extends Command
 {
     protected $signature = 'hackathons:finish';
     protected $description = 'Завершает хакатоны, которые кончились';
 
-    public function handle(): void
+    public function handle(\App\Actions\FinishHackathons $action): void
     {
-        $hackathons = Hackathon::where('status', Hackathon::STATUS_PUBLISHED)
-            ->where('event_end', '<=', Carbon::now())
-            ->where('is_finished', false)
-            ->get();
-
-        foreach ($hackathons as $hackathon) {
-            event(new HackathonFinished($hackathon));
-            $hackathon->update(['is_finished' => true]);
-            $this->info("Хакатон {$hackathon->title} завершён");
+        if (class_exists(Telescope::class)) {
+            Telescope::stopRecording();
         }
+
+        $hackathonTitles = $action();
+
+        $this->info('Завершены хакатоны: "'.implode('", "', $hackathonTitles).'"');
     }
 }

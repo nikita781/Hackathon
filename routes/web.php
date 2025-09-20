@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AwardsController;
 use App\Http\Controllers\CriteriaController;
+use App\Http\Controllers\EditorController;
 use App\Http\Controllers\HackathonController;
 use App\Http\Controllers\HackathonStaffController;
 use App\Http\Controllers\LanguageController;
@@ -59,6 +60,7 @@ Route::prefix('support')->name('support.')->group(function () {
 
 // AUTH ROUTES
 Route::middleware('auth')->group(function () {
+    Route::post('/editorjs/upload', [EditorController::class, 'upload'])->name('editorjs.upload');
     Route::get('/profile', [UserController::class, 'showMe'])->name('profile.my');
     Route::get('/logout', [SessionController::class, 'logout'])->name('logout');
     Route::get('/my-hackathons', [HackathonController::class, 'myHackathons'])->name('my-hackathons');
@@ -214,6 +216,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/roles', [AdminController::class, 'allRoles'])->name('roles');
 
     Route::post('/sync-user', [AdminController::class, 'syncUser'])->name('sync-user')->middleware('throttle:2,1');
+    Route::post('/hackathons/finish', [AdminController::class, 'finishHackathons'])->name('hackathons.finish')->middleware('throttle:10,1');;
 });
 
 // REFBOOK ROUTES
