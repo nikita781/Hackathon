@@ -1,16 +1,19 @@
 <script setup>
-import {ref, computed, watch} from 'vue'
+import {ref, computed, watch, onMounted} from 'vue'
 import Pagination from "@/Components/Pagination.vue";
 import { router } from "@inertiajs/vue3";
 
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import AcceptInvitationToJoin from "@/Components/Dialog/AcceptInvitationToJoin.vue";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     notifications: Object,
     auth : { type:Object, required:true },
     flash: Object,
 })
+
+const langStore = useLangStore()
 
 const showToast = () => {
     if (props.flash?.error) {
@@ -79,6 +82,15 @@ function openModal(url) {
     currentUrl.value = url;
     showAcceptInvitationToJoin.value = true;
 }
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
@@ -113,10 +125,10 @@ function openModal(url) {
                                 :class="{ blocked: !n.is_active }"
                                 :disabled="!n.is_active"
                             >
-                                {{ !n.is_active ? 'Приглашение принято' : 'Подтвердить' }}
+                                {{ !n.is_active ? capitalizeFirstLetter(langStore.translations.invitationAccepted) : capitalizeFirstLetter(langStore.translations.confirm) }}
                             </button>
                         </div>
-                        <p class="profile__tabs_awards_item_date">Отправлено {{ formatDate(n.created_at) }}</p>
+                        <p class="profile__tabs_awards_item_date">{{ capitalizeFirstLetter(langStore.translations.sentStatus) }} {{ formatDate(n.created_at) }}</p>
                     </div>
                     <AcceptInvitationToJoin
                         v-model="showAcceptInvitationToJoin"

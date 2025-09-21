@@ -78,6 +78,11 @@ const mapSortToBackend = (v) => {
     }
 }
 
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 const buildParams = (pageNum = 1) => {
     const s = mapSortToBackend(sort.value)
     const q = (search.value || '').trim()
@@ -270,7 +275,7 @@ function imgFallback(e) {
 <template>
     <div class="hackathon__tab">
         <div v-if="!isOne" class="hackathon__gallery">
-            <p class="hackathon__my-project__title">Проекты</p>
+            <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.projects) }}</p>
 
             <div class="hackathon__gallery_filter">
                 <div class="main__search my-hackathon__search">
@@ -293,12 +298,12 @@ function imgFallback(e) {
                 <div class="main__cards_filter hackathon__gallery_sort">
                     <p>{{ langStore.translations.sort }}:</p>
                     <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select">
-                        <option value="dateA">По дате ↑</option>
-                        <option value="dateD">По дате ↓</option>
+                        <option value="dateA">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↑</option>
+                        <option value="dateD">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↓</option>
                         <option value="scoreAA">По оценке ↑</option>
                         <option value="scoreAD">По оценке ↓</option>
-                        <option value="titleA">По названию ↑</option>
-                        <option value="titleD">По названию ↓</option>
+                        <option value="titleA">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↑</option>
+                        <option value="titleD">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↓</option>
                     </select>
                 </div>
             </div>
@@ -367,12 +372,12 @@ function imgFallback(e) {
             </div>
 
             <div class="hackathon__tab_container" v-if="oneDesc">
-                <p class="hackathon__my-project__title">Описание</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.description) }}</p>
                 <p class="">{{ oneDesc }}</p>
             </div>
 
             <div class="hackathon__tab_container" v-if="oneStack">
-                <p class="hackathon__my-project__title">Технологический стек проекта</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.techStack) }}</p>
                 <p class="">{{ oneStack }}</p>
             </div>
 
@@ -398,29 +403,29 @@ function imgFallback(e) {
             </div>
 
             <div class="hackathon__tab_container">
-                <p class="hackathon__my-project__title">Материалы</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.materials) }}</p>
 
                 <div class="hackathon__oneProject_media" v-if="links.project">
-                    <p class="hackathon__oneProject_media-title">Ссылка на проект</p>
+                    <p class="hackathon__oneProject_media-title">{{ capitalizeFirstLetter(langStore.translations.projectLink) }}</p>
                     <div class="hackathon__oneProject_media-item">
                         <Hyperlink />
-                        <a :href="links.project" target="_blank" rel="noopener noreferrer">Ссылка</a>
+                        <a :href="links.project" target="_blank" rel="noopener noreferrer">{{ capitalizeFirstLetter(langStore.translations.link) }}</a>
                     </div>
                 </div>
 
                 <div class="hackathon__oneProject_media" v-if="links.presentation">
-                    <p class="hackathon__oneProject_media-title">Презентация</p>
+                    <p class="hackathon__oneProject_media-title">{{ capitalizeFirstLetter(langStore.translations.presentation) }}</p>
                     <div class="hackathon__oneProject_media-item">
                         <Document />
-                        <a :href="links.presentation" target="_blank" rel="noopener noreferrer">Файл</a>
+                        <a :href="links.presentation" target="_blank" rel="noopener noreferrer">{{ capitalizeFirstLetter(langStore.translations.file) }}</a>
                     </div>
                 </div>
 
                 <div class="hackathon__oneProject_media" v-if="links.video">
-                    <p class="hackathon__oneProject_media-title">Ссылка на видео</p>
+                    <p class="hackathon__oneProject_media-title">{{ capitalizeFirstLetter(langStore.translations.videoLink) }}</p>
                     <div class="hackathon__oneProject_media-item">
                         <Hyperlink />
-                        <a :href="links.video" target="_blank" rel="noopener noreferrer">Ссылка</a>
+                        <a :href="links.video" target="_blank" rel="noopener noreferrer">{{ capitalizeFirstLetter(langStore.translations.link) }}</a>
                     </div>
                 </div>
             </div>

@@ -38,19 +38,28 @@ const meta = ref({ current_page: 1, last_page: 1, total: 0 })
 
 const slug = computed(() => props.hackathon?.slug ?? props.hackathonSlug)
 
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
+
 // Фильтры (подписи любые — важны value)
 const filterGroups = ref([
     {
         name: 'team',
-        label: 'Команда',
+        label: capitalizeFirstLetter(langStore.translations.team),
         options: [
-            { label: 'Есть команда',  value: 'yes' },
-            { label: 'Работает один', value: 'no'  },
+            { label: capitalizeFirstLetter(langStore.translations.hasTeam),  value: 'yes' },
+            { label: capitalizeFirstLetter((langStore.translations.worksAlone)), value: 'no'  },
         ],
     },
     {
         name: 'status',
-        label: 'Статус работы',
+        label: capitalizeFirstLetter(langStore.translations.workStatus),
         options: [
             { label: 'Черновик',     value: 1 },
             { label: 'Опубликована', value: 3 },
@@ -347,10 +356,10 @@ function imgFallback(e) {
                 <div class="main__cards_filter hackathon__gallery_sort">
                     <p>{{ langStore.translations.sort }}:</p>
                     <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select">
-                        <option value="dateD">По новизне ↓</option>
-                        <option value="dateA">По новизне ↑</option>
-                        <option value="titleA">По названию ↑</option>
-                        <option value="titleD">По названию ↓</option>
+                        <option value="dateD">{{ capitalizeFirstLetter(langStore.translations.byNovelty) }} ↓</option>
+                        <option value="dateA">{{ capitalizeFirstLetter(langStore.translations.byNovelty) }} ↑</option>
+                        <option value="titleA">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↑</option>
+                        <option value="titleD">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↓</option>
                     </select>
                 </div>
             </div>

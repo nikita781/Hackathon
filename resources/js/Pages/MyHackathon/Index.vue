@@ -310,7 +310,11 @@ async function publishHackathon(hackathon) {
                                     </svg>
                                 </div>
                                 <p>
-                                    {{ hackathon.prize_pool ? `${Number(hackathon.prize_pool).toLocaleString('ru-RU')} ₽` : 'Подарки' }}
+                                    {{
+                                        !isNaN(hackathon.prize_pool)
+                                            ? `${Number(hackathon.prize_pool).toLocaleString('ru-RU')} ₽`
+                                            : hackathon.prize_pool
+                                    }}
                                 </p>
                             </div>
                         </div>

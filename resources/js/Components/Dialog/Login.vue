@@ -1,5 +1,5 @@
 <script setup>
-import {computed, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import IconsCheck from '@/Components/Icons/Check.vue'
 import {useForm} from "@inertiajs/vue3";
 import {useToast} from "vue-toastification";
@@ -10,6 +10,9 @@ const props = defineProps({
 const emit = defineEmits([
     'update:modelValue',
 ])
+
+import {useLangStore} from "@/store/lang.js";
+const langStore = useLangStore()
 
 function close(){ emit('update:modelValue',false) }
 
@@ -66,6 +69,15 @@ function handleKeyPress(event) {
         submit();
     }
 }
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
@@ -96,13 +108,13 @@ function handleKeyPress(event) {
                     v-model="form.password"
                     type="password"
                     class="dialog__input"
-                    placeholder="Введите логин"
+                    placeholder="Введите пароль"
                     @keydown="handleKeyPress"
                 >
             </div>
             <div class="dialog__btns">
                 <button class="main__btn main__btn_white dialog__btn" @click="close">
-                    Отменить
+                    {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                 </button>
                 <button
                     class="main__btn dialog__btn"

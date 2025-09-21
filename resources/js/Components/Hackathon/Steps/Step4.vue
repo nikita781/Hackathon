@@ -2,6 +2,7 @@
 import IconsCheck from "@/Components/Icons/Check.vue";
 import {computed, nextTick, onMounted, ref, watch} from "vue";
 import {useToast} from "vue-toastification";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
@@ -110,12 +111,23 @@ function imgFallback(e) {
     e.target.onerror = null;
     e.target.src = PLACEHOLDER;
 }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
     <div class="project__form">
         <div class="dialog__component">
-            <p class="dialog__title">Превью проекта</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectPreview) }}</p>
             <div class="project__form_preview">
                 <div class="hackathon__my-project__item">
                     <div class="hackathon__my-project__item_header">
@@ -138,14 +150,14 @@ function imgFallback(e) {
         </div>
 <!--        <pre>>{{props.oneProject}}</pre>-->
         <div class="dialog__component">
-            <p class="dialog__title">Правила и условия</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rulesAndConditions) }}</p>
             <div class="dialog__checkbox" style="margin-top: 10px">
                 <div>
                     <div @click="toggleAgree" class="custom-checkbox" :class="agree ? 'active' : ''">
                         <IconsCheck />
                     </div>
                 </div>
-                <p>Я и все члены моей команды ознакомились с Официальными правилами и Условиями предоставления услуг и согласны с ними</p>
+                <p>{{ capitalizeFirstLetter(langStore.translations.teamAgreementConfirmation) }}</p>
             </div>
         </div>
         <div class="project__form_btns">
@@ -155,10 +167,10 @@ function imgFallback(e) {
                     @click="publishProject"
             >
                 <span v-if="pending">Отправка…</span>
-                <span v-else>Отправить</span>
+                <span v-else>{{ capitalizeFirstLetter(langStore.translations.send) }}</span>
             </button>
             <button class="main__btn main__btn_white dialog__btn" @click="cancel">
-                Отменить
+                {{ capitalizeFirstLetter(langStore.translations.cansel) }}
             </button>
         </div>
     </div>

@@ -149,8 +149,7 @@ onBeforeUnmount(revokeNewURLs)
         />
         <template v-if="!items.length">
             <p class="hint">
-                Перетащите или выберите файлы<br>
-                (PDF, {{ maxSizeMb }} MB&nbsp;максимальный размер файла)
+                Перетащите или выберите файлы (PDF, 5 MB максимальный размер файла)
             </p>
         </template>
 

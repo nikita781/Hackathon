@@ -2,6 +2,7 @@
 import DropFile from "@/Components/DropFile.vue";
 import {computed, onMounted, ref, watch} from "vue";
 import axios    from 'axios'
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
@@ -172,32 +173,43 @@ async function submit () {
         pending.value = false
     }
 }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
     <div class="project__form">
         <div class="dialog__component">
-            <p class="dialog__title">Название проекта</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectTitle) }}</p>
             <input
                 v-model="title"
                 type="text"
                 class="dialog__input"
-                placeholder="Введите название проекта"
+                :placeholder="capitalizeFirstLetter(langStore.translations.enterProjectTitle)"
             >
             <span v-if="errors.title" class="error">{{ errors.title[0] }}</span>
         </div>
         <div class="dialog__component">
-            <p class="dialog__title">Краткое описание</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.shortDescription) }}</p>
             <textarea
                 v-model="description"
                 style="min-height: 208px"
                 class="dialog__textarea"
-                placeholder="Введите краткое описание"
+                :placeholder="capitalizeFirstLetter(langStore.translations.enterProjectDescription)"
             />
             <span v-if="errors.description" class="error">{{ errors.description[0] }}</span>
         </div>
         <div class="dialog__component">
-            <p class="dialog__title">Превью проекта</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectPreview) }}</p>
             <DropFile v-model:file="preview" />
             <span v-if="errors.preview" class="error">{{ errors.preview[0] }}</span>
         </div>
@@ -207,10 +219,10 @@ async function submit () {
                 :disabled="pending"
                 @click.prevent="submit"
             >
-                Далее
+                {{ capitalizeFirstLetter(langStore.translations.next) }}
             </button>
             <button class="main__btn main__btn_white dialog__btn" @click="cancel">
-                Отменить
+                {{ capitalizeFirstLetter(langStore.translations.cancel) }}
             </button>
         </div>
     </div>

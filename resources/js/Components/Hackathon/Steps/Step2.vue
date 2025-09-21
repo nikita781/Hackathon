@@ -1,6 +1,7 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue'
 import axios    from 'axios'
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
@@ -74,37 +75,48 @@ async function submit () {
         pending.value = false
     }
 }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
     <div class="project__form">
         <div class="dialog__component">
-            <p class="dialog__title">О проекте</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.aboutProject) }}</p>
             <textarea
                 v-model="about"
                 style="min-height: 208px"
                 class="dialog__textarea"
-                placeholder="Расскажите о своем проекте"
+                :placeholder="capitalizeFirstLetter(langStore.translations.projectStory)"
             />
             <span v-if="errors.about" class="error">{{ errors.about[0] }}</span>
         </div>
         <div class="dialog__component">
-            <p class="dialog__title">Технологический стек проекта</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.techStack) }}</p>
             <input
                 v-model="stack"
                 type="text"
                 class="dialog__input"
-                placeholder="Укажите языки программирования, фреймворки, библиотеки, сторонние программы и другие инструменты"
+                :placeholder="capitalizeFirstLetter(langStore.translations.techStackHint)"
             >
             <span v-if="errors.stack" class="error">{{ errors.stack[0] }}</span>
         </div>
         <div class="dialog__component">
-            <p class="dialog__title">Ссылка на проект</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectLink) }}</p>
             <input
                 v-model="projectLink"
                 type="text"
                 class="dialog__input"
-                placeholder="Укажите ссылку на проект (демо-ссылка на сайт, GitHub, магазин приложений и т.д.)"
+                :placeholder="capitalizeFirstLetter(langStore.translations.projectLinkHint)"
             >
             <span v-if="errors.project_link" class="error">{{ errors.project_link[0] }}</span>
         </div>
@@ -114,14 +126,14 @@ async function submit () {
                 :disabled="pending"
                 @click.prevent="submit"
             >
-                Далее
+                {{ capitalizeFirstLetter(langStore.translations.next) }}
             </button>
             <button
                 class="main__btn main__btn_white dialog__btn"
                 type="button"
                 @click="cancel"
             >
-                Отменить
+                {{ capitalizeFirstLetter(langStore.translations.cansel) }}
             </button>
         </div>
     </div>

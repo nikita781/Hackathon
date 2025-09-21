@@ -1,7 +1,8 @@
 <script setup>
-import {computed, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {useToast} from "vue-toastification";
 import {router} from "@inertiajs/vue3";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     modelValue : Boolean,
@@ -26,6 +27,17 @@ async function send() {
     )
     toast.success('Хакатон отправлен на модерацию', { position:'top-right', timeout:5000 })
 }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
@@ -51,7 +63,7 @@ async function send() {
             </div>
             <div class="dialog__btns">
                 <button type="button" class="main__btn main__btn_white dialog__btn" @click="close">
-                    Отменить
+                    {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                 </button>
                 <button
                     type="button"
@@ -59,7 +71,7 @@ async function send() {
                     @click="send"
                     :disabled="pending"
                 >
-                    {{ pending ? 'Отправка...' : 'Отправить' }}
+                    {{ pending ? 'Отправка...' : capitalizeFirstLetter(langStore.translations.send) }}
                 </button>
             </div>
         </div>

@@ -5,6 +5,7 @@ import WriteAppeal from "@/Components/Dialog/WriteAppeal.vue";
 import AnswerSupport from "@/Components/Dialog/AnswerSupport.vue";
 import Pagination from "@/Components/Pagination.vue"
 import axios from "axios";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     positions: { type: Array, default: () => [] },
@@ -136,6 +137,17 @@ onMounted(async () => {
         tabsRef.value = document.querySelectorAll('.my-hackathon__tabs_item');
     });
 });
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
@@ -143,13 +155,13 @@ onMounted(async () => {
         <div class="hackathon__tab_main">
             <div class="hackathon__tab_container">
                 <div class="hackathon__my-project__header">
-                    <p class="hackathon__my-project__title">Мои обращения</p>
+                    <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.myRequests) }}</p>
                     <button
                         type="button"
                         class="main__btn_main hackathon__btn"
                         @click="isForm = true"
                     >
-                        Написать обращение
+                        {{ capitalizeFirstLetter(langStore.translations.createRequest) }}
                     </button>
                     <WriteAppeal
                         :hackathonSlug="props.hackathon.slug"
@@ -159,10 +171,10 @@ onMounted(async () => {
                 </div>
                 <div class="my-hackathon__tabs">
                     <p :class="['my-hackathon__tabs_item',{active:activeTab===0}]" @click="setActiveTab(0)">
-                        {{ !props.can.support.answer ? 'Открытые' : 'Для меня' }}
+                        {{ !props.can.support.answer ? capitalizeFirstLetter(langStore.translations.openAppeals) : capitalizeFirstLetter(langStore.translations.forMe) }}
                     </p>
                     <p :class="['my-hackathon__tabs_item',{active:activeTab===1}]" @click="setActiveTab(1)">
-                        {{ !props.can.support.answer ? 'Закрытые' : 'От меня' }}
+                        {{ !props.can.support.answer ? capitalizeFirstLetter(langStore.translations.closedAppeals) : capitalizeFirstLetter(langStore.translations.fromMe) }}
                     </p>
                     <div
                         class="slider"
@@ -173,10 +185,10 @@ onMounted(async () => {
                 <div class="hackathon__support_org" v-if="isOrganizer">
                     <div class="hackathon__support_org-btn first"
                          :class="{ active: statusFilter === 'open' }"
-                         @click="setStatus('open')">Открытые</div>
+                         @click="setStatus('open')">{{ capitalizeFirstLetter(langStore.translations.openAppeals) }}</div>
                     <div class="hackathon__support_org-btn end"
                          :class="{ active: statusFilter === 'closed' }"
-                         @click="setStatus('closed')">Завершенные</div>
+                         @click="setStatus('closed')">{{ capitalizeFirstLetter(langStore.translations.closedAppeals) }}</div>
                 </div>
 
                 <template v-if="currentList.length">

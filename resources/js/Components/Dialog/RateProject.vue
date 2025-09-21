@@ -1,6 +1,7 @@
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import {ref, reactive, computed, onMounted} from 'vue';
 import axios from 'axios';
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     modelValue: Boolean,
@@ -49,13 +50,24 @@ function setHover(key, n) {
 function clearHover(key) {
     hover[key] = 0
 }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
     <div v-if="modelValue" class="dialog" style="z-index:2">
         <div class="dialog__container" @click.stop>
             <div class="dialog__header">
-                <p>Оценка проекта</p>
+                <p>{{ capitalizeFirstLetter(langStore.translations.projectRating) }}</p>
                 <div class="dialog__close" @click="close">
                     <svg width="13" height="12" viewBox="0 0 13 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -88,8 +100,8 @@ function clearHover(key) {
             </div>
 
             <div class="dialog__btns">
-                <button class="main__btn main__btn_white dialog__btn" @click="close">Отменить</button>
-                <button class="main__btn dialog__btn" @click="submitEvaluation">Оценить</button>
+                <button class="main__btn main__btn_white dialog__btn" @click="close">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
+                <button class="main__btn dialog__btn" @click="submitEvaluation">{{ capitalizeFirstLetter(langStore.translations.rate) }}</button>
             </div>
         </div>
     </div>

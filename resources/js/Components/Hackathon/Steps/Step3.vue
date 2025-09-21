@@ -3,6 +3,7 @@ import {onMounted, ref, watch} from "vue";
 import DropPPTX from "@/Components/DropPPTX.vue";
 import DropFiles from "@/Components/DropFiles.vue";
 import axios from "axios";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
@@ -132,12 +133,23 @@ async function submit() {
         pending.value = false
     }
 }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
     <div class="project__form">
         <div class="dialog__component">
-            <p class="dialog__title">Презентация</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.presentation) }}</p>
             <DropPPTX v-model:file="pptx" />
             <span v-if="errors.presentation" class="error">{{ errors.presentation[0] }}</span>
         </div>
@@ -151,12 +163,12 @@ async function submit() {
             <span v-if="errors.gallery" class="error">{{ errors.gallery[0] }}</span>
         </div>
         <div class="dialog__component">
-            <p class="dialog__title">Ссылка на видео</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectLink) }}</p>
             <input
                 v-model="videoLink"
                 type="text"
                 class="dialog__input"
-                placeholder="Укажите ссылку на видео (Rutube, VK видео)"
+                :placeholder="capitalizeFirstLetter(langStore.translations.videoLinkHint)"
             >
             <span v-if="errors.video_link" class="error">{{ errors.video_link[0] }}</span>
         </div>
@@ -166,14 +178,14 @@ async function submit() {
                 :disabled="pending"
                 @click.prevent="submit"
             >
-                Далее
+                {{ capitalizeFirstLetter(langStore.translations.next) }}
             </button>
             <button
                 class="main__btn main__btn_white dialog__btn"
                 type="button"
                 @click="cancel"
             >
-                Отменить
+                {{ capitalizeFirstLetter(langStore.translations.cansel) }}
             </button>
         </div>
     </div>

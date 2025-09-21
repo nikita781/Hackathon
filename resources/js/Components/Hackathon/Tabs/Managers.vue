@@ -1,10 +1,11 @@
 <script setup>
 import IconsPencilMyProject from "@/Components/Icons/PencilMyProject.vue";
 import InvitationToTheManager from "@/Components/Dialog/InvitationToTheManager.vue";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 import InvitationToTheTeam from "@/Components/Dialog/InvitationToTheTeam.vue";
 import EditManagers from "@/Components/Dialog/EditManagers.vue";
 import EditTeam from "@/Components/Dialog/EditTeam.vue";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     positions : { type: Array,   default : () => [] },
@@ -17,6 +18,8 @@ const props = defineProps({
 
 const showInvitation = ref(false);
 const showEditTeam = ref(false);
+
+const langStore = useLangStore()
 
 const PLACEHOLDER = '/profile.jpg';
 
@@ -34,13 +37,22 @@ function imgFallback(e) {
     e.target.onerror = null;
     e.target.src = PLACEHOLDER;
 }
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
     <div class="hackathon__tab">
         <div class="hackathon__my-project__create">
             <div class="hackathon__my-project__header">
-                <p class="hackathon__my-project__title">Управляющие</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.managers) }}</p>
                 <div class="hackathon__managers">
                     <button
                         type="button"
@@ -54,7 +66,7 @@ function imgFallback(e) {
                         class="main__btn_main hackathon__tab_back"
                         @click="showInvitation = true"
                     >
-                        Пригласить управляющих
+                        {{ capitalizeFirstLetter(langStore.translations.inviteManagers) }}
                     </button>
                     <EditManagers
                         v-model="showEditTeam"

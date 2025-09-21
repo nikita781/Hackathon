@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head, usePage} from '@inertiajs/vue3';
 import {computed, nextTick, onMounted, ref} from "vue";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     user: Object,
@@ -11,7 +12,7 @@ const props = defineProps({
     notifications : { type:Object, required:true },
 })
 
-console.log(props.auth)
+const langStore = useLangStore()
 
 const activeTab = ref(usePage().props.query?.tab   === 'past' ? 1 : 0)
 
@@ -42,6 +43,7 @@ const sliderStyle = computed(() => {
 });
 
 onMounted(async () => {
+    await langStore.fetchTranslations()
     await nextTick(() => {
         tabsRef.value = document.querySelectorAll('.my-hackathon__tabs_item');
     });
@@ -72,6 +74,11 @@ onMounted(async () => {
         e.target.value = formatted;
     });
 });
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
 
 function previewSrc(project) {
     const slug = project?.slug ?? project?.id;
@@ -125,7 +132,7 @@ function imgFallback(e) {
                     href="https://foncode.ru/cabinet/profile"
                     target="_blank"
                 >
-                    Редактировать
+                    {{ capitalizeFirstLetter(langStore.translations.editProfile) }}
                 </a>
             </div>
             <div class="profile__role">
@@ -136,21 +143,21 @@ function imgFallback(e) {
                 <div class="profile__content_form">
                     <div class="profile__content_row">
                         <div class="dialog__component">
-                            <p class="dialog__title">ФИО</p>
-                            <input type="text" readonly :value="props.user.name" class="dialog__input" placeholder="Введите ФИО">
+                            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.fullName) }}</p>
+                            <input type="text" readonly :value="props.user.name" class="dialog__input">
                         </div>
                         <div class="dialog__component">
-                            <p class="dialog__title">Дата рождения</p>
-                            <input type="date" readonly :value="props.user.date_of_birth || new Date().toISOString().slice(0, 10)" class="dialog__input" placeholder="Введите дату рождения">
+                            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.birthDate) }}</p>
+                            <input type="date" readonly :value="props.user.date_of_birth || new Date().toISOString().slice(0, 10)" class="dialog__input">
                         </div>
                     </div>
                     <div class="profile__content_row">
                         <div class="dialog__component">
-                            <p class="dialog__title">Email</p>
-                            <input type="email" readonly :value="props.user.email" class="dialog__input" placeholder="Введите email">
+                            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.email) }}</p>
+                            <input type="email" readonly :value="props.user.email" class="dialog__input">
                         </div>
                         <div class="dialog__component">
-                            <p class="dialog__title">Номер телефона</p>
+                            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.phoneNumber) }}</p>
                             <input :value="props.user.phone_number" readonly class="dialog__input" id="phone" type="tel" placeholder="+7 (___) ___‑__‑__" maxlength="18" autocomplete="tel">
                         </div>
                     </div>
@@ -165,10 +172,10 @@ function imgFallback(e) {
         <div class="my-hackathon__tabs_cont">
             <div class="my-hackathon__tabs">
                 <p :class="['my-hackathon__tabs_item',{active:activeTab===0}]" @click="setActiveTab(0)">
-                    Мои награды
+                    {{ capitalizeFirstLetter(langStore.translations.myAwards) }}
                 </p>
                 <p :class="['my-hackathon__tabs_item',{active:activeTab===1}]" @click="setActiveTab(1)">
-                    Сертификаты
+                    {{ capitalizeFirstLetter(langStore.translations.certificates) }}
                 </p>
                 <div
                     v-if="tabsRef.length"
@@ -186,7 +193,7 @@ function imgFallback(e) {
                                 <p class="profile__tabs_awards_item_text">{{ award.description }}</p>
                             </div>
                             <p class="profile__tabs_awards_item_date">
-                                Получено {{ new Date(award.awarded_at).toLocaleDateString("ru-RU") }}
+                                {{ capitalizeFirstLetter(langStore.translations.received) }} {{ new Date(award.awarded_at).toLocaleDateString("ru-RU") }}
                             </p>
                         </div>
                     </div>

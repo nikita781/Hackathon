@@ -4,6 +4,7 @@ import { renderEdjs } from '@/utils/renderEdjs'
 import IconsCup from '../../Icons/Cup.vue';
 import axios from "axios";
 import logs from "../../../../../vendor/laravel/telescope/resources/js/screens/logs/index.vue";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     positions : { type: Array,   default : () => [] },
@@ -12,6 +13,8 @@ const props = defineProps({
     tabs: { type: Array,   default : () => [] },
     allProjects: { type: Array,   default : () => [] },
 })
+
+const langStore = useLangStore()
 
 function formatNumber(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -37,26 +40,39 @@ async function getPartner() {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
+    await langStore.fetchTranslations()
     getPartner()
 })
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
 </script>
 
 <template>
     <div class="hackathon__tab">
         <div class="hackathon__tab_main">
             <div class="hackathon__tab_container" v-if="props.tabs.data[0].sections[0].content">
-                <p class="hackathon__my-project__title">Описание</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.description) }}</p>
                 <div v-html="renderEdjs(props.tabs.data[0].sections[0].content)" class="hackathon__article" />
             </div>
             <div class="hackathon__tab_container" v-if="props.tabs.data[0].sections[1].content">
-                <p class="hackathon__my-project__title">План проведения</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.plan) }}</p>
                 <div v-html="renderEdjs(props.tabs.data[0].sections[1].content)" class="hackathon__article" />
             </div>
             <div class="hackathon__tab_container">
-                <p class="hackathon__my-project__title">Призовой фонд</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.prize_fund) }}</p>
                 <div class="hackathon__prizes">
-                    <p class="hackathon__prizes_title">Общий призовой фонд: {{formatNumber(props.hackathon.prize_pool)}} ₽</p>
+                    <p class="hackathon__prizes_title">
+                        Общий призовой фонд:
+                        {{
+                            !isNaN(props.hackathon.prize_pool)
+                                ? `${Number(props.hackathon.prize_pool).toLocaleString('ru-RU')} ₽`
+                                : props.hackathon.prize_pool
+                        }}
+                    </p>
                     <div class="hackathon__prizes_container" v-if="props.hackathon.nominations">
                         <div class="hackathon__prizes_item"  v-for="(n, idx) in props.hackathon.nominations" :key="n.id">
                             <IconsCup />
@@ -71,7 +87,13 @@ onMounted(() => {
                                     class="hackathon__prizes_one" v-for="(place, idx) in n.places"
                                     :key="n.id"
                                 >
-                                    {{place.place}} место - {{place.prize}} ₽
+                                    {{place.place}} место
+                                    -
+                                    {{
+                                        !isNaN(place.prize)
+                                            ? `${Number(place.prize).toLocaleString('ru-RU')} ₽`
+                                            : place.prize
+                                    }}
                                 </p>
                             </div>
                         </div>
@@ -79,7 +101,7 @@ onMounted(() => {
                 </div>
             </div>
             <div class="hackathon__tab_container" v-if="partners.partners">
-                <p class="hackathon__my-project__title">Партнеры</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.partners) }}</p>
                 <div class="hackathon__partners">
                     <div class="hackathon__partners_item" v-for="(partner, idx) in partners.partners" :key="idx">
                         <img :src="partner.url" alt="">

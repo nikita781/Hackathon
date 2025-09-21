@@ -1,10 +1,11 @@
 <script setup>
 import CheckMenu from "@/Components/Icons/CheckMenu.vue";
-import {defineAsyncComponent, ref} from 'vue';
+import {defineAsyncComponent, onMounted, ref} from 'vue';
 import Step1 from "@/Components/Hackathon/Steps/Step1.vue";
 import Step2 from "@/Components/Hackathon/Steps/Step2.vue";
 import Step3 from "@/Components/Hackathon/Steps/Step3.vue";
 import Step4 from "@/Components/Hackathon/Steps/Step4.vue";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     hackathonSlug: String,
@@ -53,10 +54,21 @@ const handleSuccess = (data) => {
 
 const onStep1Success = (data) => {project.value = data; nextStep() }
 const onStep2Success = ()      => { nextStep() }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
-    <div class="project__title">{{ project ? project.title : 'Название проекта' }}</div>
+    <div class="project__title">{{ project ? project.title : capitalizeFirstLetter(langStore.translations.projectTitle) }}</div>
 <!--    <pre>{{oneProject}}</pre>-->
     <div class="project__container">
         <div class="project__menu_phone">
@@ -94,7 +106,7 @@ const onStep2Success = ()      => { nextStep() }
         </div>
         <div class="project__menu">
             <div class="project__menu_item" @click="goToStep(1)">
-                <p class="project__menu_text">Основная информация</p>
+                <p class="project__menu_text">{{ capitalizeFirstLetter(langStore.translations.mainInfo) }}</p>
                 <div>
                     <div class="project__menu_btn active" :class="{'completed': step > 1}">
                         <CheckMenu />
@@ -105,7 +117,7 @@ const onStep2Success = ()      => { nextStep() }
                 <div class="project__menu_line" :class="{'active': step > 1}"></div>
             </div>
             <div class="project__menu_item" @click="goToStep(2)">
-                <p class="project__menu_text">Описание</p>
+                <p class="project__menu_text">{{ capitalizeFirstLetter(langStore.translations.description) }}</p>
                 <div>
                     <div class="project__menu_btn" :class="{'active': step > 1, 'completed': step > 2}">
                         <CheckMenu />
@@ -116,7 +128,7 @@ const onStep2Success = ()      => { nextStep() }
                 <div class="project__menu_line" :class="{'active': step > 2}"></div>
             </div>
             <div class="project__menu_item" @click="goToStep(3)">
-                <p class="project__menu_text">Материалы</p>
+                <p class="project__menu_text">{{ capitalizeFirstLetter(langStore.translations.materials) }}</p>
                 <div>
                     <div class="project__menu_btn" :class="{'active': step > 2, 'completed': step > 3}">
                         <CheckMenu />
@@ -127,7 +139,7 @@ const onStep2Success = ()      => { nextStep() }
                 <div class="project__menu_line" :class="{'active': step > 3}"></div>
             </div>
             <div class="project__menu_item" @click="goToStep(4)">
-                <p class="project__menu_text">Отправка</p>
+                <p class="project__menu_text">{{ capitalizeFirstLetter(langStore.translations.submission) }}</p>
                 <div>
                     <div class="project__menu_btn" :class="{'active': step > 3, 'completed': step > 4}">
                         <CheckMenu />

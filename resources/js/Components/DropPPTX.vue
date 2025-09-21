@@ -80,7 +80,7 @@ onMounted(async () => {
 
         <template v-if="!fileName">
             <p class="hint">
-                Перетащите или выберите файл
+                {{ capitalizeFirstLetter(langStore.translations.uploadFile) }}
             </p>
         </template>
 

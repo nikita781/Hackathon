@@ -4,6 +4,7 @@ import InvitationToTheTeam from "@/Components/Dialog/InvitationToTheTeam.vue";
 import EditTeam from "@/Components/Dialog/EditTeam.vue";
 import CreateProject from "@/Components/Hackathon/CreateProject.vue";
 import {nextTick, onMounted, ref, watch} from "vue";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     positions : { type: Array,   default : () => [] },
@@ -96,6 +97,17 @@ function imgFallback(e) {
     e.target.onerror = null;
     e.target.src = PLACEHOLDER;
 }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
@@ -103,7 +115,7 @@ function imgFallback(e) {
     <div class="hackathon__my-project" v-if="!isForm">
         <div class="hackathon__my-project__create">
             <div class="hackathon__my-project__header">
-                <p class="hackathon__my-project__title">Мой проект</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.myProject) }}</p>
                 <button
                     type="button"
                     class="main__btn_main hackathon__btn"
@@ -142,7 +154,7 @@ function imgFallback(e) {
         </div>
         <div class="hackathon__my-project__team">
             <div class="hackathon__my-project__header">
-                <p class="hackathon__my-project__title">Моя команда</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.myTeam) }}</p>
                 <button
                     type="button"
                     class="main__btn_main hackathon__my-project__team_svg"

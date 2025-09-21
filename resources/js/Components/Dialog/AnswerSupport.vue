@@ -1,6 +1,7 @@
 <script setup>
-import {ref, computed, watch} from "vue";
+import {ref, computed, watch, onMounted} from "vue";
 import {useToast} from "vue-toastification";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -65,6 +66,17 @@ async function submitAppeal() {
         pending.value = false;
     }
 }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
@@ -83,11 +95,11 @@ async function submitAppeal() {
 <!--            <pre>{{message}}</pre>-->
             <div class="dialog__component">
                 <p class="message-type" v-if="message.type === 'bug'">Сообщение об ошибке</p>
-                <p class="message-type" v-if="message.type === 'suggestion'">Предложение</p>
-                <p class="message-type" v-if="message.type === 'question'">Вопрос</p>
+                <p class="message-type" v-if="message.type === 'suggestion'">{{ capitalizeFirstLetter(langStore.translations.suggestion) }}</p>
+                <p class="message-type" v-if="message.type === 'question'">{{ capitalizeFirstLetter(langStore.translations.question) }}</p>
             </div>
             <div class="dialog__component">
-                <p class="dialog__title">Текст обращения</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.requestText) }}</p>
                 <textarea
                     style="min-height: 170px"
                     class="dialog__textarea"
@@ -118,14 +130,14 @@ async function submitAppeal() {
 <!--            {{props.can}}-->
             <div class="dialog__btns" v-if="props.can && isAdmin">
                 <button class="main__btn main__btn_white dialog__btn" @click="close" :disabled="pending">
-                    Отменить
+                    {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                 </button>
                 <button
                     class="main__btn dialog__btn"
                     @click="submitAppeal"
                     :disabled="isDisabled"
                 >
-                    {{ pending ? 'Отправка…' : 'Отправить' }}
+                    {{ pending ? 'Отправка…' : capitalizeFirstLetter(langStore.translations.send) }}
                 </button>
             </div>
         </div>

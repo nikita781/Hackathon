@@ -7,6 +7,7 @@ import TakePart from "@/Components/Dialog/TakePart.vue";
 import { useToast } from 'vue-toastification';
 import DialogCreateHackathon from "@/Components/Dialog/CreateHackathon.vue";
 import RejectHackathon from "@/Components/Dialog/RejectHackathon.vue";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     hackathon: Object,
@@ -42,20 +43,22 @@ const tabComponents = {
     support  : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Support.vue')),
 }
 
+const langStore = useLangStore()
+
 const availableTabs = computed(() => {
     return [
-        {key: 'overview', title: 'Обзор', blocked: false},
-        {key: 'participants', title: 'Участники', noVisible: !props.can?.hackathon?.is_staff
+        {key: 'overview', title: capitalizeFirstLetter(langStore.translations.overview), blocked: false},
+        {key: 'participants', title: capitalizeFirstLetter(langStore.translations.participants), noVisible: !props.can?.hackathon?.is_staff
         },
-        {key: 'managers', title: 'Управляющие', noVisible: !props.can?.hackathon?.update
+        {key: 'managers', title: capitalizeFirstLetter(langStore.translations.managers), noVisible: !props.can?.hackathon?.update
         },
-        {key: 'rate', title: 'Оценить', noVisible: props.can?.hackathon?.rate},
-        {key: 'project', title: 'Мой проект', blocked: !props.can?.team.view, noVisible: props.can?.hackathon?.is_staff},
-        {key: 'gallery', title: 'Галерея проектов', blocked: !props.can?.project.viewAll},
-        {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
-        {key: 'rules', title: 'Правила', blocked: false},
-        {key: 'contacts', title: 'Контакты', blocked: false},
-        {key: 'support', title: 'Техподдержка', blocked: false},
+        {key: 'rate', title: capitalizeFirstLetter(langStore.translations.rate), noVisible: !props.can?.hackathon?.rate},
+        {key: 'project', title: capitalizeFirstLetter(langStore.translations.myProject), blocked: !props.can?.team.view, noVisible: props.can?.hackathon?.is_staff},
+        {key: 'gallery', title: capitalizeFirstLetter(langStore.translations.projectGallery), blocked: !props.can?.project.viewAll},
+        {key: 'resources', title: capitalizeFirstLetter(langStore.translations.resources), blocked: !props.can?.hackathon?.viewTask},
+        {key: 'rules', title: capitalizeFirstLetter(langStore.translations.rules), blocked: false},
+        {key: 'contacts', title: capitalizeFirstLetter(langStore.translations.contacts), blocked: false},
+        {key: 'support', title: capitalizeFirstLetter(langStore.translations.support), blocked: false},
     ]
 })
 
@@ -81,7 +84,8 @@ watch(() => props.flash, (newFlash) => {
     }
 });
 
-onMounted(() => {
+onMounted(async () => {
+    await langStore.fetchTranslations()
     nextTick(() => {
         showToast();
     });
@@ -194,6 +198,11 @@ function getFilenameFromDisposition(disposition, fallback) {
     return m?.[1] || fallback
 }
 
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 async function downloadProtokol() {
     if (syncing.value) return
     syncing.value = true
@@ -246,7 +255,7 @@ async function downloadProtokol() {
                                         </svg>
                                     </div>
                                     <p>
-                                        {{ props.hackathon.format === 'online' ? 'Онлайн' : (props.hackathon.format === 'offline' ? 'Оффлайн' : 'Смешанный') }}
+                                        {{ props.hackathon.format === 'online' ? capitalizeFirstLetter(langStore.translations.online) : (props.hackathon.format === 'offline' ? capitalizeFirstLetter(langStore.translations.offline) : capitalizeFirstLetter(langStore.translations.hybrid)) }}
                                     </p>
                                 </div>
                                 <div class="main__card_item">
@@ -257,8 +266,8 @@ async function downloadProtokol() {
                                     </div>
                                     <p>
                                         {{ props.hackathon.type === 'team'
-                                        ? `Команды от ${props.hackathon.min_team_size} до ${props.hackathon.max_team_size} человек`
-                                        : 'Индивидуальный' }}
+                                        ? `${capitalizeFirstLetter(langStore.translations.teamsFrom)} ${props.hackathon.min_team_size} ${langStore.translations.to} ${props.hackathon.max_team_size} ${langStore.translations.person}`
+                                        : capitalizeFirstLetter(langStore.translations.individual_type) }}
                                     </p>
                                 </div>
                             </div>
@@ -278,7 +287,7 @@ async function downloadProtokol() {
                                         <path d="M22 7.24002C22.0008 7.10841 21.9756 6.97795 21.9258 6.85611C21.876 6.73427 21.8027 6.62346 21.71 6.53002L17.47 2.29002C17.3766 2.19734 17.2658 2.12401 17.1439 2.07425C17.0221 2.02448 16.8916 1.99926 16.76 2.00002C16.6284 1.99926 16.4979 2.02448 16.3761 2.07425C16.2543 2.12401 16.1435 2.19734 16.05 2.29002L13.22 5.12002L2.29002 16.05C2.19734 16.1435 2.12401 16.2543 2.07425 16.3761C2.02448 16.4979 1.99926 16.6284 2.00002 16.76V21C2.00002 21.2652 2.10537 21.5196 2.29291 21.7071C2.48045 21.8947 2.7348 22 3.00002 22H7.24002C7.37994 22.0076 7.51991 21.9857 7.65084 21.9358C7.78176 21.8858 7.90073 21.8089 8.00002 21.71L18.87 10.78L21.71 8.00002C21.8013 7.9031 21.8757 7.79155 21.93 7.67002C21.9397 7.59031 21.9397 7.50973 21.93 7.43002C21.9347 7.38347 21.9347 7.33657 21.93 7.29002L22 7.24002ZM6.83002 20H4.00002V17.17L13.93 7.24002L16.76 10.07L6.83002 20ZM18.17 8.66002L15.34 5.83002L16.76 4.42002L19.58 7.24002L18.17 8.66002Z" fill="#121212"/>
                                     </svg>
                                 </div>
-                                <p>Регистрация до {{ formatDate(props.hackathon.registration_end) }}</p>
+                                <p>{{capitalizeFirstLetter(langStore.translations.registerUntil)}} {{ formatDate(props.hackathon.registration_end) }}</p>
                             </div>
                             <div class="main__card_item">
                                 <div style="width: 24px; height: 24px">
@@ -310,7 +319,7 @@ async function downloadProtokol() {
                                     :class="{ main__btn_white: joined}"
                                     v-if="props.can.hackathon.join"
                                 >
-                                    {{joined ? 'Отменить участие' : 'Принять участие'}}
+                                    {{joined ? capitalizeFirstLetter(langStore.translations.cancelParticipation) : capitalizeFirstLetter(langStore.translations.participate)}}
                                 </button>
                                 <button
                                     type="button"
@@ -318,7 +327,7 @@ async function downloadProtokol() {
                                     @click="adminMode = false; showUpdateHackathon = true"
                                     v-if="props.can.hackathon.update && !props.can.hackathon.moderate"
                                 >
-                                    Редактировать
+                                    {{ capitalizeFirstLetter(langStore.translations.edit) }}
                                 </button>
                                 <button
                                     type="button"
