@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TabRequest;
+use App\Models\EditorUpload;
 use App\Models\Hackathon;
 use App\Models\Tab;
+use App\Models\TabSection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,7 +31,7 @@ class TabController extends Controller
         }
 
         $data = $request->validated();
-        $tab = $hackathon->tabs()->with('sections.items')->where('title', $data['title'])->firstOrFail();
+        $tab = $hackathon->tabs()->with('sections.items')->where('tabs.title', $data['title'])->firstOrFail();
 
         $existingSectionIds = [];
         $existingItemIdsBySection = [];
@@ -37,31 +39,28 @@ class TabController extends Controller
         if (!empty($data['sections'])) {
             foreach ($data['sections'] as $sectionData) {
 
+                $section = null;
 //              Обновления секций таба
                 if (!empty($sectionData['id'])) {
                     $section = $tab->sections()->find($sectionData['id']);
-                    if ($section) {
-                        $section->update([
-                            'title' => $sectionData['title'],
-                            'content' => $sectionData['content'] ?? null,
-                        ]);
-                    } else {
-//                      Создание секций таба, если не найдена секция по переданному id
-                        $section = $tab->sections()->create([
-                            'title' => $sectionData['title'],
-                            'content' => $sectionData['content'] ?? null,
-                        ]);
-                    }
                 } else {
-//                  Создание секций таба, если не передано id
+                    $section = $tab->sections()->where('title', $sectionData['title'])->first();
+                }
+
+                if ($section) {
+                    $section->update([
+                        'title' => $sectionData['title'],
+                        'content' => $sectionData['content'] ?? null,
+                    ]);
+                } else {
                     $section = $tab->sections()->create([
                         'title' => $sectionData['title'],
                         'content' => $sectionData['content'] ?? null,
                     ]);
                 }
 
-                if (!empty($sectionData['content'])) {
-                    $this->syncEditorImages($sectionData['content'], $hackathon);
+                if (!empty($sectionData['content']) && $section) {
+                    $this->syncEditorImages($sectionData['content'], $section);
                 }
 
                 $existingSectionIds[] = $section->id;
@@ -95,8 +94,6 @@ class TabController extends Controller
                         if (!empty($itemData['image'])) {
                             $item->clearMediaCollection('image');
                             $item->addMedia($itemData['image_path'])->toMediaCollection('image');
-
-                            $this->syncEditorImages($sectionData['content'], $hackathon);
                         }
 
 
@@ -142,7 +139,7 @@ class TabController extends Controller
         ]);
     }
 
-    protected function syncEditorImages(string $json, Hackathon $hackathon): void
+    protected function syncEditorImages(string $json, TabSection $section): void
     {
         $blocks = json_decode($json, true)['blocks'] ?? [];
 
@@ -153,21 +150,30 @@ class TabController extends Controller
             ->values();
 
         if ($mediaIds->isEmpty()) {
-            $hackathon->clearMediaCollection('editorjs');
+            $uploads = EditorUpload::where('used_in_id', $section->id)
+                ->where('used_in_type', TabSection::class)
+                ->get();
+
+            foreach ($uploads as $upload) {
+                $upload->clearMediaCollection('editorjs');
+                $upload->delete();
+            }
             return;
         }
 
-        $mediaItems = Media::whereIn('uuid', $mediaIds)->pluck('id');
-
-        Media::whereIn('id', $mediaItems)
-            ->where('model_type', '!=', Hackathon::class)
+        EditorUpload::whereIn('id', $mediaIds)
             ->update([
-                'model_type' => Hackathon::class,
-                'model_id' => $hackathon->id,
+                'used_in_id' => $section->id,
+                'used_in_type' => TabSection::class,
             ]);
 
-        Media::where('model_type', Hackathon::class)
-            ->where('model_id', $hackathon->id)
-            ->whereNotIn('id', $mediaItems)
-            ->delete();
+        $uploads = EditorUpload::where('used_in_id', $section->id)
+            ->where('used_in_type', TabSection::class)
+            ->whereNotIn('id', $mediaIds)
+            ->get();
+
+        foreach ($uploads as $upload) {
+            $upload->clearMediaCollection('editorjs');
+            $upload->delete();
+        }
     }}

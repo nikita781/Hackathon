@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\EditorUpload;
 use Illuminate\Console\Command;
 use Laravel\Telescope\Telescope;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -20,13 +21,17 @@ class CleanupEditorImages extends Command
 
         $this->info('Ищем непривязанные картинки...');
 
-        $deleted = Media::where('collection_name', 'editorjs')
-            ->where(function ($query) {
-                $query->whereNull('model_type')
-                    ->orWhereNull('model_id');
+        $deleted = EditorUpload::where(function ($query) {
+                $query->whereNull('used_in_type')
+                    ->orWhereNull('used_in_id');
             })
-            ->delete();
+            ->get();
 
-        $this->info("Удалено {$deleted} файлов.");
+        foreach ($deleted as $item) {
+            $item->clearMediaCollection('editorjs');
+            $item->delete();
+        }
+
+        $this->info("Удалено " . count($deleted) . " файлов.");
     }
 }

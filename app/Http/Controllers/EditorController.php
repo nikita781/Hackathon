@@ -31,7 +31,7 @@ class EditorController extends Controller
             ->toMediaCollection('editorjs', 'public');
 
         return response()->json([
-            'id' => $media->uuid,
+            'id' => $upload->id,
             'url' => $media->getUrl(),
         ]);
     }
