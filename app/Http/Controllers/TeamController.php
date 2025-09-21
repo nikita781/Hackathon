@@ -27,7 +27,7 @@ class TeamController extends Controller
             abort(403);
         }
 
-        $perPage = min($request->get('per_page', 2), 10);
+        $perPage = min($request->get('per_page', 10), 10);
 
         return response()->json([
             'teams' => TeamResource::collection($hackathon->allTeams()->filter($request)->paginate($perPage)),
