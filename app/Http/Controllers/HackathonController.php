@@ -302,7 +302,7 @@ class HackathonController extends Controller
             return back()->with('error', 'Вы не можете опубликовать хакатон');
         }
 
-        if ($hackathon->work_time_start !== null || $hackathon->work_time_end !== null || $hackathon->evaluation_start !== null || $hackathon->evaluation_end !== null) {
+        if ($hackathon->work_time_start === null || $hackathon->work_time_end === null || $hackathon->evaluation_start === null || $hackathon->evaluation_end === null) {
             return back()->with('error', 'Все даты хакатона должны быть заполнены');
         }
 
