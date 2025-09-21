@@ -28,6 +28,7 @@ class HackathonFinishedNotification extends Notification
             'description' => "Хакатон «{$this->hackathon->title}» завершился. Узнайте своё место!",
             'hackathon' => new HackathonResource($this->hackathon),
             'url' => route('hackathons.show', $this->hackathon),
+            'send_at' => now()->toDateString(),
         ];
     }
 }

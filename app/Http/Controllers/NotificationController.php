@@ -23,7 +23,6 @@ class NotificationController extends Controller
 
                 $base = [
                     'id' => $notification->id,
-                    'type' => $type,
                     'read_at' => $notification->read_at,
                     'created_at' => $notification->created_at,
                 ];
@@ -36,6 +35,8 @@ class NotificationController extends Controller
                         'url' => $data['url'] ?? '',
                         'send_at' => $data['send_at'] ?? null,
                         'is_active' => $data['is_active'] ?? false,
+                        'hackathon' => $data['hackathon'] ?? null,
+
                     ]);
                 }
 
@@ -45,8 +46,11 @@ class NotificationController extends Controller
 
                     return array_merge($base, [
                         'support_id' => $data['support']['id'],
+                        'type' => $data['type'] ?? null,
                         'title' => $data['support']['title'] ?? '',
                         'is_completed' => $support?->is_completed ?? false,
+                        'send_at' => $data['send_at'] ?? null,
+                        'hackathon' => $data['hackathon'] ?? null,
                     ]);
                 }
 
@@ -76,6 +80,8 @@ class NotificationController extends Controller
                         'status' => $data['status'] ?? null,
                         'comment' => $data['comment'] ?? null,
                         'send_at' => $data['send_at'] ?? null,
+                        'project' => $data['project'] ?? null,
+                        'hackathon' => $data['hackathon'] ?? null,
                     ]);
                 }
 
@@ -88,7 +94,8 @@ class NotificationController extends Controller
                         'description' => $data['description'] ?? '',
                         'support_id' => $data['support_id'],
                         'message' => $data['message'] ?? '',
-                        'is_completed' => $support?->is_completed ?? false,
+                        'type' => $data['type'] ?? null,
+                        'hackathon' => $data['hackathon'] ?? null,
                         'send_at' => $data['send_at'] ?? null,
                     ]);
                 }

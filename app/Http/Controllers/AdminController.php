@@ -113,6 +113,7 @@ class AdminController extends Controller
             'message' => $message,
             'send_at' => now()->toDateString(),
             'hackathon' => $hackathon,
+            'project' => null,
         ]));
 
         return back()->with('status', $message);
@@ -140,6 +141,7 @@ class AdminController extends Controller
             'message' => $message,
             'send_at' => now()->toDateString(),
             'hackathon' => $hackathon,
+            'project' => null,
         ]));
 
         return back()->with('status', $message);
@@ -167,6 +169,7 @@ class AdminController extends Controller
                 'comment' => $comment,
                 'message' => $message,
                 'send_at' => now()->toDateString(),
+                'hackathon' => null,
                 'project' => $project,
             ]));
         }
@@ -196,6 +199,7 @@ class AdminController extends Controller
                 'comment' => $comment,
                 'message' => $message,
                 'send_at' => now()->toDateString(),
+                'hackathon' => null,
                 'project' => $project,
             ]));
         }
