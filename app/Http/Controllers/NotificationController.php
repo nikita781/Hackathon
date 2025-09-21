@@ -76,7 +76,7 @@ class NotificationController extends Controller
                 // === ModerateNotification ===
                 if ($type === 'ModerateNotification') {
                     return array_merge($base, [
-                        'title' => $data['message'] ?? '',
+                        'title' => $data['title'] ?? '',
                         'status' => $data['status'] ?? null,
                         'comment' => $data['comment'] ?? null,
                         'send_at' => $data['send_at'] ?? null,

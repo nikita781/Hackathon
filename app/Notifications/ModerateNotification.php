@@ -30,7 +30,7 @@ class ModerateNotification extends Notification
         return [
             'status' => $this->data['status'],
             'comment' => $this->data['comment'],
-            'title' => $this->data['message'],
+            'title' => $this->data['title'],
             'send_at' => $this->data['send_at'],
             'hackathon' => $this->data['hackathon'] ? new HackathonResource($this->data['hackathon']) : null,
             'project' => $this->data['project'] ? new ProjectResource($this->data['project']) : null,

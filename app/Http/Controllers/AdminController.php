@@ -110,7 +110,7 @@ class AdminController extends Controller
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'accept',
             'comment' => $comment,
-            'message' => $message,
+            'title' => $message,
             'send_at' => now()->toDateString(),
             'hackathon' => $hackathon,
             'project' => null,
@@ -138,7 +138,7 @@ class AdminController extends Controller
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'rejected',
             'comment' => $comment,
-            'message' => $message,
+            'title' => $message,
             'send_at' => now()->toDateString(),
             'hackathon' => $hackathon,
             'project' => null,
@@ -167,7 +167,7 @@ class AdminController extends Controller
             $captain->notify(new ModerateNotification([
                 'status' => 'rejected',
                 'comment' => $comment,
-                'message' => $message,
+                'title' => $message,
                 'send_at' => now()->toDateString(),
                 'hackathon' => null,
                 'project' => $project,
@@ -197,7 +197,7 @@ class AdminController extends Controller
             $captain->notify(new ModerateNotification([
                 'status' => 'rejected',
                 'comment' => $comment,
-                'message' => $message,
+                'title' => $message,
                 'send_at' => now()->toDateString(),
                 'hackathon' => null,
                 'project' => $project,
