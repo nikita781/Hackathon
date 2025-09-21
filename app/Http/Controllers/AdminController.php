@@ -263,7 +263,7 @@ class AdminController extends Controller
         Gate::authorize('changeRoles', User::class);
 
         $data = $request->validate([
-            'roles'   => [
+            'roles' => [
                 'required',
                 'array',
                 function ($attribute, $value, $fail) {

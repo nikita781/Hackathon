@@ -49,6 +49,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'can' => [
                 'admin' => Gate::check('moderate', Hackathon::class),
+                'top.admin' => Gate::check('admin', Hackathon::class),
             ],
         ]);
     }

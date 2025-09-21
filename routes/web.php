@@ -185,7 +185,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::prefix('/{user}')->group(function () {
             Route::post('/block', [AdminController::class, 'blockUser'])->name('block');
             Route::post('/unblock', [AdminController::class, 'unblockUser'])->name('unblock');
-            Route::post('/change-roles', [AdminController::class, 'changeRoles'])->name('change-roles');
+            Route::post('/change-roles', [AdminController::class, 'changeRoles'])->name('change-roles')->middleware('top.admin');
         });
     });
 

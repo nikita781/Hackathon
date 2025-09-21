@@ -16,6 +16,6 @@ class UserPolicy
 
     public function changeRoles(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->isTopAdmin();
     }
 }

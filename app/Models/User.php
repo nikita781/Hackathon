@@ -105,6 +105,11 @@ class User extends Authenticatable
         return $this->hasAnyRole(Role::MODERATORS);
     }
 
+    public function isTopAdmin(): bool
+    {
+        return $this->hasAnyRole(Role::ADMINS);
+    }
+
     public function isHackathonStaff(Hackathon $hackathon): bool
     {
         if ($this->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists()) {

@@ -168,6 +168,11 @@ class HackathonPolicy
         return $user->isAdmin();
     }
 
+    public function admin(User $user): bool
+    {
+        return $user->isTopAdmin();
+    }
+
     public function downloadCertificate(User $user, Hackathon $hackathon): bool
     {
         return $user->teams()->where('hackathon_id', $hackathon->id)?->first()?->place <= 3;
