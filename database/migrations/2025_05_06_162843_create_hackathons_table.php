@@ -27,7 +27,7 @@ return new class extends Migration
             $table->dateTime('event_start');
             $table->dateTime('event_end');
             $table->enum('prize_type', ['cash', 'non-cash']);
-            $table->integer('prize_pool');
+            $table->string('prize_pool');
             $table->dateTime('work_time_start')->nullable();
             $table->dateTime('work_time_end')->nullable();
             $table->dateTime('evaluation_start')->nullable();
