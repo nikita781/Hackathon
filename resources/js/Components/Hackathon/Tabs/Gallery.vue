@@ -5,6 +5,26 @@ import IconsStar from '@/Components/Icons/Star.vue'
 import Hyperlink from "@/Components/Icons/Hyperlink.vue";
 import Document from "@/Components/Icons/Document.vue";
 import axios from 'axios'
+import Pagination from '@/Components/Pagination.vue'
+
+const rawLinks = ref([]) // что пришло с бэка (meta.links)
+const pageLinks = computed(() =>
+    (rawLinks.value || []).map(l => ({
+        ...l,
+        url: l.url ? withParams(l.url) : null,
+    }))
+)
+
+function withParams(url) {
+    const u = new URL(url, window.location.origin)
+    u.searchParams.set('tab', 'gallery')
+    const q = (search.value || '').trim()
+    if (q) u.searchParams.set('q', q); else u.searchParams.delete('q')
+    const ord = mapSortToBackend(sort.value)
+    if (ord) u.searchParams.set('order', ord); else u.searchParams.delete('order')
+    u.searchParams.set('per_page', String(perPage.value))
+    return u.pathname + '?' + u.searchParams.toString()
+}
 
 const props = defineProps({
     positions  : { type: Array,  default: () => [] },
@@ -37,7 +57,9 @@ let searchTimer = null
 
 onMounted(async () => {
     await langStore.fetchTranslations()
-    await fetchGallery(1)
+    const sp = new URLSearchParams(location.search)
+    const p = Number(sp.get('page') || '1') || 1
+    await fetchGallery(p)
 })
 
 onBeforeUnmount(() => {
@@ -92,18 +114,34 @@ async function fetchGallery (toPage = 1) {
         console.log(data)
 
         const payload = data.gallery ?? data
-        const paged = payload?.data && Array.isArray(payload.data)
-            ? payload
-            : (payload?.data?.data && Array.isArray(payload.data.data)
-                ? { ...payload.data, ...payload.meta }
-                : payload)
+        let list = []
+        let current = toPage, last = 1, totalN = 0, metaLinks = []
 
-        const list = Array.isArray(paged?.data) ? paged.data : (Array.isArray(payload) ? payload : [])
+        if (Array.isArray(payload)) {
+            list = payload
+            totalN = payload.length
+            last = Math.max(1, Math.ceil(totalN / perPage.value))
+        } else if (payload?.data && Array.isArray(payload.data)) {
+            list = payload.data
+            const m = payload.meta ?? {}
+            current = Number(m.current_page ?? toPage)
+            last    = Number(m.last_page ?? 1)
+            totalN  = Number(m.total ?? list.length)
+            metaLinks = Array.isArray(m.links) ? m.links : (Array.isArray(payload.links) ? payload.links : [])
+        } else if (payload?.data?.data && Array.isArray(payload.data.data)) {
+            list = payload.data.data
+            const m = payload.data.meta ?? payload.meta ?? {}
+            current = Number(m.current_page ?? toPage)
+            last    = Number(m.last_page ?? 1)
+            totalN  = Number(m.total ?? list.length)
+            metaLinks = Array.isArray(m.links) ? m.links : []
+        }
 
-        items.value   = list
-        page.value    = Number(paged?.current_page ?? 1)
-        lastPage.value= Number(paged?.last_page ?? 1)
-        total.value   = Number(paged?.total ?? list.length)
+        items.value = list
+        page.value  = current
+        lastPage.value = last
+        total.value = totalN
+        rawLinks.value = metaLinks
 
         list.forEach((p) => {
             const key = p.slug ?? p.id
@@ -214,7 +252,6 @@ const links = computed(() => ({
 const PLACEHOLDER = '/profile.jpg';
 
 function avatarSrc(photo) {
-    console.log(photo)
     if (!photo) return PLACEHOLDER;
     const url = String(photo).trim();
 
@@ -267,13 +304,13 @@ function imgFallback(e) {
             </div>
 
             <div class="hackathon__gallery_container">
+<!--                <pre>{{items}}</pre>-->
                 <template v-if="loading">
                     <div v-for="i in 6" :key="'s'+i" class="hackathon__my-project__item">
                         <div class="skeleton-loader" style="height: 180px; border-radius: 12px;"></div>
                         <div class="skeleton-loader" style="height: 90px; margin-top: 12px;"></div>
                     </div>
                 </template>
-
                 <template v-else>
                     <div
                         v-for="project in items"
@@ -284,6 +321,14 @@ function imgFallback(e) {
                     >
                         <div class="hackathon__my-project__item_header">
                             <img :src="getPreviewSrc(project)" alt="">
+
+                            <div
+                                v-if="Number(project?.team?.place) > 0"
+                                class="hackathon__gallery_place"
+                                :class="Number(project.team.place) < 4 ? 'first' : 'second'"
+                            >
+                                {{ project.team.place }}
+                            </div>
                         </div>
 
                         <div class="hackathon__my-project__item_content">
@@ -303,38 +348,15 @@ function imgFallback(e) {
                     </div>
                 </template>
             </div>
-
-            <nav v-if="lastPage > 1" class="main__pagination" style="margin-top: 24px;">
-                <button class="main__pagination_item arrow" :class="{ disabled: !canPrev }" @click="goPrev" :disabled="!canPrev">
-                    <svg width="20" height="20" viewBox="0 0 20 20">
-                        <path d="M15 18l-6-6 6-6" fill="none" stroke="#E80024" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </button>
-
-                <button
-                    v-for="p in pagesWindow"
-                    :key='String(p)'
-                    class="main__pagination_item"
-                    :class="{ active: p === page, disabled: p === 'gap' }"
-                    @click="p !== 'gap' && goPage(p)"
-                    :disabled="p === 'gap'"
-                >
-                    <span v-if="p !== 'gap'">{{ p }}</span>
-                    <span v-else>…</span>
-                </button>
-
-                <button class="main__pagination_item arrow" :class="{ disabled: !canNext }" @click="goNext" :disabled="!canNext">
-                    <svg width="20" height="20" viewBox="0 0 20 20">
-                        <path d="M9 6l6 6-6 6" fill="none" stroke="#E80024" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </button>
-            </nav>
+            <Pagination
+                :links="pageLinks"
+            />
         </div>
         <div v-else class="hackathon__tab_main">
             <div class="hackathon__tab_container">
-                <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
-                    <button type="button" class="main__btn_main hackathon__tab_back" @click="closeProject">← Назад к проектам</button>
+                <div style="display:flex; gap:12px; justify-content: space-between; flex-wrap: wrap; align-items:center; margin-bottom:12px;">
                     <p class="hackathon__my-project__title" style="margin:0">{{ oneTitle }}</p>
+                    <button type="button" class="main__btn_main hackathon__tab_back" @click="closeProject">← Назад к проектам</button>
                 </div>
 
                 <div class="hackathon__oneProject_image">

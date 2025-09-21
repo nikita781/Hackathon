@@ -14,6 +14,11 @@ const props = defineProps({
     notifications: { type: Object, default: () => ({}) },
 })
 
+const isAdminOrMainAdmin = computed(() => {
+    const roles = props.auth?.roles || [];
+    return roles.includes('Главный админ') || roles.includes('Админ') || roles.includes('Модератор');
+})
+
 const langStore = useLangStore()
 const notificationsStore = useNotificationsStore()
 
@@ -142,8 +147,9 @@ function imgFallback(e) {
                 </a>
                 <div class="header__main">
                     <div class="header__content">
-                        <a href="/my-hackathons" class="header__link" :class="{ active: isActiveMyHackathons }"
-                           v-if="isAuthenticated">{{ langStore.translations.my_hackathons }}</a>
+                        <a v-if="isAuthenticated" :href="isAdminOrMainAdmin ? '/admin/users' : '/my-hackathons'" class="header__link" :class="{ active: isActiveMyHackathons }">
+                            {{ isAdminOrMainAdmin ? 'Админ панель' : langStore.translations.my_hackathons }}
+                        </a>
                         <div class="header__btns" v-else>
                             <a @click="showLogin = true" class="main__btn">{{ langStore.translations.Login }}</a>
                             <a href="https://foncode.ru/register" target="_blank" class="main__btn main__btn_white"

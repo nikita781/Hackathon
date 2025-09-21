@@ -94,7 +94,7 @@ function openModal(url) {
                      class="notification__item"
                      >
                     <div class="notification__image">
-                        <img src="/test.jpg" alt="">
+                        <img :src="n?.hackathon?.image_path ?? '/test.jpg'" alt="">
                     </div>
 
 <!--                    <pre>{{n}}</pre>-->

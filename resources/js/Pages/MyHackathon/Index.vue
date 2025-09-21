@@ -244,7 +244,7 @@ async function publishHackathon(hackathon) {
                         <div class="main__card_info-long">
                             <p class="main__card_title">{{ hackathon.title }}</p>
                             <button
-                                v-if="hackathon.status === 1 || hackathon.status === 4"
+                                v-if="hackathon.can.publish"
                                 class="main__btn_main"
                                 @click.stop.prevent="publishHackathon(hackathon)"
                                 style="max-width: unset"

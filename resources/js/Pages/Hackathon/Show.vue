@@ -49,7 +49,7 @@ const availableTabs = computed(() => {
         },
         {key: 'managers', title: 'Управляющие', noVisible: !props.can?.hackathon?.update
         },
-        {key: 'rate', title: 'Оценить', noVisible: !props.can?.hackathon?.rate},
+        {key: 'rate', title: 'Оценить', noVisible: props.can?.hackathon?.rate},
         {key: 'project', title: 'Мой проект', blocked: !props.can?.team.view, noVisible: props.can?.hackathon?.is_staff},
         {key: 'gallery', title: 'Галерея проектов', blocked: !props.can?.project.viewAll},
         {key: 'resources', title: 'Ресурсы', blocked: !props.can?.hackathon?.viewTask},
@@ -172,6 +172,51 @@ function formatDate(s, { utc = false } = {}) {
 
     return `${dd}.${mm}.${yy} ${HH}:${MM}`
 }
+
+const syncing = ref(false)
+
+function saveBlob(blob, filename) {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+}
+
+function getFilenameFromDisposition(disposition, fallback) {
+    if (!disposition) return fallback
+    const mStar = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(disposition)
+    if (mStar?.[1]) return decodeURIComponent(mStar[1])
+    const m = /filename\s*=\s*"?([^";]+)"?/i.exec(disposition)
+    return m?.[1] || fallback
+}
+
+async function downloadProtokol() {
+    if (syncing.value) return
+    syncing.value = true
+    try {
+        const url = route('hackathons.download-report', { hackathon: props.hackathon.slug })
+        const { data, headers } = await axios.get(url, { responseType: 'blob' })
+
+        const type = headers['content-type'] || 'application/pdf'
+        const blob = new Blob([data], { type })
+        const fallback = `protocol-${props.hackathon.slug}.pdf`
+        const filename = getFilenameFromDisposition(headers['content-disposition'], fallback)
+
+        saveBlob(blob, filename)
+        toast.success('Отчёт скачан.', { position: 'top-right', timeout: 5000 })
+    } catch (e) {
+        console.error('download-report', e?.response ?? e)
+        toast.error(e?.response?.data?.message || 'Не удалось выгрузить отчёт.', {
+            position: 'top-right', timeout: 5000
+        })
+    } finally {
+        syncing.value = false
+    }
+}
 </script>
 
 <template>
@@ -250,7 +295,11 @@ function formatDate(s, { utc = false } = {}) {
                                     </svg>
                                 </div>
                                 <p>
-                                    {{ props.hackathon.prize_pool ? `${Number(props.hackathon.prize_pool).toLocaleString('ru-RU')} ₽` : 'Подарки' }}
+                                    {{
+                                        !isNaN(props.hackathon.prize_pool)
+                                            ? `${Number(props.hackathon.prize_pool).toLocaleString('ru-RU')} ₽`
+                                            : props.hackathon.prize_pool
+                                    }}
                                 </p>
                             </div>
                             <div class="hackathon__header_admin-btns">
@@ -309,6 +358,15 @@ function formatDate(s, { utc = false } = {}) {
                                     disabled
                                 >
                                     Принят
+                                </button>
+                                <button
+                                    v-if="props.can.hackathon.downloadProtocol"
+                                    type="button"
+                                    class="main__btn hackathon__btn"
+                                    @click="downloadProtokol"
+                                    :disabled="syncing"
+                                >
+                                    {{ syncing ? 'Выгружаем…' : 'Выгрузить отчёт' }}
                                 </button>
                             </div>
                             <TakePart

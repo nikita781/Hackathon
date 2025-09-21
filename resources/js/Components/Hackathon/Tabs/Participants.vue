@@ -3,6 +3,8 @@ import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import axios from 'axios'
 import Pagination from '@/Components/Pagination.vue'
 import { useLangStore } from '@/store/lang.js'
+import {useToast} from "vue-toastification";
+import {router} from "@inertiajs/vue3";
 
 const props = defineProps({
     hackathon     : { type: Object, default: null },
@@ -56,15 +58,36 @@ const filterGroups = ref([
     },
 ])
 
-// сортировка -> значение order как ждёт бэк
+const allowedOrders = new Set(['dateA','dateD','titleA','titleD'])
 function mapSort(v) {
+    return allowedOrders.has(v) ? v : undefined
+}
+
+// сортировка -> значение order как ждёт бэк
+function mapOrderToSort(v) {
     switch (v) {
         case 'dateA':  return 'dateA'
         case 'dateD':  return 'dateD'
         case 'titleA': return 'titleA'
         case 'titleD': return 'titleD'
-        default:       return undefined
+        default:       return 'dateD'
     }
+}
+
+function readQueryIntoState() {
+    const sp = new URLSearchParams(window.location.search)
+    // page читаем отдельно при fetch
+    const q  = sp.get('q') ?? ''
+    const ord = sp.get('order') ?? 'dateD'
+    const team = sp.get('team')
+    const status = sp.get('status')
+    const pp = Number(sp.get('per_page') ?? '') || perPage.value
+
+    search.value = q
+    sort.value = mapOrderToSort(ord)
+    selected.team = team || null
+    selected.status = status ? (isNaN(+status) ? status : +status) : null
+    perPage.value = pp
 }
 
 // query для бэка
@@ -99,6 +122,11 @@ function makePaginationLinks(current, last) {
     return links
 }
 
+function syncUrl(page = 1) {
+    const href = `${pageBaseHref()}?${buildPageQuery(page)}`
+    window.history.replaceState({}, '', href)
+}
+
 async function fetchTeams(page = 1) {
     if (!slug.value) return
     loading.value = true; error.value = ''
@@ -110,25 +138,27 @@ async function fetchTeams(page = 1) {
 
         // 1) { teams: Array, count }
         // 2) { teams: { data, meta:{...}, links:[...] }, count }
+        console.log(data)
         const payload = data?.teams
         if (Array.isArray(payload)) {
             teams.value = payload
             const total = Number(data?.count ?? payload.length)
             const last  = Math.max(1, Math.ceil(total / perPage.value))
             meta.value  = { current_page: page, last_page: last, total }
-            paginationLinks.value = makePaginationLinks(page, last)
+            paginationLinks.value = toPageLinks([], page, last)
             count.value = total
         } else {
             teams.value = payload?.data ?? []
             const m = payload?.meta ?? payload ?? {}
-            meta.value = {
-                current_page: m.current_page ?? page,
-                last_page   : m.last_page ?? 1,
-                total       : m.total ?? teams.value.length
-            }
-            paginationLinks.value = payload?.links ?? payload?.meta?.links ?? []
-            count.value = data?.count ?? meta.value.total
+            const current = Number(m.current_page ?? page)
+            const last    = Number(m.last_page ?? 1)
+            const total   = Number(m.total ?? teams.value.length)
+
+            meta.value = { current_page: current, last_page: last, total }
+            paginationLinks.value = toPageLinks(m.links, current, last)
+            count.value = Number(data?.count ?? total)
         }
+        syncUrl(meta.value.current_page)
     } catch (e) {
         console.error('teams-index', e?.response ?? e)
         error.value = e?.response?.data?.message || e.message || 'Ошибка загрузки'
@@ -177,16 +207,127 @@ let t
 watch(search, () => { clearTimeout(t); t = setTimeout(() => fetchTeams(1), 400) })
 watch([sort, () => selected.team, () => selected.status], () => fetchTeams(1))
 
+
 onMounted(async () => {
     await langStore.fetchTranslations()
     await nextTick()
-    fetchTeams(1)
+    readQueryIntoState()
+    const sp = new URLSearchParams(window.location.search)
+    const page = Number(sp.get('page') ?? '1') || 1
+    fetchTeams(page)
 })
+
+function pageBaseHref() {
+    // текущий путь страницы (вкладка/хакатон), без query
+    return window.location.pathname
+}
+
+function buildPageQuery(page) {
+    const sp = new URLSearchParams()
+    const pms = buildParams(page)
+    Object.entries(pms).forEach(([k,v]) => {
+        if (Array.isArray(v)) v.forEach(x => sp.append(k + '[]', x))
+        else if (v !== undefined && v !== null && v !== '') sp.append(k, v)
+    })
+    return sp.toString()
+}
+
+function toPageLinks(metaLinks, current, last) {
+    // Если meta.links — массив от Laravel, пересобираем URL на базу страницы
+    if (Array.isArray(metaLinks) && metaLinks.length) {
+        return metaLinks.map(l => {
+            const p = extractPage(l.url)
+            return {
+                ...l,
+                url: p ? `${pageBaseHref()}?${buildPageQuery(p)}` : null,
+            }
+        })
+    }
+    // Fallback: сгенерировать вручную
+    const base = pageBaseHref()
+    const links = []
+    links.push({ url: current > 1 ? `${base}?${buildPageQuery(current - 1)}` : null, label: '&laquo; Previous', active: false })
+    for (let i = 1; i <= last; i++) links.push({ url: `${base}?${buildPageQuery(i)}`, label: String(i), active: i === current })
+    links.push({ url: current < last ? `${base}?${buildPageQuery(current + 1)}` : null, label: 'Next &raquo;', active: false })
+    return links
+}
+
+const toast = useToast();
+
+const syncing = ref(false)
+
+function saveBlob(blob, filename) {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+}
+
+function getFilenameFromDisposition(disposition, fallback) {
+    if (!disposition) return fallback
+    // filename*=UTF-8''name.xlsx   или   filename="name.xlsx"
+    const mStar = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(disposition)
+    if (mStar?.[1]) return decodeURIComponent(mStar[1])
+    const m = /filename\s*=\s*"?([^";]+)"?/i.exec(disposition)
+    return m?.[1] || fallback
+}
+
+async function finishHackathon() {
+    if (syncing.value || !slug.value) return
+    syncing.value = true
+    try {
+        const url = route('hackathons.download-users', { hackathon: slug.value })
+        const { data, headers } = await axios.get(url, { responseType: 'blob' })
+
+        const type = headers['content-type'] || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        const blob = new Blob([data], { type })
+        const fallbackName = `hackathon_users_${slug.value}.xlsx`
+        const filename = getFilenameFromDisposition(headers['content-disposition'], fallbackName)
+
+        saveBlob(blob, filename)
+        useToast().success('Выгрузка участников начата, файл скачан.')
+    } catch (e) {
+        console.error('download-users', e?.response ?? e)
+        useToast().error(e?.response?.data?.message || 'Не удалось выгрузить участников.')
+    } finally {
+        syncing.value = false
+    }
+}
+
+const PLACEHOLDER = '/profile.jpg';
+
+function avatarSrc(photo) {
+    if (!photo) return PLACEHOLDER;
+    const url = String(photo).trim();
+
+    const hasFileName = /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url);
+    if (!hasFileName) return PLACEHOLDER;
+
+    return url;
+}
+
+function imgFallback(e) {
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
+}
 </script>
 
 <template>
     <div class="hackathon__tab">
         <div class="hackathon__gallery">
+            <button
+                type="button"
+                class="main__btn_main"
+                style="width: fit-content"
+                @click="finishHackathon"
+                :disabled="syncing"
+            >
+                {{ syncing ? 'Выгружаем…' : 'Выгрузить участников' }}
+            </button>
             <div class="hackathon__gallery_filter">
                 <div class="main__search my-hackathon__search">
                     <div class="main__search_container">
@@ -267,8 +408,8 @@ onMounted(async () => {
                             <template v-if="captainOf(team)">
                                 <div class="hackathon__my-project__list_item">
                                     <div class="hackathon__my-project__list_container">
-                                        <img src="/profile.jpg" alt="Avatar">
-                                        <p class="hackathon__my-project__list_text">{{ captainOf(team).user?.name }}</p>
+                                        <img :src="avatarSrc(captainOf(team).user?.photo)" @error="imgFallback" alt="Avatar">
+                                        <p class="hackathon__my-project__list_text">{{ captainOf(team).user?.nickname }}</p>
                                     </div>
                                     <p class="hackathon__my-project__list_text">{{ captainOf(team).position?.name ?? 'Капитан' }}</p>
                                 </div>
@@ -284,22 +425,20 @@ onMounted(async () => {
                                     class="hackathon__my-project__list_item"
                                 >
                                     <div class="hackathon__my-project__list_container">
-                                        <img src="/profile.jpg" alt="Avatar">
-                                        <p class="hackathon__my-project__list_text">{{ m.user?.name }}</p>
+                                        <img :src="avatarSrc(m.user?.photo)" @error="imgFallback" alt="Avatar">
+                                        <p class="hackathon__my-project__list_text">{{ m.user?.nickname }}</p>
                                     </div>
                                     <p class="hackathon__my-project__list_text">{{ m.position?.name }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <Pagination
+                        :links="paginationLinks"
+                        @navigate="go"
+                        style="margin-top:24px"
+                    />
                 </div>
-
-                <Pagination
-                    v-if="(meta?.last_page ?? 1) > 1 && paginationLinks.length"
-                    :links="paginationLinks"
-                    @navigate="go"
-                    style="margin-top:24px"
-                />
             </div>
         </div>
     </div>

@@ -9,6 +9,7 @@ const props = defineProps({
     x:    { type: Number,  default: 0 },
     y:    { type: Number,  default: 0 },
     user: { type: Object,  default: null },
+    can: Object,
 })
 const emit = defineEmits(['close','block','role'])
 
@@ -47,7 +48,7 @@ onBeforeUnmount(()=>{
                 <Eye class="ctx__icon" v-else/>
                 <span>{{ user.status === 1 ? 'Заблокировать' : 'Разблокировать' }}</span>
             </button>
-            <button class="ctx__item" @click="$emit('role', user)">
+            <button v-if="props.can.admin" class="ctx__item" @click="$emit('role', user)">
                 <PencilMenu class="ctx__icon" />
                 <span>Изменить роль</span>
             </button>

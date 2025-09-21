@@ -6,6 +6,7 @@ import RateProject from '@/Components/Dialog/RateProject.vue'
 import axios from 'axios'
 import Document from '@/Components/Icons/Document.vue'
 import Hyperlink from '@/Components/Icons/Hyperlink.vue'
+import Pagination from '@/Components/Pagination.vue'
 
 const showRate = ref(false)
 
@@ -110,6 +111,39 @@ const truncate = (text, max = 180) => {
     return text.length > max ? text.slice(0, max) + '…' : text
 }
 
+const pageLinks = ref([])
+
+const extractPage = (url) => {
+    try { return Number(new URL(url, window.location.origin).searchParams.get('page') || 1) }
+    catch { return 1 }
+}
+const go = (url) => {
+    const p = extractPage(url)
+    if (p) fetchGallery(p)
+}
+
+function makeLinksFromMeta(current, last) {
+    const base = window.location.pathname
+    const qs = (p) => {
+        const sp = new URLSearchParams(window.location.search)
+        sp.set('page', p)
+        return sp.toString()
+    }
+    const out = []
+    out.push({ url: current > 1 ? `${base}?${qs(current - 1)}` : null, label: '&laquo; Previous', active: false })
+    for (let i = 1; i <= last; i++) out.push({ url: `${base}?${qs(i)}`, label: String(i), active: i === current })
+    out.push({ url: current < last ? `${base}?${qs(current + 1)}` : null, label: 'Next &raquo;', active: false })
+    return out
+}
+
+function normalizeLinks(payloadOrPaged) {
+    const arr = payloadOrPaged?.links ?? payloadOrPaged?.meta?.links
+    if (Array.isArray(arr)) return arr
+    const current = Number(payloadOrPaged?.current_page ?? payloadOrPaged?.meta?.current_page ?? 1)
+    const last    = Number(payloadOrPaged?.last_page ?? payloadOrPaged?.meta?.last_page ?? 1)
+    return makeLinksFromMeta(current, last)
+}
+
 async function fetchGallery (toPage = 1) {
     if (abortCtrl) abortCtrl.abort()
     abortCtrl = new AbortController()
@@ -122,6 +156,8 @@ async function fetchGallery (toPage = 1) {
             route('hackathons.gallery', { hackathon: props.hackathon.slug }),
             { params: buildParams(toPage), signal: abortCtrl.signal }
         )
+
+        console.log(data)
 
         const payload = data.gallery ?? data
         const paged = payload?.data && Array.isArray(payload.data)
@@ -136,6 +172,7 @@ async function fetchGallery (toPage = 1) {
         page.value    = Number(paged?.current_page ?? 1)
         lastPage.value= Number(paged?.last_page ?? 1)
         total.value   = Number(paged?.total ?? list.length)
+        pageLinks.value = normalizeLinks(paged ?? payload)
 
         list.forEach((p) => {
             const key = p.slug ?? p.id
@@ -361,14 +398,19 @@ function setIdProject (id) {
                         :project-id="idProject"
                     />
                 </div>
+                <Pagination
+                    :links="pageLinks"
+                    @navigate="go"
+                    style="margin-top:24px"
+                />
             </div>
         </div>
 
         <div v-else class="hackathon__tab_main">
             <div class="hackathon__tab_container">
-                <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
-                    <button type="button" class="main__btn_main" @click="closeProject">← Назад к проектам</button>
+                <div style="display:flex; gap:12px; justify-content: space-between; flex-wrap: wrap; align-items:center; margin-bottom:12px;">
                     <p class="hackathon__my-project__title" style="margin:0">{{ oneTitle }}</p>
+                    <button type="button" class="main__btn_main hackathon__tab_back" @click="closeProject">← Назад к проектам</button>
                 </div>
 
                 <div class="hackathon__oneProject_image">

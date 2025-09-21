@@ -89,6 +89,7 @@ const props = defineProps({
     flash: Object,
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
+    can: Object
 })
 
 const toast = useToast();
@@ -274,6 +275,7 @@ async function updateUsers() {
                 :x="menu.x"
                 :y="menu.y"
                 :user="menu.user"
+                :can="props.can"
                 @close="closeMenu"
                 @block="onBlock"
                 @role="onRole"
