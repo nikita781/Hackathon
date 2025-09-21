@@ -237,6 +237,7 @@ class HackathonController extends Controller
                     'viewTask' => Gate::check('viewTask', $hackathon),
                     'rate' => Gate::check('evaluation', $hackathon),
                     'publish' => Gate::check('publish', $hackathon),
+                    'download-protocol' => Gate::check('downloadReport', $hackathon),
                     'moderate' => Gate::check('moderate', Hackathon::class),
                     'is_staff' => $isStaffHackathon,
                 ],
