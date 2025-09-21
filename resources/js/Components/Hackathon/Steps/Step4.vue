@@ -33,7 +33,6 @@ async function fetchProject () {
         );
         // сервер возвращает { project: ... }
         loadedProject.value = data.project;
-        console.log(data)
     } catch (e) {
         console.error('project-fetch', e?.response ?? e);
         // по желанию: показать тост
@@ -98,7 +97,6 @@ async function publishProject() {
 const PLACEHOLDER = '/profile.jpg';
 
 function avatarSrc(photo) {
-    console.log(photo)
     if (!photo) return PLACEHOLDER;
     const url = String(photo).trim();
 
@@ -138,7 +136,7 @@ function imgFallback(e) {
                 </div>
             </div>
         </div>
-        <pre>>{{props.oneProject}}</pre>
+<!--        <pre>>{{props.oneProject}}</pre>-->
         <div class="dialog__component">
             <p class="dialog__title">Правила и условия</p>
             <div class="dialog__checkbox" style="margin-top: 10px">

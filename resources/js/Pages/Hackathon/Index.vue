@@ -3,9 +3,14 @@
 import {Head, router, useForm, usePage} from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { useLangStore } from '@/store/lang'
-import {nextTick, onMounted, reactive, ref, watch} from "vue";
+import {computed, nextTick, onMounted, reactive, ref, watch} from "vue";
 import debounce from 'lodash.debounce'
-import Pagination from "@/Components/Pagination.vue";
+import PaginationComp from "@/Components/Pagination.vue";
+
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/pagination'
 
 const langStore = useLangStore()
 
@@ -18,7 +23,24 @@ const props = defineProps({
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
     flash: Object,
+    banners: Object,
 })
+
+const swiperModules = [Pagination]
+
+const sortedBanners = computed(() =>
+    Array.isArray(props.banners)
+        ? [...props.banners].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        : []
+)
+
+function bannerSrc(banner) {
+    try {
+        return route('banners.image', { banner: banner.id })
+    } catch (e) {
+        console.error(e)
+    }
+}
 
 const showToast = () => {
     if (props.flash?.error) {
@@ -255,8 +277,27 @@ onMounted(async () => {
     >
 <!--        <pre>{{langStore.translations}}</pre>-->
         <div>
+<!--            <pre>{{props.banners}}</pre>-->
         <div class="head">
-            <img src="/head.svg" alt="Head" class="head__img" />
+            <Swiper
+                v-if="sortedBanners.length"
+                :modules="swiperModules"
+                :slides-per-view="1"
+                :space-between="0"
+                :loop="sortedBanners.length > 1"
+                :pagination="{ clickable: true }"
+                class="head__slider"
+            >
+                <SwiperSlide v-for="b in sortedBanners" :key="b.id">
+                    <img
+                        :src="bannerSrc(b)"
+                        :alt="`Banner #${b.id}`"
+                        class="head__img"
+                        loading="lazy"
+                        decoding="async"
+                    />
+                </SwiperSlide>
+            </Swiper>
         </div>
 
 <!--        <pre>-->
@@ -379,7 +420,7 @@ onMounted(async () => {
                         </div>
                     </div>
                 </a>
-                <Pagination :links="hackathons.meta.links" @navigate="go" />
+                <PaginationComp :links="hackathons.meta.links" @navigate="go" />
             </div>
         </div>
         <div v-if="menuVisible" class="slide-out-menu">
@@ -423,4 +464,42 @@ $x-large: 1399.98px;
 $big: 1592.98px;
 $x-big: 1829.98px;
 
+.head {
+    position: relative;
+    width: 100%;
+}
+
+.head__slider {
+    width: 100%;
+    max-width: 1280px;
+}
+
+.head__img {
+    display: block;
+    width: 100%;
+    height: 520px;
+    @media screen and (max-width: $medium) {
+        height: 420px;
+    }
+    @media screen and (max-width: $x-small) {
+        height: 320px;
+    }
+}
+
+/* Пули пагинации Swiper (т.к. style scoped — используем :deep) */
+:deep(.swiper-pagination) {
+    bottom: 10px !important;
+}
+
+:deep(.swiper-pagination-bullet) {
+    width: 12px;
+    height: 12px;
+    opacity: .5;
+    background: #ccc;
+}
+
+:deep(.swiper-pagination-bullet-active) {
+    opacity: 1;
+    background: #E80024;
+}
 </style>

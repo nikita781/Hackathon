@@ -8,16 +8,16 @@ $x-big: 1829.98px;
 
 .head {
     max-width: 1280px;
-    padding: 40px 80px 60px 80px;
+    padding: 40px 0 60px 0;
     margin: 0 auto;
     @media screen and (max-width: $large){
-        padding: 40px 80px 60px 80px;
+        padding: 40px 0 60px 0;
     }
     @media screen and (max-width: $medium){
-        padding: 20px 50px;
+        padding: 20px 0;
     }
     @media screen and (max-width: $x-small){
-        padding: 20px 30px;
+        padding: 0 0 20px 0;
     }
     &__img {
         object-fit: cover;

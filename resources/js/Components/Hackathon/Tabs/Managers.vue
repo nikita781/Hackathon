@@ -17,6 +17,23 @@ const props = defineProps({
 
 const showInvitation = ref(false);
 const showEditTeam = ref(false);
+
+const PLACEHOLDER = '/profile.jpg';
+
+function avatarSrc(photo) {
+    if (!photo) return PLACEHOLDER;
+    const url = String(photo).trim();
+
+    const hasFileName = /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url);
+    if (!hasFileName) return PLACEHOLDER;
+
+    return url;
+}
+
+function imgFallback(e) {
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
+}
 </script>
 
 <template>
@@ -55,8 +72,8 @@ const showEditTeam = ref(false);
             <div class="hackathon__participants_team">
                 <div class="hackathon__my-project__list_item" v-for="(person,idx) in props.hackathonStaff" :key="idx">
                     <div class="hackathon__my-project__list_container">
-                        <img src="/profile.jpg" alt="Avatar">
-                        <p class="hackathon__my-project__list_text">{{ person.name }}</p>
+                        <img :src="avatarSrc(person.photo)" @error="imgFallback" alt="Avatar">
+                        <p class="hackathon__my-project__list_text">{{ person.nickname }}</p>
                     </div>
                     <p class="hackathon__my-project__list_text">{{ person.hackathon_role.title }}</p>
                 </div>

@@ -97,7 +97,7 @@ function openModal(url) {
                         <img src="/test.jpg" alt="">
                     </div>
 
-                    <pre>{{n}}</pre>
+<!--                    <pre>{{n}}</pre>-->
 
                     <div class="notification__content">
                         <div class="notification__main">

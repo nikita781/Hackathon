@@ -377,6 +377,11 @@ $x-big: 1829.98px;
         ol, ul {
             margin-left: 18px;
         }
+        img {
+            max-width: 740px;
+            width: 100%;
+            border-radius: 10px;
+        }
     }
     &__prizes {
         display: flex;
