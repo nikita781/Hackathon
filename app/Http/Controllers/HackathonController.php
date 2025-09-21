@@ -307,6 +307,10 @@ class HackathonController extends Controller
             return back()->with('error', 'Все даты хакатона должны быть заполнены');
         }
 
+        if (!$hackathon->criteriaGroups()->has('criteria')->exists()) {
+            return back()->with('error', 'Хакатон должен содержать критерии оценки');
+        }
+
         $hackathon->update([
             'status' => Hackathon::STATUS_MODERATION,
             'moderated_time' => Carbon::now(),

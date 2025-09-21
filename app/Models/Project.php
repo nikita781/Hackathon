@@ -74,10 +74,10 @@ class Project extends Model implements HasMedia
             });
         });
 
-        $query->when($request->rate, function ($q, $rated) {
-            if ($rated == 'yes') {
+        $query->when($request->rated, function ($q, $rated) {
+            if ($rated === 'yes') {
                 $q->whereHas('evaluations');
-            } else if ($rated == 'no') {
+            } else if ($rated === 'no') {
                 $q->whereDoesntHave('evaluations');
             }
         });
