@@ -29,8 +29,10 @@ class TeamController extends Controller
 
         $perPage = min($request->get('per_page', 10), 10);
 
+        $paginator = $hackathon->allTeams()->filter($request)->paginate($perPage);
+
         return response()->json([
-            'teams' => TeamResource::collection($hackathon->allTeams()->filter($request)->paginate($perPage)),
+            'teams' => TeamResource::collection($paginator)->response()->getData(true),
             'count' => $hackathon->countTeams($request),
         ]);
     }
