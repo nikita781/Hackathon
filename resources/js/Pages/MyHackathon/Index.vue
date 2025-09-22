@@ -235,7 +235,8 @@ async function publishHackathon(hackathon) {
                 <a v-for="hackathon in hackathons.data" :key="hackathon.id" class="main__card" :href="`/hackathons/${hackathon.slug}`">
                     <div class="main__card_photo">
                         <img :src="hackathon.image_path" alt="Photo">
-                        <p class="main__card_photo-status black" v-if="hackathon.status === 1 && props.can.create">Черновик</p>
+                        <p class="main__card_photo-status black" v-if="hackathon.status === 1 && props.can.create">
+                            {{ capitalizeFirstLetter(langStore.translations.draft) }}</p>
                         <p class="main__card_photo-status yellow" v-if="hackathon.status === 2 && props.can.create">На рассмотрении</p>
                         <p class="main__card_photo-status red" v-else-if="hackathon.status === 4 && props.can.create">Отклонен</p>
                         <p class="main__card_photo-status green" v-else-if="hackathon.status === 3 && props.can.create">Принят</p>

@@ -132,7 +132,7 @@ onMounted(async () => {
                         :disabled="!inviteLink"
                         @click="copy(inviteLink)"
                     >
-                        {{ copied ? 'Скопировано' : capitalizeFirstLetter(langStore.translations.copy) }}
+                        {{ copied ? capitalizeFirstLetter(langStore.translations.copied) : capitalizeFirstLetter(langStore.translations.copy) }}
                     </button>
                 </div>
             </div>

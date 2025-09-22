@@ -122,7 +122,7 @@ onMounted(async () => {
                     @click="isForm = true"
                     v-if="props.can.project.createProject"
                 >
-                    Создать
+                    {{ capitalizeFirstLetter(langStore.translations.create) }}
                 </button>
             </div>
 <!--            <pre>{{projects}}</pre>-->
@@ -187,7 +187,7 @@ onMounted(async () => {
                 @click="showInvitation = true"
                 v-if="props.can.team.invite"
             >
-                Пригласить в команду
+                {{ capitalizeFirstLetter(langStore.translations.invite_to_team) }}
             </button>
             <InvitationToTheTeam
                 v-model="showInvitation"

@@ -1,5 +1,5 @@
 <script setup>
-import {reactive, ref, watch, onBeforeUnmount} from 'vue'
+import {reactive, ref, watch, onBeforeUnmount, onMounted, nextTick} from 'vue'
 import {useLangStore} from '@/store/lang.js'
 
 /**
@@ -125,9 +125,17 @@ function onDrag(e) {
     e.preventDefault();
     dragging.value = e.type === 'dragenter' || e.type === 'dragover'
 }
-
 /* очистка */
 onBeforeUnmount(revokeNewURLs)
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
@@ -149,7 +157,7 @@ onBeforeUnmount(revokeNewURLs)
         />
         <template v-if="!items.length">
             <p class="hint">
-                Перетащите или выберите файлы (PDF, 5 MB максимальный размер файла)
+                {{ capitalizeFirstLetter(langStore.translations.upload_files_hint) }}
             </p>
         </template>
 

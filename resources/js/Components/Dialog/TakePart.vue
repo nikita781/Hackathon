@@ -95,7 +95,7 @@ function capitalizeFirstLetter(str) {
                     @click="submit"
                 >
                     {{ pending
-                    ? 'Отправляем…'
+                    ? capitalizeFirstLetter(langStore.translations.sending)
                     : (props.is_join ? capitalizeFirstLetter(langStore.translations.cancelParticipation) : capitalizeFirstLetter(langStore.translations.participate)) }}
                 </button>
             </div>

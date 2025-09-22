@@ -67,7 +67,7 @@ onMounted( async () => {
                     {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                 </button>
                 <button class="main__btn dialog__btn" @click="submit">
-                    {{ props.initial ? 'Изменить' : 'Добавить' }}
+                    {{ props.initial ? 'Изменить' : capitalizeFirstLetter(langStore.translations.add) }}
                 </button>
             </div>
         </div>

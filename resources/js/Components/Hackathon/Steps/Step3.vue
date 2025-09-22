@@ -154,7 +154,7 @@ onMounted(async () => {
             <span v-if="errors.presentation" class="error">{{ errors.presentation[0] }}</span>
         </div>
         <div class="dialog__component">
-            <p class="dialog__title">Галерея проекта</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.project_gallery) }}</p>
             <DropFiles
                 :files="existingGallery"
                 @update:files="handleFilesUpdate"

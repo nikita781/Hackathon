@@ -46,12 +46,12 @@ async function submitAppeal() {
                 message: textAppeal.value.trim(),
             }
         );
-        toast.success('Обращение отправлено', { position:'top-right', timeout:5000 })
+        toast.success(capitalizeFirstLetter(langStore.translations.request_sent), { position:'top-right', timeout:5000 })
         emit('sent');
         close();
     } catch (e) {
         const resp = e?.response;
-        toast.error('Не удалось отправить обращение', { position:'top-right', timeout:5000 })
+        toast.error(capitalizeFirstLetter(langStore.translations.reply_failed), { position:'top-right', timeout:5000 })
         console.error('support-store', resp ?? e);
     } finally {
         pending.value = false;
@@ -91,7 +91,7 @@ onMounted(async () => {
                 >
                     <option value="question">{{ capitalizeFirstLetter(langStore.translations.question) }}</option>
                     <option value="suggestion">{{ capitalizeFirstLetter(langStore.translations.suggestion) }}</option>
-                    <option value="bug">Сообщить об ошибке</option>
+                    <option value="bug">{{ capitalizeFirstLetter(langStore.translations.report_error) }}</option>
                 </select>
             </div>
             <div class="dialog__component">

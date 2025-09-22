@@ -61,8 +61,8 @@ const filterGroups = ref([
         name: 'status',
         label: capitalizeFirstLetter(langStore.translations.workStatus),
         options: [
-            { label: 'Черновик',     value: 1 },
-            { label: 'Опубликована', value: 3 },
+            { label: capitalizeFirstLetter(langStore.translations.draft),     value: 1 },
+            { label: capitalizeFirstLetter(langStore.translations.published), value: 3 },
         ],
     },
 ])
@@ -335,7 +335,7 @@ function imgFallback(e) {
                 @click="finishHackathon"
                 :disabled="syncing"
             >
-                {{ syncing ? 'Выгружаем…' : 'Выгрузить участников' }}
+                {{ syncing ? capitalizeFirstLetter(langStore.translations.exporting) : capitalizeFirstLetter(langStore.translations.export_participants) }}
             </button>
             <div class="hackathon__gallery_filter">
                 <div class="main__search my-hackathon__search">
@@ -399,11 +399,11 @@ function imgFallback(e) {
                     </div>
                 </div>
 
-                <div v-if="loading" class="my-2">Загрузка…</div>
+                <div v-if="loading" class="my-2">{{ capitalizeFirstLetter(langStore.translations.loading) }}...</div>
                 <div v-else-if="error" class="my-2" style="color:#e44">{{ error }}</div>
 
                 <div class="main__cards" v-if="!loading">
-                    <p class="hackathon__participants_text">Всего: {{ count }}</p>
+                    <p class="hackathon__participants_text">{{ capitalizeFirstLetter(langStore.translations.total) }}: {{ count }}</p>
 
                     <div class="hackathon__participants_container" v-if="teams.length">
                         <div

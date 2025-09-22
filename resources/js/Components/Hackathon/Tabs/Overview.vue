@@ -66,7 +66,7 @@ function capitalizeFirstLetter(str) {
                 <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.prize_fund) }}</p>
                 <div class="hackathon__prizes">
                     <p class="hackathon__prizes_title">
-                        Общий призовой фонд:
+                        {{ capitalizeFirstLetter(langStore.translations.total_prize_fund) }}:
                         {{
                             !isNaN(props.hackathon.prize_pool)
                                 ? `${Number(props.hackathon.prize_pool).toLocaleString('ru-RU')} ₽`
@@ -78,16 +78,16 @@ function capitalizeFirstLetter(str) {
                             <IconsCup />
                             <div class="hackathon__prizes_content">
                                 <p class="hackathon__prizes_name">{{ n.title }}</p>
-                                <p class="hackathon__prizes_prize">{{ formatNumber(n.prize) || "Без указания суммы" }} ₽</p>
+                                <p class="hackathon__prizes_prize">{{ formatNumber(n.prize) || capitalizeFirstLetter(langStore.translations.no_amount) }} ₽</p>
                                 <p class="hackathon__prizes_count">
                                     {{ n.places.length }}
-                                    {{ n.places.length === 1 ? 'победитель' : n.places.length > 1 && n.places.length < 5 ? 'победителя' : 'победителей' }}
+                                    {{ n.places.length === 1 ? capitalizeFirstLetter(langStore.translations.winner_singular) : n.places.length > 1 && n.places.length < 5 ? capitalizeFirstLetter(langStore.translations.winner_genitive) : capitalizeFirstLetter(langStore.translations.winner_plural) }}
                                 </p>
                                 <p
                                     class="hackathon__prizes_one" v-for="(place, idx) in n.places"
                                     :key="n.id"
                                 >
-                                    {{place.place}} место
+                                    {{place.place}} {{ langStore.translations.place }}
                                     -
                                     {{
                                         !isNaN(place.prize)

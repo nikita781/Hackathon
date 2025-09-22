@@ -328,7 +328,7 @@ onMounted(async () => {
     <div class="hackathon__tab">
         <div v-if="!isOne" class="hackathon__tab_main">
             <div class="hackathon__tab_container">
-                <p class="hackathon__my-project__title">Оценить проекты</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.evaluate_projects) }}</p>
 
                 <!-- Табы с анимированным слайдером -->
                 <div class="my-hackathon__tabs">
@@ -342,7 +342,7 @@ onMounted(async () => {
                         :class="['my-hackathon__tabs_item',{active:activeTab===1}]"
                         @click="setActiveTab(1)"
                     >
-                        Оценено
+                        {{ capitalizeFirstLetter(langStore.translations.evaluated) }}
                     </p>
                     <div class="slider" :style="sliderStyle"></div>
                 </div>
@@ -437,7 +437,9 @@ onMounted(async () => {
             <div class="hackathon__tab_container">
                 <div style="display:flex; gap:12px; justify-content: space-between; flex-wrap: wrap; align-items:center; margin-bottom:12px;">
                     <p class="hackathon__my-project__title" style="margin:0">{{ oneTitle }}</p>
-                    <button type="button" class="main__btn_main hackathon__tab_back" @click="closeProject">← Назад к проектам</button>
+                    <button type="button" class="main__btn_main hackathon__tab_back" @click="closeProject">← {{
+                            capitalizeFirstLetter(langStore.translations.back_to_projects)
+                        }}</button>
                 </div>
 
                 <div class="hackathon__oneProject_image">
@@ -458,7 +460,7 @@ onMounted(async () => {
             </div>
 
             <div class="hackathon__tab_container">
-                <p class="hackathon__my-project__title">Галерея проекта</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.project_gallery) }}</p>
 
                 <div v-if="galleryLoading" class="hackathon__oneProject_gallery">
                     <div v-for="i in 4" :key="'g'+i" class="skeleton-loader" style="height:160px"></div>

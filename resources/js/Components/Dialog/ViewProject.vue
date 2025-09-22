@@ -36,7 +36,9 @@ const preview     = ref(null)
 watch(() => props.modelValue, () => {
     getPreview(props.project.slug)
     getGallery(props.project.slug)
-    pptx.value = getPresentation(props.project.presentation_path)
+    if (props.project.presentation_path) {
+        pptx.value = getPresentation(props.project.presentation_path)
+    }
 });
 
 function getPresentation(presentation_path) {

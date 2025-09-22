@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head, usePage} from '@inertiajs/vue3';
 import {computed, nextTick, onMounted, ref} from "vue";
 import {useLangStore} from "@/store/lang.js";
+import Pagination from '@/Components/Pagination.vue'
 
 const props = defineProps({
     user: Object,
@@ -80,22 +81,6 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-function previewSrc(project) {
-    const slug = project?.slug ?? project?.id;
-    const hackSlug =
-        props.hackathon?.slug
-
-    if (slug && hackSlug && typeof route === "function") {
-        try {
-            return route("hackathons.projects.image", {
-                hackathon: hackSlug,
-                project: slug,
-            });
-        } catch (_) { /* no-op */ }
-    }
-    return "/project.jpg";
-}
-
 const PLACEHOLDER = '/profile.jpg';
 
 function avatarSrc(photo) {
@@ -111,6 +96,17 @@ function avatarSrc(photo) {
 function imgFallback(e) {
     e.target.onerror = null;
     e.target.src = PLACEHOLDER;
+}
+
+function previewSrc(project) {
+    const hackSlug = project?.hackathon?.slug
+    if (hackSlug && typeof route === "function") {
+        try {
+            // GET hackathons/{hackathon}/media  → name: hackathons.image
+            return route("hackathons.image", { hackathon: hackSlug })
+        } catch (_) { /* no-op */ }
+    }
+    return "/project.jpg"
 }
 </script>
 
@@ -136,7 +132,8 @@ function imgFallback(e) {
                 </a>
             </div>
             <div class="profile__role">
-                <p>{{props.user?.roles[0]?.title}}</p>
+<!--                <pre>{{props.user}}</pre>-->
+                <p v-for="role in props.user?.roles">{{role?.title}}</p>
                 <p>ID{{props.user?.id}}</p>
             </div>
             <div class="profile__content">
@@ -184,6 +181,7 @@ function imgFallback(e) {
                 ></div>
             </div>
             <div class="profile__tabs">
+<!--                <pre>{{props.awards}}</pre>-->
                 <div v-if="currentTabBody === 'awards'" class="profile__tabs_awards">
                     <div v-for="(award, index) in props.awards" :key="index" class="profile__tabs_awards_item">
                         <img :src="award.image || '/default-award.jpg'" alt="Prize">
@@ -199,30 +197,45 @@ function imgFallback(e) {
                     </div>
                 </div>
 
-                <div v-else class="hackathon__gallery_container">
-<!--                    <pre>{{props.projects}}</pre>-->
-                    <div
-                        v-for="project in props.projects.data"
-                        class="hackathon__my-project__item"
-                        style="cursor: pointer"
-                    >
-                        <div class="hackathon__my-project__item_header">
-                            <img :src="previewSrc(project)" alt="">
-                        </div>
-
-                        <div class="hackathon__my-project__item_content">
-                            <div>
-                                <p class="hackathon__my-project__item_title">{{ project.title }}</p>
-                                <p class="hackathon__my-project__item_text">{{ project.description }}</p>
+                <div v-else>
+                    <div class="hackathon__gallery_container">
+                        <!--                    <pre>{{props.projects}}</pre>-->
+                        <div
+                            v-for="project in props.projects.data"
+                            :key="project.slug || project.id"
+                            class="hackathon__my-project__item"
+                            style="cursor: pointer"
+                        >
+                            <div class="hackathon__my-project__item_header">
+                                <img :src="previewSrc(project)" alt="">
+                                <div
+                                    v-if="Number(project?.place) > 0"
+                                    class="hackathon__gallery_place"
+                                    :class="Number(project.place) < 4 ? 'first' : 'second'"
+                                >
+                                    {{ project.place }}
+                                </div>
                             </div>
 
-                            <ul class="hackathon__my-project__item_avatar" v-if="project?.team?.users">
-                                <li v-for="user in project.team.users"><img :src="avatarSrc(user.photo)" @error="imgFallback" alt="Avatar"></li>
-                            </ul>
+                            <div class="hackathon__my-project__item_content">
+                                <div>
+                                    <p class="hackathon__my-project__item_title">{{ project.title }}</p>
+                                    <p class="hackathon__my-project__item_text">{{ project.description }}</p>
+                                </div>
 
-                            <a :href="project.certificate_url" class="main__btn_main" style="width: fit-content; margin-top: -10px">Сертификат</a>
+                                <ul class="hackathon__my-project__item_avatar" v-if="project?.team?.users">
+                                    <li v-for="user in project.team.users"><img :src="avatarSrc(user.photo)" @error="imgFallback" alt="Avatar"></li>
+                                </ul>
+
+                                <a :href="project.certificate_url" class="main__btn_main" style="width: fit-content; margin-top: -10px">{{ capitalizeFirstLetter(langStore.translations.certificate) }}</a>
+                            </div>
                         </div>
                     </div>
+                    <Pagination
+                        style="margin-top: 20px;"
+                        v-if="props.projects?.meta?.links?.length"
+                        :links="props.projects.meta.links"
+                    />
                 </div>
             </div>
         </div>

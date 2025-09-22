@@ -141,7 +141,7 @@ onMounted(async () => {
             </div>
             <ConfirmDialog
                 :modelValue="showConfirmDialog"
-                :text="'Вы уверены, что хотите удалить пользователя?'"
+                :text='capitalizeFirstLetter(langStore.translations.confirm_user_delete)'
                 @confirm="removeUser"
                 @cancel="closeConfirmDialog"
             />

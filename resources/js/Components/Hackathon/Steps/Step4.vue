@@ -85,10 +85,10 @@ async function publishProject() {
         });
         await axios.post(url, {});
         // emit('cancel');
-        const toast = useToast(); toast.success('Проект отправлен на модерацию!');
+        const toast = useToast(); toast.success(capitalizeFirstLetter(langStore.translations.project_sent_for_moderation));
     } catch (e) {
         console.error('publish-project', e?.response ?? e);
-        const toast = useToast(); toast.error('Не удалось отправить проект');
+        const toast = useToast(); toast.error(capitalizeFirstLetter(langStore.translations.project_send_failed));
     } finally {
         pending.value = false;
         agree.value = false;

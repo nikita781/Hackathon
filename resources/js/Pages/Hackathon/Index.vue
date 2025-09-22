@@ -275,7 +275,7 @@ onMounted(async () => {
         :auth="props.auth"
         :notifications="props.notifications"
     >
-<!--        <pre>{{langStore.translations}}</pre>-->
+        <pre>{{langStore.translations}}</pre>
         <div>
 <!--            <pre>{{props.banners}}</pre>-->
         <div class="head">

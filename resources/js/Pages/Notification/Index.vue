@@ -99,7 +99,7 @@ onMounted(async () => {
     >
         <div class="notification">
 <!--            <pre>{{props.notifications}}</pre>-->
-            <h2 class="notification__title">Уведомления</h2>
+            <h2 class="notification__title">{{ capitalizeFirstLetter(langStore.translations.notifications) }}</h2>
             <div class="notification__container">
 <!--                <pre>{{props.notifications}}</pre>-->
                 <div v-for="n in props.notifications.data" :key="n.id"
@@ -133,7 +133,7 @@ onMounted(async () => {
                                 :href="n?.url"
                                 v-if="n?.url && n?.notification_type === 'HackathonFinishedNotification'"
                             >
-                                Перейти в хакатон
+                                {{ capitalizeFirstLetter(langStore.translations.go_to_hackathon) }}
                             </a>
                         </div>
                         <p class="profile__tabs_awards_item_date">{{ capitalizeFirstLetter(langStore.translations.sentStatus) }} {{ formatDate(n.created_at) }}</p>

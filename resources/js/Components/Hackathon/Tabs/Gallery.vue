@@ -300,8 +300,8 @@ function imgFallback(e) {
                     <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select">
                         <option value="dateA">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↑</option>
                         <option value="dateD">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↓</option>
-                        <option value="scoreAA">По оценке ↑</option>
-                        <option value="scoreAD">По оценке ↓</option>
+                        <option value="scoreAA">{{ capitalizeFirstLetter(langStore.translations.by_rating) }} ↑</option>
+                        <option value="scoreAD">{{ capitalizeFirstLetter(langStore.translations.by_rating) }} ↓</option>
                         <option value="titleA">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↑</option>
                         <option value="titleD">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↓</option>
                     </select>
@@ -349,7 +349,7 @@ function imgFallback(e) {
                     </div>
 
                     <div v-if="items.length === 0" class="main__empty">
-                        Ничего не найдено
+                        {{ capitalizeFirstLetter(langStore.translations.nothing_found) }}
                     </div>
                 </template>
             </div>
@@ -361,7 +361,9 @@ function imgFallback(e) {
             <div class="hackathon__tab_container">
                 <div style="display:flex; gap:12px; justify-content: space-between; flex-wrap: wrap; align-items:center; margin-bottom:12px;">
                     <p class="hackathon__my-project__title" style="margin:0">{{ oneTitle }}</p>
-                    <button type="button" class="main__btn_main hackathon__tab_back" @click="closeProject">← Назад к проектам</button>
+                    <button type="button" class="main__btn_main hackathon__tab_back" @click="closeProject">← {{
+                            capitalizeFirstLetter(langStore.translations.back_to_projects)
+                        }}</button>
                 </div>
 
                 <div class="hackathon__oneProject_image">
@@ -382,7 +384,7 @@ function imgFallback(e) {
             </div>
 
             <div class="hackathon__tab_container">
-                <p class="hackathon__my-project__title">Галерея проекта</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.project_gallery) }}</p>
 
                 <div v-if="galleryLoading" class="hackathon__oneProject_gallery">
                     <div v-for="i in 4" :key="'g'+i" class="skeleton-loader" style="height:160px"></div>

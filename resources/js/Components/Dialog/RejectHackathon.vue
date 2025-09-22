@@ -1,6 +1,7 @@
 <script setup>
-import {computed, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {useToast} from "vue-toastification";
+import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
     modelValue : Boolean,
@@ -44,6 +45,17 @@ async function submitReject() {
         pending.value = false
     }
 }
+
+const langStore = useLangStore()
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+onMounted(async () => {
+    await langStore.fetchTranslations()
+});
 </script>
 
 <template>
@@ -59,7 +71,7 @@ async function submitReject() {
                 </svg></div>
             </div>
             <div class="dialog__component" style="margin-top: -10px">
-                <p class="dialog__title">Причина отказа</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rejection_reason) }}</p>
                 <textarea
                     v-model="textComment"
                     style="min-height: 170px"
@@ -71,7 +83,7 @@ async function submitReject() {
             </div>
             <div class="dialog__btns">
                 <button type="button" class="main__btn main__btn_white dialog__btn" @click="close">
-                    Отменить
+                    {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                 </button>
                 <button
                     type="button"
@@ -79,7 +91,7 @@ async function submitReject() {
                     @click="submitReject"
                     :disabled="pending"
                 >
-                    {{ pending ? 'Отправка...' : 'Отправить' }}
+                    {{ pending ? capitalizeFirstLetter(langStore.translations.sending) : capitalizeFirstLetter(langStore.translations.send) }}
                 </button>
             </div>
         </div>

@@ -62,10 +62,10 @@ async function removeUser () {
         emit('update:managers', list.value)
         emit('removed', staffIds)
         closeConfirmDialog()
-        toast.success('Пользователь удалён из персонала')
+        toast.success(capitalizeFirstLetter(langStore.translations.user_removed_from_staff))
     } catch (err) {
         console.error('Ошибка при удалении пользователя', err?.response?.data || err)
-        toast.error('Не удалось удалить пользователя')
+        toast.error(capitalizeFirstLetter(langStore.translations.user_remove_failed))
     }
 }
 
@@ -97,11 +97,11 @@ async function save () {
     try {
         await axios.post(url, payload, { headers: { Accept: 'application/json' } })
         emit('update:managers', list.value)
-        toast.success('Персонал успешно обновлён')
+        toast.success(capitalizeFirstLetter(langStore.translations.staff_updated))
         close()
     } catch (err) {
-        console.error('Ошибка при сохранении персонала', err?.response?.data || err)
-        toast.error('Не удалось сохранить изменения')
+        console.error(capitalizeFirstLetter((langStore.translations.save_failed)), err?.response?.data || err)
+        toast.error(capitalizeFirstLetter((langStore.translations.save_failed)))
     } finally {
         pendingSave.value = false
     }
@@ -177,7 +177,7 @@ function imgFallback(e) {
 
             <ConfirmDialog
                 :modelValue="showConfirmDialog"
-                text="Вы уверены, что хотите удалить пользователя?"
+                :text="capitalizeFirstLetter(langStore.translations.confirm_user_delete)"
                 @confirm="removeUser"
                 @cancel="closeConfirmDialog"
             />
@@ -190,7 +190,7 @@ function imgFallback(e) {
                     :class="{ blocked: disabledSave }"
                     @click="save"
                 >
-                    {{ pendingSave ? 'Сохранение…' : capitalizeFirstLetter(langStore.translations.save) }}
+                    {{ pendingSave ? capitalizeFirstLetter(langStore.translations.saving) : capitalizeFirstLetter(langStore.translations.save) }}
                 </button>
             </div>
         </div>

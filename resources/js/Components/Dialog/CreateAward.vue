@@ -124,12 +124,12 @@ function capitalizeFirstLetter(str) {
             <div class="dialog__component">
                 <p class="dialog__title">Тип награды</p>
                 <select v-model="form.type" class="main__cards_select dialog__select">
-                    <option value="forAll">Для всех</option>
-                    <option value="forPrize">Для призовых мест</option>
+                    <option value="forAll">{{ capitalizeFirstLetter(langStore.translations.for_all) }}</option>
+                    <option value="forPrize">{{ capitalizeFirstLetter(langStore.translations.for_prize_places) }}</option>
                 </select>
             </div>
             <div class="dialog__component" v-if="form.type === 'forPrize'">
-                <p class="dialog__title">Место</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.place) }}</p>
                 <input type="number" min="1" v-model="form.place" class="dialog__input" placeholder="Введите место"/>
             </div>
             <div class="dialog__component">
@@ -149,7 +149,7 @@ function capitalizeFirstLetter(str) {
                     {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                 </button>
                 <button class="main__btn dialog__btn" @click="save">
-                    {{ props.initial ? 'Изменить' : 'Добавить' }}
+                    {{ props.initial ? 'Изменить' : capitalizeFirstLetter(langStore.translations.add) }}
                 </button>
             </div>
         </div>

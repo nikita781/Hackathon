@@ -371,7 +371,7 @@ onMounted(async () => {
                             <IconsCancel class="clickable" @click="removeNomination(idx)" />
                         </div>
                     </div>
-                    <p class="dialog__prize_text">{{ n.prize || 'Без указания суммы' }}</p>
+                    <p class="dialog__prize_text">{{ n.prize || capitalizeFirstLetter(langStore.translations.no_amount) }}</p>
                     <p class="dialog__prize_number">{{ capitalizeFirstLetter(langStore.translations.winnersCount) }}: {{ n.distribution.length }}</p>
                 </div>
             </div>
