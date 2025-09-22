@@ -207,6 +207,8 @@ async function save () {
                 }
             }
         )
+        newPartnerFiles.value = [];
+        deletedMediaIds.value = [];
     } catch (e) {
         const errs = e?.response?.data?.errors
         if (errs) console.error(humanizeErrors(errs, newPartnerFiles.value))
