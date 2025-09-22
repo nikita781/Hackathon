@@ -22,7 +22,7 @@ return new class extends Migration
             $table->enum('type', ['team', 'individual']);
             $table->smallInteger('min_team_size')->nullable();
             $table->smallInteger('max_team_size')->nullable();
-            $table->dateTime('registration_start')->default(now());
+            $table->dateTime('registration_start')->useCurrent();
             $table->dateTime('registration_end');
             $table->dateTime('event_start');
             $table->dateTime('event_end');
