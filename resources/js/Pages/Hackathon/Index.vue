@@ -8,7 +8,7 @@ import debounce from 'lodash.debounce'
 import PaginationComp from "@/Components/Pagination.vue";
 
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Pagination } from 'swiper/modules'
+import { Pagination, Autoplay } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
 
@@ -26,7 +26,7 @@ const props = defineProps({
     banners: Object,
 })
 
-const swiperModules = [Pagination]
+const swiperModules = [Pagination, Autoplay]
 
 const sortedBanners = computed(() =>
     Array.isArray(props.banners)
@@ -286,6 +286,12 @@ onMounted(async () => {
                 :space-between="0"
                 :loop="sortedBanners.length > 1"
                 :pagination="{ clickable: true }"
+                :autoplay="sortedBanners.length > 1 ? {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true
+                } : false"
+                :speed="500"
                 class="head__slider"
             >
                 <SwiperSlide v-for="b in sortedBanners" :key="b.id">

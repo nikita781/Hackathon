@@ -97,7 +97,6 @@ function submit() {
                 <p class="dialog__title">Изображение</p>
                 <DropFile v-model:file="image" />
                 <small v-if="errors.image" class="dialog__error" style="margin-top:8px">{{ errors.image }}</small>
-                <p class="dialog__hint" style="margin-top:6px; color:#999">JPEG/PNG/WebP, до 10 МБ</p>
             </div>
 
             <div class="dialog__btns">

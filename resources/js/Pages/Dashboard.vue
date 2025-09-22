@@ -143,7 +143,7 @@ function imgFallback(e) {
                 <div class="profile__content_form">
                     <div class="profile__content_row">
                         <div class="dialog__component">
-                            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.fullName) }}</p>
+                            <p class="dialog__title" style="text-transform: uppercase">{{ capitalizeFirstLetter(langStore.translations.fullName) }}</p>
                             <input type="text" readonly :value="props.user.name" class="dialog__input">
                         </div>
                         <div class="dialog__component">

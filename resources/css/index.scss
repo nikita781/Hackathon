@@ -56,6 +56,7 @@ $x-big: 1829.98px;
         display: flex;
         align-items: center;
         justify-content: flex-end;
+        z-index: 5;
         flex-wrap: wrap;
         &_item {
             cursor: pointer;
@@ -68,6 +69,7 @@ $x-big: 1829.98px;
             border: none;
             font-weight: 700;
             text-decoration: none;
+            pointer-events: auto;
             @media screen and (max-width: $small){
                 font-size: 16px;
                 padding: 5px 12px;

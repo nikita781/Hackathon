@@ -54,55 +54,65 @@ const fixLabel = (label) => {
 <template>
     <nav class="main__pagination">
         <Link
-            v-if="paginated.prev"
-            :href="paginated.prev.url ?? ''"
+            v-if="paginated.prev && paginated.prev.url"
+            :href="paginated.prev.url"
             class="main__pagination_item arrow"
-            :class="{ disabled: !paginated.prev.url }"
             preserve-scroll
             replace
         >
             <svg width="20" height="20" viewBox="0 0 20 20">
-                <path
-                    d="M15 18l-6-6 6-6"
-                    fill="none"
-                    stroke="#E80024"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                />
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="#E80024" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
         </Link>
-
-        <Link
-            v-for="page in paginated.pages"
-            :key="page.label + page.url"
-            :href="page.url ?? ''"
-            :class="['main__pagination_item', { active: page.active, disabled: !page.url }]"
-            preserve-scroll
-            replace
+        <span
+            v-else
+            class="main__pagination_item arrow disabled"
+            aria-disabled="true"
         >
-            <span v-html="fixLabel(page.label)" />
-        </Link>
+        <svg width="20" height="20" viewBox="0 0 20 20">
+          <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
+
+        <template v-for="(page, i) in paginated.pages" :key="(page.url ?? 'gap') + '-' + i">
+            <Link
+                v-if="page.url"
+                :href="page.url"
+                :class="['main__pagination_item', { active: page.active }]"
+                preserve-scroll
+                replace
+            >
+                <span v-html="fixLabel(page.label)" />
+            </Link>
+            <span
+                v-else
+                class="main__pagination_item gap disabled"
+                aria-hidden="true"
+            >
+        <span v-html="fixLabel(page.label)" />
+        </span>
+        </template>
 
         <Link
-            v-if="paginated.next"
-            :href="paginated.next.url ?? ''"
+            v-if="paginated.next && paginated.next.url"
+            :href="paginated.next.url"
             class="main__pagination_item arrow"
-            :class="{ disabled: !paginated.next.url }"
             preserve-scroll
             replace
         >
             <svg width="20" height="20" viewBox="0 0 20 20">
-                <path
-                    d="M9 6l6 6-6 6"
-                    fill="none"
-                    stroke="#E80024"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                />
+                <path d="M9 6l6 6-6 6" fill="none" stroke="#E80024" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
         </Link>
+        <span
+            v-else
+            class="main__pagination_item arrow disabled"
+            aria-disabled="true"
+        >
+        <svg width="20" height="20" viewBox="0 0 20 20">
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
     </nav>
 </template>
 
