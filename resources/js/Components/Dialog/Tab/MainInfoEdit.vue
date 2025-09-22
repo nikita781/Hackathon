@@ -34,6 +34,30 @@ const form = useForm({
     tags             : [],
 })
 
+function pad2(n) { return String(n).padStart(2, '0') }
+
+function normalizeToIsoZ(s) {
+    if (!s) return ''
+    const t = String(s).trim()
+    const reBare = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/
+    if (reBare.test(t) && !/[zZ]|[+\-]\d{2}:\d{2}$/.test(t)) {
+        return t.replace(' ', 'T') + 'Z'
+    }
+    return t
+}
+
+function utcToLocalInputValue(utcStr) {
+    if (!utcStr) return ''
+    const d = new Date(normalizeToIsoZ(utcStr))
+    if (isNaN(d.getTime())) return ''
+    const y  = d.getFullYear()
+    const m  = pad2(d.getMonth() + 1)
+    const dd = pad2(d.getDate())
+    const hh = pad2(d.getHours())
+    const mm = pad2(d.getMinutes())
+    return `${y}-${m}-${dd}T${hh}:${mm}`
+}
+
 const previewUrl = ref(null)
 
 const participationType  = ref('Командный')
@@ -85,9 +109,9 @@ onMounted(async () => {
         form.type              = h.type
         form.min_team_size     = h.min_team_size
         form.max_team_size     = h.max_team_size
-        form.registration_end  = h.registration_end?.slice(0,16) ?? ''
-        form.event_start       = h.event_start?.slice(0,16) ?? ''
-        form.event_end         = h.event_end?.slice(0,16) ?? ''
+        form.registration_end  = utcToLocalInputValue(h.registration_end)
+        form.event_start       = utcToLocalInputValue(h.event_start)
+        form.event_end         = utcToLocalInputValue(h.event_end)
         form.prize_type        = h.prize_type
         form.prize_pool        = h.prize_pool
         form.image_path        = previewUrl.value

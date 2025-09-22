@@ -161,7 +161,7 @@ function acceptHackathon() {
         })
 }
 
-function formatDate(s, { utc = true } = {}) {
+function formatDate(s, { utc = false } = {}) {
     if (!s) return "—"
     const d = new Date(s)
     if (isNaN(+d)) return "—"

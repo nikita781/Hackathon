@@ -97,7 +97,7 @@ function capitalizeFirstLetter(str) {
     return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''
 }
 
-function formatDate(s, { utc = true } = {}) {
+function formatDate(s, { utc = false } = {}) {
     if (!s) return "—"
     const d = new Date(s)
     if (isNaN(+d)) return "—"
