@@ -193,7 +193,7 @@ class AdminController extends Controller
 
         $message = "Проект \"".$project->title."\" отклонен";
 
-        if ($captain = $project->team->captain()->first()) {
+        if ($captain = $project->team->captain()) {
             $captain->notify(new ModerateNotification([
                 'status' => 'rejected',
                 'comment' => $comment,
