@@ -80,9 +80,9 @@ class HackathonController extends Controller
         $hackathonIds = $user->hackathons()->select('hackathons.id');
 
         if ($user->hasRole(Role::ORGANIZER)) {
-            $hackathonIds->union(
-                $user->hackathonsAsOrganizer()->select('hackathons.id')->getQuery()
-            );
+            $hackathonIds = Hackathon::query()
+                ->whereIn('id', $user->hackathons()->pluck('hackathons.id'))
+                ->orWhereIn('id', $user->hackathonsAsOrganizer()->pluck('hackathons.id'));
         }
 
         $upcoming = Hackathon::query()
