@@ -98,7 +98,7 @@ class HackathonController extends Controller
         $past = Hackathon::query()
             ->whereIn('id', $hackathonIds)
             ->filter($request)
-            ->where('event_end', '<=', now())
+            ->where('event_start', '<=', now())
             ->with('tags')
             ->orderByDesc('event_end')
             ->paginate($perPage)
