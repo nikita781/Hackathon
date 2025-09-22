@@ -52,6 +52,12 @@ const parser = edjsHTML({
     }
 });
 
+const isEditorJsData = (v) =>
+    v && typeof v === 'object' && Array.isArray(v.blocks)
+
+const isEditorJsEmpty = (v) =>
+    isEditorJsData(v) && v.blocks.length === 0
+
 /**
  * @param {string|object|null} raw — поле `content` из БД/бэка
  * @returns {string} HTML
@@ -68,10 +74,16 @@ export function renderEdjs (raw) {
         }
     }
 
-    // Валидный Editor.js
-    if (data?.blocks?.length) {
-        const htmlContent = parser.parse(data)
-        return htmlContent || '' // Возвращаем строку
+    // Editor.js: пустой → ничего не выводим
+    if (isEditorJsEmpty(data)) {
+        return '' // вообще ничего
+    }
+
+    // Editor.js: непустой → рендерим
+    if (isEditorJsData(data) && data.blocks.length > 0) {
+        const htmlParts = parser.parse(data)            // массив строк
+        const html = Array.isArray(htmlParts) ? htmlParts.join('') : String(htmlParts ?? '')
+        return html
     }
 
     // Спец-случай: объект с датами
