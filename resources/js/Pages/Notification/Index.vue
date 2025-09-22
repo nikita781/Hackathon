@@ -117,7 +117,7 @@ onMounted(async () => {
                             <p  class="notification__text">{{ n?.description }}</p>
                             <p  class="notification__text">{{ n?.message }}</p>
                             <button
-                                v-if="n?.url"
+                                v-if="n?.url && n?.notification_type === 'InviteNotification'"
                                 type="button"
                                 class="main__btn dialog__btn notification__btn"
                                 style="max-width: fit-content"
@@ -127,6 +127,14 @@ onMounted(async () => {
                             >
                                 {{ !n.is_active ? capitalizeFirstLetter(langStore.translations.invitationAccepted) : capitalizeFirstLetter(langStore.translations.confirm) }}
                             </button>
+                            <a
+                                class="main__btn dialog__btn notification__btn"
+                                style="max-width: fit-content"
+                                href="#"
+                                v-if="n?.url && n?.notification_type === 'HackathonFinishedNotification'"
+                            >
+                                Перейти в хакатон
+                            </a>
                         </div>
                         <p class="profile__tabs_awards_item_date">{{ capitalizeFirstLetter(langStore.translations.sentStatus) }} {{ formatDate(n.created_at) }}</p>
                     </div>
