@@ -77,12 +77,13 @@ class HackathonController extends Controller
         $user = auth()->user();
         $perPage = min($request->get('per_page', 6), 10);
 
-        $hackathonIds = $user->hackathons()->select('hackathons.id');
+        $hackathonIds = $user->hackathons()->pluck('hackathons.id')->toArray();
 
         if ($user->hasRole(Role::ORGANIZER)) {
-            $hackathonIds = Hackathon::query()
-                ->whereIn('id', $user->hackathons()->pluck('hackathons.id'))
-                ->orWhereIn('id', $user->hackathonsAsOrganizer()->pluck('hackathons.id'));
+            $hackathonIds = array_merge(
+                $hackathonIds,
+                $user->hackathonsAsOrganizer()->pluck('hackathons.id')->toArray()
+            );
         }
 
         $upcoming = Hackathon::query()
