@@ -98,7 +98,6 @@
             color: #7f8c8d;
             font-size: 14px;
             letter-spacing: 3px;
-            font-weight: 500;
             margin-bottom: 20px;
             padding-top: 10px;
         }

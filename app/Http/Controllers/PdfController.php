@@ -29,7 +29,7 @@ class PdfController extends Controller
             'organization' => $organization,
             'seal' => null,
         ])
-            ->setOption(['defaultFont' => 'DejaVu Sans'])
+            ->setOption(['defaultFont' => 'Helvetica'])
             ->setPaper($customPaper);
 
         return $pdf->download("certificate-{$user->nickname}.pdf");
