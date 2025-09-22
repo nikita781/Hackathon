@@ -37,7 +37,7 @@ class AwardsController extends Controller
         $award = $hackathon->awards()->create($data);
 
         if ($request->hasFile('image')) {
-            $award->addMediaFromRequest('image')->toMediaCollection('main_image');
+            $award->addMediaFromRequest('image')->toMediaCollection('image');
         }
 
         return back()->with('award', 'Награда успешно создана');
@@ -63,8 +63,8 @@ class AwardsController extends Controller
         $award->refresh();
 
         if ($request->hasFile('image')) {
-            $award->clearMediaCollection('main_image');
-            $award->addMediaFromRequest('image')->toMediaCollection('main_image');
+            $award->clearMediaCollection('image');
+            $award->addMediaFromRequest('image')->toMediaCollection('image');
             $award->touch();
         }
 
