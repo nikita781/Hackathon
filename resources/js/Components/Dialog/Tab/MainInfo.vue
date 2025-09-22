@@ -29,6 +29,26 @@ const form = useForm({
     tags             : [],
 })
 
+const DATE_FIELDS = ['registration_end', 'event_start', 'event_end'];
+
+function localDateTimeToUtcISO(localStr) {
+    // Ожидаем строку формата "YYYY-MM-DDTHH:mm" (datetime-local)
+    if (!localStr) return '';
+    // Надёжно парсим как ЛОКАЛЬНОЕ время, без двусмысленностей разных браузеров:
+    const [datePart, timePart] = localStr.split('T');
+    if (!datePart || !timePart) return '';
+
+    const [y, m, d] = datePart.split('-').map(Number);
+    const [hh, mm]  = timePart.split(':').map(Number);
+
+    // Создаём Date в ЛОКАЛЬНОЙ зоне пользователя:
+    const local = new Date(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0);
+
+    // Возвращаем UTC ISO 8601 (с Z). Например, "2025-09-22T10:00" (Берлин, UTC+2)
+    // превратится в "2025-09-22T08:00:00.000Z".
+    return isNaN(local.getTime()) ? '' : local.toISOString();
+}
+
 async function save () {
     form.clearErrors()
 
@@ -53,6 +73,11 @@ async function save () {
             } else {
                 fd.append(key, 1);
             }
+            return;
+        }
+
+        if ((DATE_FIELDS).includes(key)) {
+            fd.append(key, localDateTimeToUtcISO(value));
             return;
         }
 

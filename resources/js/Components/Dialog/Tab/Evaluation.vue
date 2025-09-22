@@ -80,8 +80,9 @@ const fetchData = async () => {
         groups.value = data?.hackathon?.original?.criteria_groups ?? []
 
         const h = data?.hackathon?.original
-        evaluationStart.value = h?.evaluation_start ? h.evaluation_start.slice(0,16) : ''
-        evaluationEnd.value   = h?.evaluation_end   ? h.evaluation_end.slice(0,16)   : ''
+
+        evaluationStart.value = utcToLocalInputValue(h.evaluation_start)
+        evaluationEnd.value   = utcToLocalInputValue(h.evaluation_end)
 
         await nextTick()
         loaded.value = true
@@ -101,14 +102,51 @@ watch([evaluationStart, evaluationEnd], () => {
     }
 })
 
+function pad2(n) { return String(n).padStart(2, '0') }
+
+/** "2025-10-01T10:00" (локаль) → "2025-10-01T08:00:00.000Z" (UTC) */
+function localDateTimeToUtcISO(localStr) {
+    if (!localStr) return ''
+    const [datePart, timePart] = localStr.split('T')
+    if (!datePart || !timePart) return ''
+    const [y, m, d] = datePart.split('-').map(Number)
+    const [hh, mm]  = timePart.split(':').map(Number)
+    const local = new Date(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0)
+    return isNaN(local.getTime()) ? '' : local.toISOString()
+}
+
+/** Приводим всё, что похоже на UTC без суффикса, к ISO с Z */
+function normalizeToIsoZ(s) {
+    const t = s.trim()
+    // "YYYY-MM-DD HH:mm[:ss[.ms]]" или "YYYY-MM-DDTHH:mm[:ss[.ms]]"
+    const re = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/
+    if (re.test(t) && !/[zZ]|[+\-]\d{2}:\d{2}$/.test(t)) {
+        return t.replace(' ', 'T') + 'Z'
+    }
+    return t
+}
+
+/** "2025-10-01T08:00:00Z" (UTC) → "2025-10-01T10:00" (локаль для <input type="datetime-local">) */
+function utcToLocalInputValue(utcStr) {
+    if (!utcStr) return ''
+    const d = new Date(normalizeToIsoZ(utcStr))
+    if (isNaN(d.getTime())) return ''
+    const y = d.getFullYear()
+    const m = pad2(d.getMonth() + 1)
+    const day = pad2(d.getDate())
+    const hh = pad2(d.getHours())
+    const mm = pad2(d.getMinutes())
+    return `${y}-${m}-${day}T${hh}:${mm}`
+}
+
 async function save() {
     // чистим старые ошибки
     errors.value.evaluation_start = ''
     errors.value.evaluation_end   = ''
 
     const fd = new FormData()
-    fd.append('evaluation_start', evaluationStart.value || '')
-    fd.append('evaluation_end',   evaluationEnd.value   || '')
+    fd.append('evaluation_start', localDateTimeToUtcISO(evaluationStart.value))
+    fd.append('evaluation_end',   localDateTimeToUtcISO(evaluationEnd.value))
     fd.append('_method','PATCH')
 
     try {

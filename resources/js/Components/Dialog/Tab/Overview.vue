@@ -65,8 +65,8 @@ async function fetchHackathon () {
             form.sections[0].content = overviewTab.sections.find(s => s.title === 'Описание')?.content || '';
             form.sections[1].content = overviewTab.sections.find(s => s.title === 'План проведения')?.content || '';
 
-            taskStart.value = h.work_time_start ? h.work_time_start.slice(0,16) : '';
-            taskEnd.value   = h.work_time_end   ? h.work_time_end.slice(0,16)   : '';
+            taskStart.value = utcToLocalInputValue(h.work_time_start)
+            taskEnd.value   = utcToLocalInputValue(h.work_time_end)
 
             description.value = form.sections[0].content
             plan.value = form.sections[1].content
@@ -146,6 +146,43 @@ watch(
     { deep:true }
 )
 
+function pad2(n) { return String(n).padStart(2, '0') }
+
+/** "2025-10-01T10:00" (локаль) → "2025-10-01T08:00:00.000Z" (UTC) */
+function localDateTimeToUtcISO(localStr) {
+    if (!localStr) return ''
+    const [datePart, timePart] = localStr.split('T')
+    if (!datePart || !timePart) return ''
+    const [y, m, d] = datePart.split('-').map(Number)
+    const [hh, mm]  = timePart.split(':').map(Number)
+    const local = new Date(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0)
+    return isNaN(local.getTime()) ? '' : local.toISOString()
+}
+
+/** Приводим всё, что похоже на UTC без суффикса, к ISO с Z */
+function normalizeToIsoZ(s) {
+    const t = s.trim()
+    // "YYYY-MM-DD HH:mm[:ss[.ms]]" или "YYYY-MM-DDTHH:mm[:ss[.ms]]"
+    const re = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/
+    if (re.test(t) && !/[zZ]|[+\-]\d{2}:\d{2}$/.test(t)) {
+        return t.replace(' ', 'T') + 'Z'
+    }
+    return t
+}
+
+/** "2025-10-01T08:00:00Z" (UTC) → "2025-10-01T10:00" (локаль для <input type="datetime-local">) */
+function utcToLocalInputValue(utcStr) {
+    if (!utcStr) return ''
+    const d = new Date(normalizeToIsoZ(utcStr))
+    if (isNaN(d.getTime())) return ''
+    const y = d.getFullYear()
+    const m = pad2(d.getMonth() + 1)
+    const day = pad2(d.getDate())
+    const hh = pad2(d.getHours())
+    const mm = pad2(d.getMinutes())
+    return `${y}-${m}-${day}T${hh}:${mm}`
+}
+
 async function save () {
     form.sections[0].content = description.value ?? ''
     form.sections[1].content = plan.value        ?? ''
@@ -153,8 +190,8 @@ async function save () {
     console.log(taskStart.value)
 
     const fdHack = new FormData()
-    fdHack.append('work_time_start', taskStart.value || '')
-    fdHack.append('work_time_end',   taskEnd.value   || '')
+    fdHack.append('work_time_start', localDateTimeToUtcISO(taskStart.value))
+    fdHack.append('work_time_end',   localDateTimeToUtcISO(taskEnd.value))
     fdHack.append('_method','PATCH')
 
     form.clearErrors('work_time_start')
