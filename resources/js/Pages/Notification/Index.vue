@@ -130,7 +130,7 @@ onMounted(async () => {
                             <a
                                 class="main__btn dialog__btn notification__btn"
                                 style="max-width: fit-content"
-                                href="#"
+                                :href="n?.url"
                                 v-if="n?.url && n?.notification_type === 'HackathonFinishedNotification'"
                             >
                                 Перейти в хакатон
