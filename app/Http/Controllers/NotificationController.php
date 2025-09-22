@@ -23,6 +23,7 @@ class NotificationController extends Controller
 
                 $base = [
                     'id' => $notification->id,
+                    'notification_type' => $type,
                     'read_at' => $notification->read_at,
                     'created_at' => $notification->created_at,
                 ];
