@@ -129,6 +129,7 @@ class HackathonController extends Controller
 
         $data = Arr::except($request->validated(), ['tags', 'image_path']);
         $data['slug'] = Hackathon::generateUniqueSlug($data['title']);
+        $data['registration_start'] = Carbon::now()->toDateTimeString();
         $user = auth()->user();
         $hackathon = $user->hackathonsAsOrganizer()->create($data);
         if ($request->hasFile('image_path')) {
