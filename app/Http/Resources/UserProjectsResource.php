@@ -18,6 +18,9 @@ class UserProjectsResource extends JsonResource
                 'slug' => $this->hackathon->slug,
                 'title' => $this->hackathon->title,
             ],
+            'team' => $this->whenLoaded('team', function () {
+                return new TeamResource($this->team);
+            }),
             'certificate_url' => route('hackathons.certificate', ['hackathon' => $this->hackathon->slug]),
         ];
     }

@@ -17,7 +17,7 @@ class UserController extends Controller
 
         $projectsQuery = Project::whereIn('team_id', $user->teams()->pluck('teams.id'))
             ->where('status', Project::PUBLISHED)
-            ->with('hackathon', 'team');
+            ->with('hackathon', 'team', 'team.teamUsers.user', 'team.teamUsers.position');
 
         $projects = UserProjectsResource::collection($projectsQuery->paginate($perPage)->withQueryString());
 
