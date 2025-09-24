@@ -28,6 +28,7 @@ const props = defineProps({
 
 console.log(props.can)
 console.log(props.hackathon)
+// console.log(props.auth)
 
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
@@ -53,12 +54,12 @@ const availableTabs = computed(() => {
         {key: 'managers', title: capitalizeFirstLetter(langStore.translations.managers), noVisible: !props.can?.hackathon?.update
         },
         {key: 'rate', title: capitalizeFirstLetter(langStore.translations.rate), noVisible: !props.can?.hackathon?.rate},
-        {key: 'project', title: capitalizeFirstLetter(langStore.translations.myProject), blocked: !props.can?.team.view, noVisible: props.can?.hackathon?.is_staff},
+        {key: 'project', title: capitalizeFirstLetter(langStore.translations.myProject), blocked: !props.can?.team.view, noVisible: props.can?.hackathon?.is_staff || props.can?.hackathon.moderate},
         {key: 'gallery', title: capitalizeFirstLetter(langStore.translations.projectGallery), blocked: !props.can?.project.viewAll},
         {key: 'resources', title: capitalizeFirstLetter(langStore.translations.resources), blocked: !props.can?.hackathon?.viewTask},
         {key: 'rules', title: capitalizeFirstLetter(langStore.translations.rules), blocked: false},
         {key: 'contacts', title: capitalizeFirstLetter(langStore.translations.contacts), blocked: false},
-        {key: 'support', title: capitalizeFirstLetter(langStore.translations.support), blocked: false},
+        {key: 'support', title: capitalizeFirstLetter(langStore.translations.support), blocked: false, noVisible: props.can?.hackathon.moderate},
     ]
 })
 
