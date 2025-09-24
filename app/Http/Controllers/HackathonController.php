@@ -241,6 +241,7 @@ class HackathonController extends Controller
                     'publish' => Gate::check('publish', $hackathon),
                     'downloadProtocol' => Gate::check('downloadReport', $hackathon),
                     'moderate' => Gate::check('moderate', Hackathon::class),
+                    'viewSupport' => Gate::check('viewAny', [Support::class, $hackathon]),
                     'is_staff' => $isStaffHackathon,
                 ],
                 'team' => [

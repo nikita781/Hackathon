@@ -25,7 +25,7 @@ class SupportsController extends Controller
     public function index(Hackathon $hackathon): JsonResponse
     {
         if (!Gate::check('viewAny', [Support::class, $hackathon])) {
-            abort(404);
+            abort(403);
         }
 
         $user = auth()->user();

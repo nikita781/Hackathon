@@ -90,6 +90,10 @@ class HackathonPolicy
             return false;
         }
 
+        if ($user->isAdmin()) {
+            return false;
+        }
+
         if ($user->hackathons()->where('hackathon_id', $hackathon->id)->exists()) {
             return false;
         }
