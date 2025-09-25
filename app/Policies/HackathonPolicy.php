@@ -47,6 +47,10 @@ class HackathonPolicy
 
     public function update(User $user, Hackathon $hackathon): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         if ($user->isAdmin()) {
             return true;
         }
@@ -64,12 +68,20 @@ class HackathonPolicy
             return false;
         }
 
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 
     public function delete(User $user, Hackathon $hackathon): bool
     {
         if ($hackathon->status === Hackathon::STATUS_PUBLISHED) {
+            return false;
+        }
+
+        if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
 
@@ -153,6 +165,10 @@ class HackathonPolicy
 
     public function evaluation(User $user, Hackathon $hackathon): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         if ($user->hasRole(Role::ADMIN)) {
             return true;
         }
@@ -169,11 +185,19 @@ class HackathonPolicy
 
     public function moderate(User $user): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         return $user->isAdmin();
     }
 
     public function admin(User $user): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         return $user->isTopAdmin();
     }
 

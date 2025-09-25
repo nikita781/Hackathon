@@ -29,6 +29,10 @@ class TeamPolicy
 
     public function update(User $user, Team $team): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         $hackathonEndDate = $team->hackathon->event_end;
         if ($hackathonEndDate->lessThan(now())) {
             return false;
@@ -42,6 +46,10 @@ class TeamPolicy
 
     public function kick(User $user, Team $team): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         $hackathonStartDate = $team->hackathon->event_start;
         if ($hackathonStartDate->lessThan(now())) {
             return false;
@@ -55,6 +63,10 @@ class TeamPolicy
 
     public function invite(User $user, Team $team): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         $hackathon = $team->hackathon;
         if ($hackathon->event_start->lessThan(now())) {
             return false;
@@ -66,6 +78,10 @@ class TeamPolicy
 
     public function joinTeam(User $user, Team $team): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         $hackathon = $team->hackathon;
         if ($hackathon->event_start->lessThan(now())) {
             return false;

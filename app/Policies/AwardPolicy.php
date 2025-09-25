@@ -13,6 +13,10 @@ class AwardPolicy
 
     public function create(User $user): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         return $user->hasAnyRole([
             Role::SUPER_ADMIN,
             Role::ADMIN,
@@ -22,6 +26,10 @@ class AwardPolicy
 
     public function update(User $user, Award $award): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         if ($user->hasAnyRole([Role::SUPER_ADMIN, Role::ADMIN])) {
             return true;
         }
@@ -35,6 +43,10 @@ class AwardPolicy
 
     public function delete(User $user, Award $award): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         if ($user->hasAnyRole([Role::SUPER_ADMIN, Role::ADMIN])) {
             return true;
         }

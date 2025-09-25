@@ -53,6 +53,10 @@ class ProjectPolicy
 
     public function createProject(User $user, Hackathon $hackathon): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         if ($hackathon->work_time_start > now() && $hackathon->work_time_end < now()) {
             return false;
         }
@@ -62,6 +66,10 @@ class ProjectPolicy
 
     public function update(User $user, Project $project): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         if ($user->isAdmin()) {
             return true;
         }
@@ -89,6 +97,10 @@ class ProjectPolicy
 
     public function publish(User $user, Project $project): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         $hackathon = Hackathon::findOrFail($project->hackathon_id);
         if ($hackathon->work_time_start > now() && $hackathon->work_time_end < now()) {
             return false;
@@ -103,6 +115,10 @@ class ProjectPolicy
 
     public function moderate(User $user): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         return $user->isAdmin();
     }
 }

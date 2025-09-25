@@ -21,6 +21,10 @@ class SupportPolicy
 
     public function createSupport(User $user, Hackathon $hackathon): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         $isMember = $user->hackathons()->where('hackathons.id', $hackathon->id)->exists();
         $isOrganizer = $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
 
@@ -29,6 +33,10 @@ class SupportPolicy
 
     public function answer(User $user, Support $support): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         if ($support->is_completed) {
             return false;
         }

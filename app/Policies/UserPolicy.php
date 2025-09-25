@@ -11,11 +11,19 @@ class UserPolicy
 
     public function blockUser(User $user): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         return $user->isAdmin();
     }
 
     public function changeRoles(User $user): bool
     {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
         return $user->isTopAdmin();
     }
 }
