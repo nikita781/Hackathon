@@ -247,7 +247,7 @@ const oneTitle = computed(() => getTitle(oneProject.value || {}))
 const oneShortDesc  = computed(() => oneProject.value?.description || '')
 const oneDesc  = computed(() => oneProject.value?.about || '')
 const oneStack = computed(() => oneProject.value?.stack || '')
-const onePreview = computed(() => oneProject.value ? getPreviewSrc(oneProject.value) : '/project.jpg')
+const onePreview = computed(() => getPreviewSrc(oneProject.value))
 const links = computed(() => ({
     project:      oneProject.value?.project_link || '',
     presentation: oneProject.value?.presentation_path || oneProject.value?.presentation_url || '',

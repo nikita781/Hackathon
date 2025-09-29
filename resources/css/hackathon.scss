@@ -629,6 +629,10 @@ $x-big: 1829.98px;
                 font-size: 14px;
             }
         }
+        &_container {
+            display: flex;
+            flex-direction: column;
+        }
     }
     &__support {
         &_item {

@@ -50,7 +50,7 @@ const deletedMediaIds = ref([])   // number[]
 
 const nominations = ref(null)
 
-async function fetchHackathon () {
+async function fetchHackathon ({ refreshDates = true } = {}) {
     try {
         const { data } = await axios.get(
             route('hackathons.show', { hackathon: props.hackathonSlug }),
@@ -65,8 +65,10 @@ async function fetchHackathon () {
             form.sections[0].content = overviewTab.sections.find(s => s.title === 'Описание')?.content || '';
             form.sections[1].content = overviewTab.sections.find(s => s.title === 'План проведения')?.content || '';
 
-            taskStart.value = utcToLocalInputValue(h.work_time_start)
-            taskEnd.value   = utcToLocalInputValue(h.work_time_end)
+            if (refreshDates) {
+                taskStart.value = utcToLocalInputValue(h.work_time_start)
+                taskEnd.value   = utcToLocalInputValue(h.work_time_end)
+            }
 
             description.value = form.sections[0].content
             plan.value = form.sections[1].content
@@ -96,13 +98,13 @@ async function getPartner(tabId) {
 }
 onMounted(() => {
     if (props.isEdit) {
-        fetchHackathon();
+        fetchHackathon({ refreshDates: true });
     }
 })
 
-function openAdd()              { editingIndex.value = null; dlgShown.value = true ; fetchHackathon() }
+function openAdd()              { editingIndex.value = null; dlgShown.value = true ; fetchHackathon({ refreshDates: false }) }
 function openEdit(idx)          { editingIndex.value = idx;  dlgShown.value = true }
-function onSaved()              { dlgShown.value = false; fetchHackathon() }
+function onSaved()              { dlgShown.value = false; fetchHackathon({ refreshDates: false }) }
 
 async function removeNomination(idx){
     const id = nominations.value[idx].id

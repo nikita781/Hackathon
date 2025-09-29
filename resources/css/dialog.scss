@@ -79,6 +79,7 @@ $x-big: 1829.98px;
         justify-content: space-between;
         gap: 20px;
         overflow-x: auto;
+        overflow-y: clip;
         &_item {
             font-size: 22px;
             color: #999;

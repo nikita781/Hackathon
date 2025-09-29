@@ -34,12 +34,12 @@ const errors = ref({ evaluation_start: '', evaluation_end: '' })
 function openAdd () {
     editingId.value = null
     dlgShown.value = true
-    fetchData()
+    fetchData({ refreshDates: false })
 }
 function openEdit(id) {
     editingId.value = Number(id)
     dlgShown.value = true
-    fetchData()
+    fetchData({ refreshDates: false })
 }
 async function removeGroup(id) {
     const gid = Number(id)
@@ -59,16 +59,16 @@ async function removeGroup(id) {
         console.error('nomination-delete-error', err?.response ?? err)
     }
 
-    await fetchData()
+    await fetchData({ refreshDates: false })
 }
 
 function onSaved () {
     dlgShown.value = false
-    fetchData()
+    fetchData({ refreshDates: false })
 }
 
 /* ===== ЗАГРУЗКА: подхватываем даты из таба "Оценка" ===== */
-const fetchData = async () => {
+const fetchData = async ({ refreshDates = true } = {}) => {
     if (!props.hackathonSlug) return
     try{
         const { data } = await axios.get(
@@ -81,8 +81,10 @@ const fetchData = async () => {
 
         const h = data?.hackathon?.original
 
-        evaluationStart.value = utcToLocalInputValue(h.evaluation_start)
-        evaluationEnd.value   = utcToLocalInputValue(h.evaluation_end)
+        if (refreshDates) {
+            evaluationStart.value = utcToLocalInputValue(h.evaluation_start)
+            evaluationEnd.value   = utcToLocalInputValue(h.evaluation_end)
+        }
 
         await nextTick()
         loaded.value = true
@@ -91,7 +93,7 @@ const fetchData = async () => {
         loaded.value = true
     }
 }
-onMounted(fetchData)
+onMounted(() => fetchData({ refreshDates: true }))
 
 /* dirty только после загрузки */
 watch([evaluationStart, evaluationEnd], () => {
