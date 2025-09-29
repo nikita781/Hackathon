@@ -174,16 +174,16 @@ class HackathonPolicy
             return false;
         }
 
+        if ($hackathon->evaluation_start > now() || $hackathon->evaluation_end < now()) {
+            return false;
+        }
+
         if ($hackathon->owner->id === $user->id) {
             return true;
         }
 
         if ($user->hasRole(Role::ADMIN)) {
             return true;
-        }
-
-        if ($hackathon->evaluation_start > now() || $hackathon->evaluation_end < now()) {
-            return false;
         }
 
         return $user
