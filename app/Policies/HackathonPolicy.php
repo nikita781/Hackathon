@@ -98,6 +98,10 @@ class HackathonPolicy
             return false;
         }
 
+        if ($hackathon->registration_end < now()) {
+            return false;
+        }
+
         if ($user->isHackathonStaff($hackathon)) {
             return false;
         }
@@ -148,7 +152,8 @@ class HackathonPolicy
             return false;
         }
 
-        $team = $user->teams()
+        $team = $user
+            ->teams()
             ->where('hackathon_id', $hackathon->id)
             ->first();
 
@@ -177,7 +182,8 @@ class HackathonPolicy
             return false;
         }
 
-        return $user->hackathons()
+        return $user
+            ->hackathons()
             ->where('hackathons.id', $hackathon->id)
             ->wherePivot('role_id', Role::JUDGE)
             ->exists();

@@ -102,7 +102,7 @@ class ProjectPolicy
         }
 
         $hackathon = Hackathon::findOrFail($project->hackathon_id);
-        if ($hackathon->work_time_start > now() && $hackathon->work_time_end < now()) {
+        if ($hackathon->work_time_start > now() || $hackathon->work_time_end < now()) {
             return false;
         }
 
