@@ -46,13 +46,24 @@ class HackathonStaffController extends Controller
         $invite = HackathonInvite::where('token', $token)->firstOrFail();
 
         if ($invite->isExpired()) {
-            abort(410, 'Срок действия приглашения истёк');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Срок действия приглашения истёк');
         }
 
         $user = auth()->user();
 
         if ($invite->hackathon->getAllHackathonStaff()->contains($user->id)) {
-            abort(400, 'Вы уже персонал хакатона');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Вы уже персонал хакатона');
+        }
+
+        if ($invite->hackathon
+            ->users()
+            ->with('roles')
+            ->withPivot('role_id')
+            ->wherePivotIn('role_id', Role::MEMBER)
+            ->get()
+            ->contains($user->id)
+        ) {
+            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Вы уже участник хакатона');
         }
 
         $invite->hackathon->users()->attach($user->id, ['role_id' => $invite->role_id]);

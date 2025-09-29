@@ -174,6 +174,10 @@ class HackathonPolicy
             return false;
         }
 
+        if ($hackathon->owner->id === $user->id) {
+            return true;
+        }
+
         if ($user->hasRole(Role::ADMIN)) {
             return true;
         }
