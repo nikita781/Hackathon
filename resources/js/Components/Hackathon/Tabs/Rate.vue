@@ -10,6 +10,12 @@ import Pagination from '@/Components/Pagination.vue'
 
 const showRate = ref(false)
 
+watch(() => showRate.value, () => {
+    if (showRate.value === false) {
+        fetchGallery()
+    }
+});
+
 const props = defineProps({
     positions  : { type: Array,  default: () => [] },
     ownTeam    : { type: Array,  default: () => [] },
@@ -291,9 +297,13 @@ const links = computed(() => ({
 }))
 
 const idProject = ref(null)
-function setIdProject (id) {
-    console.log('Selected project id:', id)
+const selectedEvaluations = ref([])
+function setIdProject (project) {
+    const id = project?.slug ?? project?.id ?? null
+    console.log('Selected project:', id)
     idProject.value = id
+    // передаём уже имеющиеся оценки проекта (или пусто)
+    selectedEvaluations.value = Array.isArray(project?.evaluations) ? project.evaluations : []
     showRate.value = true
 }
 
@@ -397,10 +407,10 @@ onMounted(async () => {
                                 <button
                                     type="button"
                                     class="main__btn_main"
-                                    @click.stop="setIdProject(project.slug)"
-                                    v-if="activeTab===0"
+                                    @click.stop="setIdProject(project)"
+                                    v-if="!project.can.rate"
                                 >
-                                    {{ capitalizeFirstLetter(langStore.translations.rate) }}
+                                    {{ activeTab===0 ? capitalizeFirstLetter(langStore.translations.rate) : 'Редактировать' }}
                                 </button>
                             </div>
 
@@ -425,6 +435,7 @@ onMounted(async () => {
                         v-model="showRate"
                         :hackathon="props.hackathon"
                         :project-id="idProject"
+                        :existing-evaluations="selectedEvaluations"
                     />
                 </div>
                 <Pagination

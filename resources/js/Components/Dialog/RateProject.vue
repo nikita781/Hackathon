@@ -6,9 +6,10 @@ import {useLangStore} from "@/store/lang.js";
 const props = defineProps({
     modelValue: Boolean,
     hackathon: { type: Object, required: true },
-    projectId: { type: String, required: true },
+    projectId: { type: [String, Number], required: true },
+    // массив оценок проекта с сервера (если есть)
+    existingEvaluations: { type: Array, default: () => [] },
 });
-
 const emit = defineEmits(["update:modelValue"]);
 
 function resetState() {
@@ -31,6 +32,19 @@ function setEvaluation(criterionId, score) {
 }
 
 console.log(props.hackathon.criteria_groups)
+
+function prefillFromExisting() {
+    // сначала очищаем
+    Object.keys(evaluations).forEach(k => delete evaluations[k]);
+    // потом вносим имеющиеся (если есть)
+    (props.existingEvaluations || []).forEach(ev => {
+        const cid   = ev?.criterion?.id ?? ev?.criterion_id ?? ev?.criterionId
+        const score = ev?.score
+        if (cid != null && typeof score !== 'undefined') {
+            evaluations[cid] = score
+        }
+    })
+}
 
 // Функция для отправки оценки на сервер
 async function submitEvaluation() {
@@ -73,12 +87,18 @@ onMounted(async () => {
 
 // Если модалку закрыли извне (родитель выставил modelValue=false) — тоже чистим
 watch(() => props.modelValue, (val, oldVal) => {
-    if (!val && oldVal) resetState();
+    if (val && !oldVal) prefillFromExisting(); // открыли — предзаполняем
+    if (!val && oldVal) resetState();          // закрыли — чистим
 });
 
 // При открытии другого проекта/хакатона сбрасываем прежние оценки
 watch(() => [props.projectId, props.hackathon.slug], () => {
-    resetState();
+    if (props.modelValue) prefillFromExisting();
+    else resetState();
+});
+
+watch(() => props.existingEvaluations, () => {
+    if (props.modelValue) prefillFromExisting();
 });
 </script>
 
