@@ -105,7 +105,10 @@ onMounted(async () => {
                 <div v-for="n in props.notifications.data" :key="n.id"
                      class="notification__item"
                      >
-                    <div class="notification__image">
+                    <div class="notification__image" v-if="n?.notification_type === 'InviteNotification'">
+                        <img :src="'/krasnyi-konvert-s-priglasit-karty.jpg'" alt="">
+                    </div>
+                    <div class="notification__image" v-else>
                         <img :src="n?.hackathon?.image_path ?? n?.project?.preview_path ?? '/test.jpg'" alt="">
                     </div>
 

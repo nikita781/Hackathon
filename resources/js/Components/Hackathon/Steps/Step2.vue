@@ -17,9 +17,15 @@ const projectLink  = ref('')
 
 watch(() => props.oneProject, () => {
     if (props.oneProject.slug) {
-        about.value = props.oneProject.about
-        stack.value = props.oneProject.stack
-        projectLink.value = props.oneProject.project_link
+        if (props.oneProject.about) {
+            about.value = props.oneProject.about
+        }
+        if (props.oneProject.stack) {
+            stack.value = props.oneProject.stack
+        }
+        if (props.oneProject.project_link) {
+            projectLink.value = props.oneProject.project_link
+        }
     }
 });
 
@@ -41,9 +47,15 @@ const resetState = () => {
 
 onMounted(() => {
     if (props.oneProject.slug) {
-        about.value = props.oneProject.about
-        stack.value = props.oneProject.stack
-        projectLink.value = props.oneProject.project_link
+        if (props.oneProject.about) {
+            about.value = props.oneProject.about
+        }
+        if (props.oneProject.stack) {
+            stack.value = props.oneProject.stack
+        }
+        if (props.oneProject.project_link) {
+            projectLink.value = props.oneProject.project_link
+        }
     }
 })
 

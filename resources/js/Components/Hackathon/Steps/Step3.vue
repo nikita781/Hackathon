@@ -15,7 +15,9 @@ const emit = defineEmits(['success', 'cancel'])
 
 watch(() => props.oneProject, () => {
     if (props.oneProject.slug) {
-        videoLink.value = props.oneProject.video_link
+        if (props.oneProject.video_link) {
+            videoLink.value = props.oneProject.video_link
+        }
         pptx.value = props.oneProject.presentation_path
             ? getPresentation(props.oneProject.presentation_path)
             : null
@@ -82,7 +84,9 @@ const resetState = () => {
 
 onMounted(() => {
     if (props.oneProject.slug) {
-        videoLink.value = props.oneProject.video_link
+        if (props.oneProject.video_link) {
+            videoLink.value = props.oneProject.video_link
+        }
         pptx.value = props.oneProject.presentation_path
             ? getPresentation(props.oneProject.presentation_path)
             : null

@@ -177,7 +177,7 @@ onMounted(async () => {
 
                             <div class="main__card_item">
                                 <div style="width:24px;height:24px" class="svg-black"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"> <path d="M18.3333 6.0327C18.3339 5.92302 18.3129 5.81431 18.2715 5.71277C18.23 5.61124 18.1689 5.5189 18.0916 5.44103L14.5583 1.9077C14.4804 1.83046 14.3881 1.76936 14.2866 1.72789C14.185 1.68642 14.0763 1.6654 13.9666 1.66603C13.857 1.6654 13.7482 1.68642 13.6467 1.72789C13.5452 1.76936 13.4528 1.83046 13.375 1.9077L11.0166 4.26603L1.90831 13.3744C1.83107 13.4522 1.76997 13.5446 1.7285 13.6461C1.68703 13.7476 1.66601 13.8564 1.66664 13.966V17.4994C1.66664 17.7204 1.75444 17.9323 1.91072 18.0886C2.067 18.2449 2.27896 18.3327 2.49997 18.3327H6.03331C6.14991 18.339 6.26655 18.3208 6.37566 18.2792C6.48476 18.2375 6.5839 18.1734 6.66664 18.091L15.725 8.9827L18.0916 6.66603C18.1677 6.58526 18.2297 6.49231 18.275 6.39103C18.283 6.3246 18.283 6.25745 18.275 6.19103C18.2789 6.15224 18.2789 6.11315 18.275 6.07436L18.3333 6.0327ZM5.69164 16.666H3.33331V14.3077L11.6083 6.0327L13.9666 8.39103L5.69164 16.666ZM15.1416 7.21603L12.7833 4.8577L13.9666 3.6827L16.3166 6.0327L15.1416 7.21603Z" fill="#121212"/> </svg></div>
-                                <p>{{ hackathon.projects_count ?? 0 }} {{ pluralizeRu(hackathon.projects_count ?? 0, ['проект', 'проекта', 'проектов']) }}</p>
+                                <p>{{ hackathon?.moderation_projects_count + hackathon?.accepted_projects_count + hackathon?.rejected_projects_count ?? 0 }} {{ pluralizeRu(hackathon.projects_count ?? 0, ['проект', 'проекта', 'проектов']) }}</p>
                             </div>
 
                             <a :href="`/admin/moderation/projects/hackathon/${hackathon.slug}`" class="main__btn_main" style="width: fit-content">Перейти к проектам</a>
@@ -185,6 +185,7 @@ onMounted(async () => {
                     </div>
                 </a>
             </div>
+            <pre>{{rows}}</pre>
 
             <Pagination style="margin-top: 30px" :links="pageLinks" />
 

@@ -419,6 +419,8 @@ onMounted(async () => {
                         </div>
                     </template>
 
+<!--                    <pre>{{items}}</pre>-->
+
                     <RateProject
                         v-model="showRate"
                         :hackathon="props.hackathon"
