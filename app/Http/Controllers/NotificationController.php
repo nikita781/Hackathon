@@ -49,7 +49,7 @@ class NotificationController extends Controller
                         'support_id' => $data['support_id'],
                         'type' => $data['type'] ?? null,
                         'title' => $data['title'] ?? '',
-                        'descriptio' => $data['description'] ?? '',
+                        'description' => $data['description'] ?? '',
                         'is_completed' => $support?->is_completed ?? false,
                         'send_at' => $data['send_at'] ?? null,
                         'hackathon' => $data['hackathon'] ?? null,

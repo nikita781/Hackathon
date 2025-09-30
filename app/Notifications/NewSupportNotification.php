@@ -29,7 +29,7 @@ class NewSupportNotification extends Notification
             'support_id' => $this->support->id,
             'type' => $this->support->type,
             'title' => "Новое обращение",
-            'description' => $this->support->messages()->latest()->first()?->message,
+            'description' => $this->support->messages()->first()?->message,
             'hackathon' => new HackathonResource($this->support->hackathon),
             'send_at' => now()->toDateString(),
         ];
