@@ -314,6 +314,11 @@ class HackathonController extends Controller
             return back()->with('error', 'Хакатон должен содержать критерии оценки');
         }
 
+
+        if (!$hackathon->users()->wherePivot('role_id', Role::JUDGE)->exists()) {
+            return back()->with('error', 'Перед публикацией пригласите хотя бы одного судью');
+        }
+
         $hackathon->update([
             'status' => Hackathon::STATUS_MODERATION,
             'moderated_time' => Carbon::now(),
@@ -329,7 +334,7 @@ class HackathonController extends Controller
     public function joinHackathon(Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('join', $hackathon)) {
-            abort(404);
+            abort(403);
         }
 
         $user = auth()->user();
@@ -350,7 +355,7 @@ class HackathonController extends Controller
     public function leaveHackathon(Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('leave', $hackathon)) {
-            abort(404);
+            abort(403);
         }
 
         $user = auth()->user();
