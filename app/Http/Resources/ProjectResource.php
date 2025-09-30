@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Evaluation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
@@ -42,6 +43,7 @@ class ProjectResource extends JsonResource
             ],
             'hackathon' => $this->whenLoaded('hackathon', fn () => new HackathonResource($this->hackathon)),
             'team' => $this->whenLoaded('team', fn () => new TeamResource($this->team)),
-            ];
+            'evaluations' => $this->whenLoaded('evaluations', EvaluationResource::collection($this->evaluations)),
+        ];
     }
 }

@@ -175,7 +175,7 @@ class HackathonController extends Controller
             'allProjects.team.teamUsers.position',
             'allProjects.team.teamUsers.user',
             'nominations.distribution',
-            'criteriaGroups.criteria',
+            'criteriaGroups.criteria.evaluations',
             'support.messages.user',
         ]);
 
@@ -408,7 +408,7 @@ class HackathonController extends Controller
     public function gallery(Request $request, Hackathon $hackathon): JsonResponse
     {
         $paginator = $hackathon->allProjects()
-            ->with(['team.teamUsers.user', 'team.teamUsers.position'])
+            ->with(['team.teamUsers.user', 'team.teamUsers.position', 'evaluations.criterion'])
             ->filter($request)
             ->published()
             ->paginate(12);
