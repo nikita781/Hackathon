@@ -43,7 +43,7 @@ class ProjectResource extends JsonResource
             ],
             'hackathon' => $this->whenLoaded('hackathon', fn () => new HackathonResource($this->hackathon)),
             'team' => $this->whenLoaded('team', fn () => new TeamResource($this->team)),
-            'evaluations' => $this->whenLoaded('evaluations', EvaluationResource::collection($this->evaluations)),
+            'evaluations' => EvaluationResource::collection($this->whenLoaded('evaluations', fn () => $this->evaluations)),
         ];
     }
 }
