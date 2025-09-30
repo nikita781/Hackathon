@@ -134,7 +134,6 @@ function onSaved() {
 const deletingId = ref(null);
 function deleteBanner(row) {
     if (deletingId.value) return;
-    if (!confirm("Удалить баннер?")) return;
 
     deletingId.value = row.id;
     router.post(
