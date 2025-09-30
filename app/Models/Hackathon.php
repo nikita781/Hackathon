@@ -162,6 +162,7 @@ class Hackathon extends Model implements HasMedia
     public function assignPlaces(): void
     {
         $projects = $this->allProjects()
+            ->published()
             ->with('team')
             ->orderByDesc('avg_score')
             ->get();
