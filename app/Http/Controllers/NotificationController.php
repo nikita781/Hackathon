@@ -42,11 +42,11 @@ class NotificationController extends Controller
                 }
 
                 // === NewSupportNotification ===
-                if ($type === 'NewSupportNotification' && isset($data['support']['id'])) {
-                    $support = \App\Models\Support::find($data['support']['id']);
+                if ($type === 'NewSupportNotification') {
+                    $support = \App\Models\Support::find($data['support_id']);
 
                     return array_merge($base, [
-                        'support_id' => $data['support']['id'],
+                        'support_id' => $data['support_id'],
                         'type' => $data['type'] ?? null,
                         'title' => $data['support']['title'] ?? '',
                         'is_completed' => $support?->is_completed ?? false,
