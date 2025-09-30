@@ -48,7 +48,8 @@ class NotificationController extends Controller
                     return array_merge($base, [
                         'support_id' => $data['support_id'],
                         'type' => $data['type'] ?? null,
-                        'title' => $data['support']['title'] ?? '',
+                        'title' => $data['title'] ?? '',
+                        'descriptio' => $data['description'] ?? '',
                         'is_completed' => $support?->is_completed ?? false,
                         'send_at' => $data['send_at'] ?? null,
                         'hackathon' => $data['hackathon'] ?? null,
