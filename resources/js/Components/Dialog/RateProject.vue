@@ -1,5 +1,5 @@
 <script setup>
-import {ref, reactive, computed, onMounted} from 'vue';
+import {ref, reactive, computed, onMounted, watch} from 'vue';
 import axios from 'axios';
 import {useLangStore} from "@/store/lang.js";
 
@@ -10,7 +10,16 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue"]);
-function close() { emit("update:modelValue", false) }
+
+function resetState() {
+    Object.keys(evaluations).forEach(k => delete evaluations[k]);
+    Object.keys(hover).forEach(k => delete hover[k]);
+}
+
+function close() {
+    resetState();
+    emit("update:modelValue", false);
+}
 
 const hover = reactive({});
 
@@ -60,6 +69,16 @@ function capitalizeFirstLetter(str) {
 
 onMounted(async () => {
     await langStore.fetchTranslations()
+});
+
+// Если модалку закрыли извне (родитель выставил modelValue=false) — тоже чистим
+watch(() => props.modelValue, (val, oldVal) => {
+    if (!val && oldVal) resetState();
+});
+
+// При открытии другого проекта/хакатона сбрасываем прежние оценки
+watch(() => [props.projectId, props.hackathon.slug], () => {
+    resetState();
 });
 </script>
 
