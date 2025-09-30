@@ -3,10 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -21,7 +21,15 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name', 'nickname', 'email', 'password', 'birthday', 'phone_number', 'photo', 'status', 'updated_at'
+        'name',
+        'nickname',
+        'email',
+        'password',
+        'birthday',
+        'phone_number',
+        'photo',
+        'status',
+        'updated_at'
     ];
 
     /**
@@ -72,7 +80,8 @@ class User extends Authenticatable
      */
     public function hackathons(): BelongsToMany
     {
-        return $this->belongsToMany(Hackathon::class)
+        return $this
+            ->belongsToMany(Hackathon::class)
             ->withPivot('role_id');
     }
 
@@ -146,7 +155,8 @@ class User extends Authenticatable
      */
     public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Team::class)
+        return $this
+            ->belongsToMany(Team::class)
             ->using(TeamUser::class)
             ->withPivot(['position_id']);
     }
@@ -161,8 +171,10 @@ class User extends Authenticatable
 
     public function isCapitan(Project $project): bool
     {
-        return $this->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where('teams.id',
-            $project->team_id)->exists();
+        return $this->teams()->wherePivot('position_id', Position::CAPITAN_POSITION)->where(
+            'teams.id',
+            $project->team_id
+        )->exists();
     }
 
     public function isMemberOfProject(Project $project): bool
@@ -172,7 +184,8 @@ class User extends Authenticatable
 
     public function isCapitanOfHackathon(Hackathon $hackathon): bool
     {
-        return $this->teams()
+        return $this
+            ->teams()
             ->where('hackathon_id', $hackathon->id)
             ->wherePivot('position_id', Position::CAPITAN_POSITION)
             ->exists();
@@ -188,7 +201,8 @@ class User extends Authenticatable
      */
     public function positions(): BelongsToMany
     {
-        return $this->belongsToMany(Position::class, 'team_user')
+        return $this
+            ->belongsToMany(Position::class, 'team_user')
             ->withPivot('team_id')
             ->withTimestamps();
     }
@@ -200,14 +214,18 @@ class User extends Authenticatable
 
     public function awards(): BelongsToMany
     {
-        return $this->BelongsToMany(Award::class)
+        return $this
+            ->BelongsToMany(Award::class)
             ->withPivot('awarded_at');
     }
 
     public function scopeFilter(Builder $query, $request): Builder
     {
         $query->when($request->q, function ($q, $search) {
-            $q->where('nickname', 'ILIKE', "%{$search}%");
+            $q
+                ->where('nickname', 'ILIKE', "%{$search}%")
+                ->orWhere('id', intval($search))
+                ->orWhere('email', $search);
         });
 
         $query->when($request->roles, function ($q, $roles) {

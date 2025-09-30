@@ -10,16 +10,15 @@ use App\Models\Role;
 use App\Models\User;
 use App\Notifications\InviteNotification;
 use App\Notifications\KickNotification;
-use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class HackathonStaffController extends Controller
 {
-
     public function createInvite(Hackathon $hackathon): JsonResponse
     {
         do {
@@ -55,11 +54,12 @@ class HackathonStaffController extends Controller
             return redirect()->route('hackathons.show', $hackathon)->with('error', 'Вы уже персонал хакатона');
         }
 
-        if ($invite->hackathon
+        if ($invite
+            ->hackathon
             ->users()
             ->with('roles')
             ->withPivot('role_id')
-            ->wherePivotIn('role_id', Role::MEMBER)
+            ->wherePivotIn('role_id', [Role::MEMBER])
             ->get()
             ->contains($user->id)
         ) {
@@ -68,7 +68,8 @@ class HackathonStaffController extends Controller
 
         $invite->hackathon->users()->attach($user->id, ['role_id' => $invite->role_id]);
 
-        $user->notifications()
+        $user
+            ->notifications()
             ->where('data->url', route('hackathons.staff.accept-invite', [$hackathon, $invite->token]))
             ->update(['data->is_active' => false]);
 
@@ -98,7 +99,7 @@ class HackathonStaffController extends Controller
             $invitedUserRole = Role::findOrFail($invitedRoleId);
 
             if ($hackathon->getAllHackathonStaff()->contains($invitedUser->id)) {
-                return response()->json(['message' => 'Пользователь «'. $invitedUser->nickname .'» уже в команде'], 400);
+                return response()->json(['message' => 'Пользователь «' . $invitedUser->nickname . '» уже в команде'], 400);
             }
 
             if (HackathonInvite::where('hackathon_id', $hackathon->id)->where('user_id', $invitedUserId)->exists()) {
@@ -112,7 +113,6 @@ class HackathonStaffController extends Controller
                 'token' => $token,
                 'expires_at' => now()->addDay(),
             ]);
-
 
             $invitedUser->notify(new InviteNotification([
                 'title' => 'Приглашение на хакатон от организатора',
