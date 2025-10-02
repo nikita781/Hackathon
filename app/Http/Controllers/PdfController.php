@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Hackathon;
+use App\Models\Project;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
@@ -40,7 +41,9 @@ class PdfController extends Controller
         Gate::authorize('downloadReport', $hackathon);
 
         $teams = $hackathon->teams()
-            ->with(['users'])
+            ->with(['users',
+                'projects' => fn($q) => $q->where('status', Project::PUBLISHED)
+            ])
             ->orderBy('place')
             ->get();
 

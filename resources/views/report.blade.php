@@ -70,7 +70,7 @@
                     {{ $user->name ?? $user->nickname }}<br>
                 @endforeach
             </td>
-            <td>{{ $team->avg_score ?? '-' }}</td>
+            <td>{{ $team?->projects?->first()?->avg_score ?? '-' }}</td>
         </tr>
     @endforeach
     </tbody>

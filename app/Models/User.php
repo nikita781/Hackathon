@@ -224,7 +224,7 @@ class User extends Authenticatable
         $query->when($request->q, function ($q, $search) {
             $q
                 ->where('nickname', 'ILIKE', "%{$search}%")
-                ->orWhere('id', intval($search))
+                ->orWhere('id', is_string($search) && str_contains($search, 'ID') ? str_replace($search, 'ID', '') : (int) $search)
                 ->orWhere('email', $search);
         });
 

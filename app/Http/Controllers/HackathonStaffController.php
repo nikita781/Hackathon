@@ -84,7 +84,7 @@ class HackathonStaffController extends Controller
     {
         $data = $request->validate([
             'users' => 'required|array',
-            'users.*.user_id' => 'required|exists:users,id',
+            'users.*.user_id' => 'required',
             'users.*.role_id' => 'required|exists:roles,id',
         ]);
 
@@ -95,6 +95,14 @@ class HackathonStaffController extends Controller
 
             $invitedUserId = $user['user_id'];
             $invitedRoleId = $user['role_id'];
+
+            if (is_string($invitedUserId)) {
+                if (str_contains($invitedUserId, "ID")) {
+                    $invitedUserId = str_replace("ID", "", $invitedUserId);
+                    $invitedUserId = (int) $invitedUserId;
+                }
+            }
+
             $invitedUser = User::findOrFail($invitedUserId);
             $invitedUserRole = Role::findOrFail($invitedRoleId);
 

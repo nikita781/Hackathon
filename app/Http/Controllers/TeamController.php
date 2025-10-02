@@ -186,7 +186,7 @@ class TeamController extends Controller
     {
         $data = $request->validate([
             'users' => 'array',
-            'users.*.user_id' => 'required|exists:users,id',
+            'users.*.user_id' => 'required',
             'users.*.position_id' => 'required|exists:positions,id',
         ]);
 
@@ -197,6 +197,14 @@ class TeamController extends Controller
 
             $invitedUserId = $user['user_id'];
             $invitedPositionId = $user['position_id'];
+
+            if (is_string($invitedUserId)) {
+                if (str_contains($invitedUserId, "ID")) {
+                    $invitedUserId = str_replace("ID", "", $invitedUserId);
+                    $invitedUserId = (int) $invitedUserId;
+                }
+            }
+
             $invitedUser = User::findOrFail($invitedUserId);
             $invitedUserPosition = Position::findOrFail($invitedPositionId);
 
