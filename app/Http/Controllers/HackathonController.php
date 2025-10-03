@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Exports\HackathonUsersExport;
 use App\Http\Requests\HackathonRequest;
 use App\Http\Requests\HackathonUpdateRequest;
-use App\Http\Resources\AwardResource;
 use App\Http\Resources\HackathonResource;
 use App\Http\Resources\PositionResource;
 use App\Http\Resources\ProjectResource;
@@ -22,14 +21,12 @@ use App\Models\Role;
 use App\Models\Support;
 use App\Models\Tab;
 use App\Models\Tag;
-use App\Models\Team;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -65,15 +62,19 @@ class HackathonController extends Controller
             'can' => [
                 'create' => Gate::check('create', Hackathon::class),
             ],
-            'filters'    => $request->only(
-                'q', 'format', 'type', 'status', 'tags', 'order'
+            'filters' => $request->only(
+                'q',
+                'format',
+                'type',
+                'status',
+                'tags',
+                'order'
             ),
         ]);
     }
 
     public function myHackathons(Request $request): Response
     {
-
         $user = auth()->user();
         $perPage = min($request->get('per_page', 6), 10);
 
@@ -95,10 +96,20 @@ class HackathonController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        $continue = $past = Hackathon::query()
+            ->whereIn('id', $hackathonIds)
+            ->filter($request)
+            ->where('event_start', '<', now())
+            ->where('event_end', '>', now())
+            ->with('tags')
+            ->orderByDesc('event_end')
+            ->paginate($perPage)
+            ->withQueryString();
+
         $past = Hackathon::query()
             ->whereIn('id', $hackathonIds)
             ->filter($request)
-            ->where('event_start', '<=', now())
+            ->where('event_end', '<', now())
             ->with('tags')
             ->orderByDesc('event_end')
             ->paginate($perPage)
@@ -107,13 +118,16 @@ class HackathonController extends Controller
         return Inertia::render('MyHackathon/Index', [
             'user' => $user->load('roles'),
             'upcomingHackathons' => HackathonResource::collection($upcoming),
+            'continueHackathons' => HackathonResource::collection($continue),
             'pastHackathons' => HackathonResource::collection($past),
             'tags' => TagResource::collection(Tag::orderBy('title')->get()),
             'can' => [
                 'create' => $user->can('create', Hackathon::class),
             ],
-            'query'    => $request->only(
-                'q', 'order', 'tab'
+            'query' => $request->only(
+                'q',
+                'order',
+                'tab'
             ),
         ]);
     }
@@ -156,7 +170,7 @@ class HackathonController extends Controller
                 'title' => $hackathon->title,
                 'slug' => $hackathon->slug,
             ],
-            'message' => "Хакатон '". $hackathon->title ."' успешно создан",
+            'message' => "Хакатон '" . $hackathon->title . "' успешно создан",
         ]);
     }
 
@@ -190,7 +204,8 @@ class HackathonController extends Controller
         if (!isset($user)) {
             $teams = collect();
         } else if ($isStaffHackathon) {
-            $teams = $hackathon->teams()
+            $teams = $hackathon
+                ->teams()
                 ->with(['projects', 'teamUsers.user', 'teamUsers.position'])
                 ->filter($request)
                 ->paginate($perPageTeam);
@@ -213,11 +228,11 @@ class HackathonController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                "hackathon" => $hackathonResource->response(),
-                "tabs" => $tabsResource->response(),
-                "ownTeam" => optional($ownTeamResource)->response(),
-                "allProjects" => optional($allProjects)->response(),
-                "positions" => $positionsResource->response(),
+                'hackathon' => $hackathonResource->response(),
+                'tabs' => $tabsResource->response(),
+                'ownTeam' => optional($ownTeamResource)->response(),
+                'allProjects' => optional($allProjects)->response(),
+                'positions' => $positionsResource->response(),
             ]);
         }
 
@@ -314,7 +329,6 @@ class HackathonController extends Controller
             return back()->with('error', 'Хакатон должен содержать критерии оценки');
         }
 
-
         if (!$hackathon->users()->wherePivot('role_id', Role::JUDGE)->exists()) {
             return back()->with('error', 'Перед публикацией пригласите хотя бы одного судью');
         }
@@ -327,9 +341,7 @@ class HackathonController extends Controller
         return back()->with('status', 'Хакатон отправлен на модерацию');
     }
 
-    public function destroy(Hackathon $hackathon): void
-    {
-    }
+    public function destroy(Hackathon $hackathon): void {}
 
     public function joinHackathon(Hackathon $hackathon): RedirectResponse
     {
@@ -375,11 +387,12 @@ class HackathonController extends Controller
 
         $rows->push([
             'nickname' => 'Участник',
-            'status'   => 'Статус',
+            'status' => 'Статус',
         ]);
 
         foreach ($users as $user) {
-            $hasProject = $user->teams()
+            $hasProject = $user
+                ->teams()
                 ->where('hackathon_id', $hackathon->id)
                 ->whereHas('projects', fn($q) => $q->where('status', Project::PUBLISHED))
                 ->exists();
@@ -391,7 +404,6 @@ class HackathonController extends Controller
             $rows->push([
                 'nickname' => $user->nickname,
                 'status' => $hasProject ? '✅ Сдал' : '❌ Не сдал',
-
             ]);
         }
 
@@ -399,7 +411,7 @@ class HackathonController extends Controller
 
         $rows->prepend([
             'nickname' => 'Сдали / Всего',
-            'status'   => "$submitted / $total ($percent%)",
+            'status' => "$submitted / $total ($percent%)",
         ]);
 
         return Excel::download(new HackathonUsersExport($rows), "hackathon_users_{$hackathon->slug}.xlsx");
@@ -407,7 +419,8 @@ class HackathonController extends Controller
 
     public function gallery(Request $request, Hackathon $hackathon): JsonResponse
     {
-        $paginator = $hackathon->allProjects()
+        $paginator = $hackathon
+            ->allProjects()
             ->with(['team.teamUsers.user', 'team.teamUsers.position', 'evaluations.criterion'])
             ->filter($request)
             ->published()

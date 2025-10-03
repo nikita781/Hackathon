@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AnswerSupportRequest;
-use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\StoreSupportRequest;
 use App\Models\Hackathon;
-use App\Models\Project;
 use App\Models\Role;
 use App\Models\Support;
 use App\Models\SupportMessage;
@@ -15,10 +13,7 @@ use App\Notifications\NewSupportNotification;
 use App\Notifications\SupportAnsweredNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class SupportsController extends Controller
 {
@@ -70,7 +65,8 @@ class SupportsController extends Controller
             ]);
         }
 
-        $supportIds = $user->support()
+        $supportIds = $user
+            ->support()
             ->where('hackathon_id', $hackathon->id)
             ->select('supports.id');
 
@@ -97,7 +93,7 @@ class SupportsController extends Controller
     public function store(StoreSupportRequest $request, Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('createSupport', [Support::class, $hackathon])) {
-            abort(404);
+            abort(403);
         }
 
         $user = auth()->user();
@@ -135,7 +131,8 @@ class SupportsController extends Controller
 
             case Support::QUESTION:
             case Support::SUGGESTION:
-                $staff = $hackathon->users()
+                $staff = $hackathon
+                    ->users()
                     ->wherePivotIn('role_id', Role::STAFF)
                     ->get();
 
@@ -150,8 +147,8 @@ class SupportsController extends Controller
 
     public function answer(AnswerSupportRequest $request, Support $support): RedirectResponse
     {
-        if(!Gate::check('answer', $support)) {
-            abort(404);
+        if (!Gate::check('answer', $support)) {
+            abort(403);
         }
 
         $user = auth()->user();
@@ -175,5 +172,16 @@ class SupportsController extends Controller
         $support->creator->notify(new SupportAnsweredNotification($support));
 
         return back()->with('status', 'Вопрос закрыт');
+    }
+
+    public function read(Support $support): void
+    {
+        if (!Gate::check('read', $support)) {
+            abort(403);
+        }
+
+        $support->update([
+            'is_read' => true,
+        ]);
     }
 }

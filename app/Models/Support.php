@@ -2,26 +2,35 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class Support extends Model
 {
     protected $fillable = [
-        'user_id', 'hackathon_id', 'type', 'is_completed', 'closed_by', 'closed_at',
+        'user_id',
+        'hackathon_id',
+        'type',
+        'is_completed',
+        'closed_by',
+        'closed_at',
+        'is_read',
     ];
 
     const TYPES = ['question', 'suggestion', 'bug'];
 
     const QUESTION = 'question';
+
     const SUGGESTION = 'suggestion';
+
     const BUG = 'bug';
 
     protected $casts = [
         'is_completed' => 'boolean',
+        'is_read' => 'boolean',
     ];
 
     public function creator(): BelongsTo

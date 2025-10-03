@@ -13,8 +13,8 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
@@ -41,8 +41,6 @@ class ProjectsController extends Controller
             abort(404);
         }
 
-
-
         return response()->json([
             'projects' => ProjectResource::collection($team->projects()->with(['team.teamUsers.position', 'team.teamUsers.user'])->get()),
         ]);
@@ -54,7 +52,7 @@ class ProjectsController extends Controller
      */
     public function store(StoreProjectRequest $request, Hackathon $hackathon, Team $team): JsonResponse
     {
-        if(!Gate::check('createProject', [Project::class, $hackathon])) {
+        if (!Gate::check('createProject', [Project::class, $hackathon])) {
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для создания проекта');
         }
 
@@ -75,7 +73,7 @@ class ProjectsController extends Controller
                 'description' => $project->description,
                 'slug' => $project->slug,
             ],
-            'message' => "Проект '". $project->title ."' успешно создан",
+            'message' => "Проект '" . $project->title . "' успешно создан",
         ]);
     }
 
@@ -98,7 +96,7 @@ class ProjectsController extends Controller
      */
     public function update(UpdateProjectRequest $request, Hackathon $hackathon, Project $project): RedirectResponse
     {
-        if(!Gate::check('update', $project)) {
+        if (!Gate::check('update', $project)) {
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для обновления проекта');
         }
 
@@ -138,7 +136,7 @@ class ProjectsController extends Controller
 
     public function destroy(Hackathon $hackathon, Project $project): RedirectResponse
     {
-        if(!Gate::check('delete', $project)) {
+        if (!Gate::check('delete', $project)) {
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для удаления проекта');
         }
 
@@ -201,5 +199,18 @@ class ProjectsController extends Controller
         $project->updateAvgScore();
 
         return back()->with('status', 'Оценки сохранены');
+    }
+
+    public function deletePresentation(Hackathon $hackathon, Project $project): RedirectResponse
+    {
+        if (!Gate::check('update', $project)) {
+            abort(403);
+        }
+
+        if ($project->hasMedia('presentation')) {
+            $project->clearMediaCollection('presentation');
+        }
+
+        return back()->with('status', 'Презентация успешно удалена!');
     }
 }

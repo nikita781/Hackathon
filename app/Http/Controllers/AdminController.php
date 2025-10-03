@@ -46,7 +46,9 @@ class AdminController extends Controller
         return Inertia::render('Admin/Moderation/Hackathon', [
             'hackathons' => HackathonResource::collection($hackathons),
             'filters' => $request->only(
-                'q', 'status', 'order'
+                'q',
+                'status',
+                'order'
             ),
         ]);
     }
@@ -67,7 +69,9 @@ class AdminController extends Controller
         return Inertia::render('Admin/Moderation/Projects/Hackathons', [
             'hackathons' => HackathonResource::collection($hackathons),
             'filters' => $request->only(
-                'q', 'status', 'order'
+                'q',
+                'status',
+                'order'
             ),
         ]);
     }
@@ -76,7 +80,8 @@ class AdminController extends Controller
     {
         $perPage = min($request->get('per_page', 9), 9);
 
-        $projects = $hackathon->allProjects()
+        $projects = $hackathon
+            ->allProjects()
             ->where('status', '!=', Project::DRAFT)
             ->with(['team.teamUsers.user', 'team.teamUsers.position'])
             ->adminFilter($request)
@@ -95,6 +100,13 @@ class AdminController extends Controller
     {
         Gate::authorize('moderate', Hackathon::class);
 
+        switch ($hackathon->status) {
+            case Hackathon::STATUS_PUBLISHED:
+                return back()->with('error', 'Хакатон уже опубликован');
+            case Hackathon::STATUS_BLOCKED:
+                return back()->with('error', 'Хакатон уже отклонен');
+        }
+
         $comment = $request->validate([
             'comment' => ['nullable', 'string', 'max:255', 'min:3']
         ]);
@@ -105,7 +117,7 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = "Хакатон \"".$hackathon->title."\" опубликован";
+        $message = 'Хакатон "' . $hackathon->title . '" опубликован';
 
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'accept',
@@ -123,6 +135,13 @@ class AdminController extends Controller
     {
         Gate::authorize('moderate', Hackathon::class);
 
+        switch ($hackathon->status) {
+            case Hackathon::STATUS_PUBLISHED:
+                return back()->with('error', 'Хакатон уже опубликован');
+            case Hackathon::STATUS_BLOCKED:
+                return back()->with('error', 'Хакатон уже отклонен');
+        }
+
         $comment = $request->validate([
             'comment' => ['nullable', 'string', 'max:255', 'min:3']
         ]);
@@ -133,7 +152,7 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = "Хакатон \"".$hackathon->title."\" отклонен";
+        $message = 'Хакатон "' . $hackathon->title . '" отклонен';
 
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'rejected',
@@ -151,6 +170,13 @@ class AdminController extends Controller
     {
         Gate::authorize('moderate', Project::class);
 
+        switch ($project->status) {
+            case Project::PUBLISHED:
+                return back()->with('error', 'Проект уже опубликован');
+            case Project::BLOCKED:
+                return back()->with('error', 'Проект уже отклонен');
+        }
+
         $comment = $request->validate([
             'comment' => ['nullable', 'string', 'max:255', 'min:3']
         ]);
@@ -161,11 +187,11 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = "Проект \"".$project->title."\" опубликован";
+        $message = 'Проект "' . $project->title . '" опубликован';
 
         if ($captain = $project->team->captain()) {
             $captain->notify(new ModerateNotification([
-                'status' => 'rejected',
+                'status' => 'accept',
                 'comment' => $comment,
                 'title' => $message,
                 'send_at' => now()->toDateString(),
@@ -181,6 +207,13 @@ class AdminController extends Controller
     {
         Gate::authorize('moderate', Project::class);
 
+        switch ($project->status) {
+            case Project::PUBLISHED:
+                return back()->with('error', 'Проект уже опубликован');
+            case Project::BLOCKED:
+                return back()->with('error', 'Проект уже отклонен');
+        }
+
         $comment = $request->validate([
             'comment' => ['nullable', 'string', 'max:255', 'min:3']
         ]);
@@ -191,7 +224,7 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = "Проект \"".$project->title."\" отклонен";
+        $message = 'Проект "' . $project->title . '" отклонен';
 
         if ($captain = $project->team->captain()) {
             $captain->notify(new ModerateNotification([
@@ -244,7 +277,7 @@ class AdminController extends Controller
             'status' => User::STATUS_BLOCKED
         ]);
 
-        return back()->with('status', "Пользователь заблокирован");
+        return back()->with('status', 'Пользователь заблокирован');
     }
 
     public function unblockUser(User $user): RedirectResponse
@@ -255,7 +288,7 @@ class AdminController extends Controller
             'status' => User::STATUS_ACTIVE
         ]);
 
-        return back()->with('status', "Пользователь разблокирован");
+        return back()->with('status', 'Пользователь разблокирован');
     }
 
     public function changeRoles(Request $request, User $user): RedirectResponse
@@ -330,7 +363,7 @@ class AdminController extends Controller
         $lastTagOrder = Tag::max('order') ?? 0;
         $data['order'] = $lastTagOrder + 1;
 
-        $tag = Tag::create($data);
+        Tag::create($data);
 
         return back()->with('status', 'Тег успешно добавлен');
     }
@@ -401,7 +434,7 @@ class AdminController extends Controller
             return back()->with('error', 'Максимальное количество баннеров — 10');
         }
 
-        $data = $request->validate([
+        $request->validate([
             'image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ]);
 
@@ -422,7 +455,7 @@ class AdminController extends Controller
      */
     public function updateBanner(Request $request, Banner $banner): RedirectResponse
     {
-        $data = $request->validate([
+        $request->validate([
             'image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ]);
 
@@ -481,7 +514,7 @@ class AdminController extends Controller
      */
     public function updateAward(Request $request, Award $award): RedirectResponse
     {
-        $data = $request->validate([
+        $request->validate([
             'image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 

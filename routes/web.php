@@ -19,7 +19,6 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-
 // LOCALE ROUTES
 Route::get('/lang/switch/{locale}', [LanguageController::class, 'switchLang'])->name('lang.switch');
 Route::get('/lang/{locale}.json', [LanguageController::class, 'json'])->name('lang.json');
@@ -31,7 +30,6 @@ Route::middleware('guest')->group(function () {
 
 // HOME
 Route::get('/', [HackathonController::class, 'index'])->name('home');
-
 
 // GUEST ROUTES
 Route::prefix('hackathons')->name('hackathons.')->group(function () {
@@ -54,6 +52,7 @@ Route::patch('/notification/mark-as-read', [NotificationController::class, 'mark
 
 Route::prefix('support')->name('support.')->group(function () {
     Route::post('/{support}/answer', [SupportsController::class, 'answer'])->name('answer');
+    Route::patch('/{support}/read', [SupportsController::class, 'read'])->name('read');
 });
 
 // AUTH ROUTES
@@ -109,6 +108,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/', [ProjectsController::class, 'index'])->name('index');
                 Route::prefix('/{project}')->group(function () {
                     Route::patch('/', [ProjectsController::class, 'update'])->name('update');
+                    Route::delete('/delete-presentation', [ProjectsController::class, 'deletePresentation'])->name('delete-presentation');
                     Route::delete('/', [ProjectsController::class, 'destroy'])->name('destroy');
                     Route::post('/rate', [ProjectsController::class, 'rate'])->name('rate');
                 });

@@ -51,7 +51,7 @@ const availableTabs = computed(() => {
         {key: 'overview', title: capitalizeFirstLetter(langStore.translations.overview), blocked: false},
         {key: 'participants', title: capitalizeFirstLetter(langStore.translations.participants), noVisible: !props.can?.hackathon?.is_staff
         },
-        {key: 'managers', title: capitalizeFirstLetter(langStore.translations.managers), noVisible: !props.can?.hackathon?.update
+        {key: 'managers', title: capitalizeFirstLetter(langStore.translations.managers), noVisible: !props.can?.hackathon?.is_staff
         },
         {key: 'rate', title: capitalizeFirstLetter(langStore.translations.rate), noVisible: !props.can?.hackathon?.rate},
         {key: 'project', title: capitalizeFirstLetter(langStore.translations.myProject), blocked: !props.can?.team.view, noVisible: props.can?.hackathon?.is_staff || props.can?.hackathon.moderate},

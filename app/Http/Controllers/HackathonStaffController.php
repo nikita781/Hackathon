@@ -80,8 +80,12 @@ class HackathonStaffController extends Controller
         return redirect()->route('hackathons.show', $hackathon)->with('status', 'Теперь вы персонал хакатона!');
     }
 
-    public function inviteUserById(Request $request, Hackathon $hackathon): JsonResponse
+    public function inviteUserById(Request $request, Hackathon $hackathon): RedirectResponse
     {
+        if (!Gate::check('update', $hackathon)) {
+            abort(403);
+        }
+
         $data = $request->validate([
             'users' => 'required|array',
             'users.*.user_id' => 'required',
@@ -106,12 +110,16 @@ class HackathonStaffController extends Controller
             $invitedUser = User::findOrFail($invitedUserId);
             $invitedUserRole = Role::findOrFail($invitedRoleId);
 
+            if ($hackathon->users()->where('user_id', $invitedUserId)->wherePivotIn('role_id', Role::MEMBER)->exists() && $invitedUser->teams()->where('hackathon_id', $hackathon->id)) {
+                return back()->with('error', 'Пользователь «'.$invitedUser->nickname.'» уже в является участником хакатона');
+            }
+
             if ($hackathon->getAllHackathonStaff()->contains($invitedUser->id)) {
-                return response()->json(['message' => 'Пользователь «' . $invitedUser->nickname . '» уже в команде'], 400);
+                return back()->with('error', 'Пользователь «'.$invitedUser->nickname.'» уже в персонал хакатона');
             }
 
             if (HackathonInvite::where('hackathon_id', $hackathon->id)->where('user_id', $invitedUserId)->exists()) {
-                return response()->json(['message' => 'Приглашение пользователю «' . $invitedUser->nickname . '» уже отправлено'], 400);
+                return back()->with('error', 'Приглашение пользователю «'.$invitedUser->nickname.'» уже отправлено');
             }
 
             $invite = HackathonInvite::create([
@@ -132,13 +140,13 @@ class HackathonStaffController extends Controller
             ]));
         }
 
-        return response()->json(['status' => 'Все отправлено']);
+        return back()->with(['status' => 'Все отправлено']);
     }
 
     public function update(UpdateHackathonStaffRequest $request, Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('update', $hackathon)) {
-            abort(404);
+            abort(403);
         }
 
         $data = $request->validated();
@@ -157,7 +165,7 @@ class HackathonStaffController extends Controller
     public function kick(KickStaffRequest $request, Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('update', $hackathon)) {
-            abort(404);
+            abort(403);
         }
 
         $data = $request->validated();

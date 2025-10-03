@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateTeamRequest;
 use App\Http\Resources\TeamResource;
 use App\Models\Hackathon;
 use App\Models\Position;
+use App\Models\Role;
 use App\Models\Team;
 use App\Models\TeamInvite;
 use App\Models\User;
@@ -15,8 +16,8 @@ use App\Notifications\KickNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class TeamController extends Controller
@@ -72,7 +73,7 @@ class TeamController extends Controller
 
             $newTeam = Team::create([
                 'hackathon_id' => $hackathon->id,
-                'title' => "Команда " . $user->nickname,
+                'title' => 'Команда ' . $user->nickname,
             ]);
 
             $newTeam->users()->attach($user->id, [
@@ -129,13 +130,15 @@ class TeamController extends Controller
             return redirect()->route('hackathons.show', $hackathon)->with('error', 'Сначала вступите в хакатон');
         }
 
-        $oldTeam = $hackathon->teams()
+        $oldTeam = $hackathon
+            ->teams()
             ->whereHas('users', fn($q) => $q->where('user_id', $user->id))
             ->with('teamUsers')
             ->first();
 
         if ($oldTeam && $oldTeam->id !== $team->id) {
-            $isCaptain = $oldTeam->teamUsers()
+            $isCaptain = $oldTeam
+                ->teamUsers()
                 ->where('user_id', $user->id)
                 ->where('position_id', Position::CAPITAN_POSITION)
                 ->exists();
@@ -145,13 +148,15 @@ class TeamController extends Controller
             if ($membersCount === 1) {
                 $oldTeam->delete();
             } elseif ($isCaptain) {
-                $newCaptain = $oldTeam->teamUsers()
+                $newCaptain = $oldTeam
+                    ->teamUsers()
                     ->where('user_id', '!=', $user->id)
                     ->orderBy('created_at')
                     ->first();
 
                 if ($newCaptain) {
-                    $oldTeam->teamUsers()
+                    $oldTeam
+                        ->teamUsers()
                         ->where('id', $newCaptain->id)
                         ->update(['position_id' => Position::CAPITAN_POSITION]);
                 }
@@ -173,7 +178,8 @@ class TeamController extends Controller
 
         $invite->team->users()->attach($user->id, ['position_id' => $invite->position_id]);
 
-        $user->notifications()
+        $user
+            ->notifications()
             ->where('data->url', route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]))
             ->update(['data->is_active' => false]);
 
@@ -182,7 +188,7 @@ class TeamController extends Controller
         return redirect()->route('hackathons.show', $hackathon)->with('status', 'Вы вступили в команду!');
     }
 
-    public function inviteUserById(Request $request, Hackathon $hackathon, Team $team): JsonResponse
+    public function inviteUserById(Request $request, Hackathon $hackathon, Team $team): RedirectResponse
     {
         $data = $request->validate([
             'users' => 'array',
@@ -199,8 +205,8 @@ class TeamController extends Controller
             $invitedPositionId = $user['position_id'];
 
             if (is_string($invitedUserId)) {
-                if (str_contains($invitedUserId, "ID")) {
-                    $invitedUserId = str_replace("ID", "", $invitedUserId);
+                if (str_contains($invitedUserId, 'ID')) {
+                    $invitedUserId = str_replace('ID', '', $invitedUserId);
                     $invitedUserId = (int) $invitedUserId;
                 }
             }
@@ -208,13 +214,16 @@ class TeamController extends Controller
             $invitedUser = User::findOrFail($invitedUserId);
             $invitedUserPosition = Position::findOrFail($invitedPositionId);
 
+            if ($hackathon->users()->where('user_id', $invitedUserId)->wherePivotIn('role_id', Role::STAFF)->exists()) {
+                return back()->with('error', 'Пользователь «' . $invitedUser->nickname . '» уже в является персоналом хакатона');
+            }
+
             if ($team->users()->where('user_id', $invitedUserId)->exists()) {
-                return response()->json(['message' => 'Пользователь «'.$invitedUser->nickname.'» уже в команде'], 400);
+                return back()->with('error', 'Пользователь «' . $invitedUser->nickname . '» уже в команде');
             }
 
             if (TeamInvite::where('team_id', $team->id)->where('user_id', $invitedUserId)->exists()) {
-                return response()->json(['message' => 'Приглашение пользователю «'.$invitedUser->nickname.'» уже отправлено'],
-                    400);
+                return back()->with('error', 'Приглашение пользователю «' . $invitedUser->nickname . '» уже отправлено');
             }
 
             $invite = TeamInvite::create([
@@ -237,6 +246,6 @@ class TeamController extends Controller
             ]));
         }
 
-        return response()->json(['status' => 'Все отправлено']);
+        return back()->with(['status' => 'Все отправлено']);
     }
 }

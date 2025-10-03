@@ -48,4 +48,14 @@ class SupportPolicy
             default => false,
         };
     }
+
+    public function read(User $user, Support $support): bool
+    {
+        $hackathon = $support?->hackathon;
+        return match ($support->type) {
+            Support::BUG => $user->isAdmin(),
+            Support::SUGGESTION, Support::QUESTION => $hackathon && $user->isHackathonStaff($hackathon),
+            default => false,
+        };
+    }
 }
