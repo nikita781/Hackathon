@@ -1,6 +1,6 @@
 <script setup>
 import DropFile from '../../DropFile.vue';
-import {onMounted, ref, toRaw, watch} from "vue";
+import {onBeforeUnmount, onMounted, ref, toRaw, watch} from "vue";
 import { useForm, router } from '@inertiajs/vue3'
 import logs from "../../../../../vendor/laravel/telescope/resources/js/screens/logs/index.vue";
 import {useLangStore} from "@/store/lang.js";
@@ -13,6 +13,11 @@ const props = defineProps({
 const emit = defineEmits(['saved', 'cancel', 'dirty'])
 
 const langStore = useLangStore()
+
+const taskStart = ref('')
+const taskEnd = ref('')
+const evaluationStart = ref('')
+const evaluationEnd = ref('')
 
 const form = useForm({
     title            : '',
@@ -35,6 +40,11 @@ async function save () {
     const data = form.data()
 
     const fd = new FormData()
+
+    fd.append('work_time_start',   localDateTimeToUtcISO(taskStart.value))
+    fd.append('work_time_end',     localDateTimeToUtcISO(taskEnd.value))
+    fd.append('evaluation_start',  localDateTimeToUtcISO(evaluationStart.value))
+    fd.append('evaluation_end',    localDateTimeToUtcISO(evaluationEnd.value))
 
     Object.entries(data).forEach(([key, value]) => {
         if (key === 'tags') {
@@ -152,6 +162,24 @@ function clearFieldError(field) {
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
+
+const rootRef = ref(null)
+
+function onClickOutside(e) {
+    if (!toggleDropdown.value) return
+    const el = rootRef.value
+    if (el && !el.contains(e.target)) {
+        toggleDropdown.value = false
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('mousedown', onClickOutside)
+})
+
+onBeforeUnmount(() => {
+    document.removeEventListener('mousedown', onClickOutside)
+})
 </script>
 
 <template>
@@ -219,7 +247,7 @@ onMounted(async () => {
     </div>
     <div class="dialog__component">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.categories_plural) }}</p>
-        <div class="custom-container">
+        <div class="custom-container" ref="rootRef">
             <div class="custom-select" @click="toggleDropdownVisibility">
                 <div class="selected-option">
                     <span class="dialog__tag_placeholder" v-if="!selectedDirections.length">{{ selectedDirections.length > 0 ? '' : 'Выберите направления' }}</span>
@@ -252,20 +280,20 @@ onMounted(async () => {
             </div>
         </div>
     </div>
+    <div class="dialog__component">
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.registration_deadline) }}</p>
+        <input
+            v-model="form.registration_end"
+            type="datetime-local"
+            id="datepicker"
+            class="dialog__input"
+            :class="{ 'error': form.errors.registration_end }"
+            @input="clearFieldError('registration_end')"
+        />
+        <small v-if="form.errors.registration_end" class="error__text">{{ form.errors.registration_end }}</small>
+    </div>
     <div class="dialog__block">
-        <div class="dialog__component medium">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.registration_deadline) }}</p>
-            <input
-                v-model="form.registration_end"
-                type="datetime-local"
-                id="datepicker"
-                class="dialog__input"
-                :class="{ 'error': form.errors.registration_end }"
-                @input="clearFieldError('registration_end')"
-            />
-            <small v-if="form.errors.registration_end" class="error__text">{{ form.errors.registration_end }}</small>
-        </div>
-        <div class="dialog__component large">
+        <div class="dialog__component" style="width: 100%">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.event_date) }}</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
@@ -273,7 +301,8 @@ onMounted(async () => {
                     <input
                         v-model="form.event_start"
                         type="datetime-local"
-                        class="dialog__input dialog__input_medium"
+                        class="dialog__input"
+                        style="width: 100%"
                         placeholder="Кол-во"
                         :class="{ 'error': form.errors.event_start }"
                         @input="clearFieldError('event_start')"
@@ -284,7 +313,8 @@ onMounted(async () => {
                     <input
                         v-model="form.event_end"
                         type="datetime-local"
-                        class="dialog__input dialog__input_medium"
+                        class="dialog__input"
+                        style="width: 100%"
                         placeholder="Кол-во"
                         :class="{ 'error': form.errors.event_end }"
                         @input="clearFieldError('event_end')"
@@ -298,6 +328,66 @@ onMounted(async () => {
                 {{ form.errors.event_start }}<br>{{ form.errors.event_end }}
             </small>
         </div>
+    </div>
+    <div class="dialog__component">
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.taskTime) }}</p>
+        <div class="dialog__horizontal">
+            <div class="dialog__info" style="width: 100%">
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
+                <input
+                    type="datetime-local"
+                    v-model="taskStart"
+                    class="dialog__input"
+                    :class="{ 'error': form.errors.work_time_start }"
+                    @input="clearFieldError('work_time_start')"
+                    style="width: 100%"
+                >
+            </div>
+
+            <div class="dialog__info" style="width: 100%">
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
+                <input
+                    type="datetime-local"
+                    v-model="taskEnd"
+                    class="dialog__input"
+                    :class="{ 'error': form.errors.work_time_end }"
+                    @input="clearFieldError('work_time_end')"
+                    style="width: 100%"
+                >
+            </div>
+        </div>
+        <small v-if="form.errors.work_time_start" class="error__text">{{ form.errors.work_time_start }}</small>
+        <small v-if="form.errors.work_time_end" class="error__text">{{ form.errors.work_time_end }}</small>
+    </div>
+    <div class="dialog__component">
+        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.reviewTime) }}</p>
+        <div class="dialog__horizontal">
+            <div class="dialog__info" style="width: 100%">
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
+                <input
+                    type="datetime-local"
+                    v-model="evaluationStart"
+                    class="dialog__input"
+                    :class="{ 'error': form.errors.evaluation_start }"
+                    @input="clearFieldError('evaluation_start')"
+                    style="width: 100%"
+                >
+            </div>
+
+            <div class="dialog__info" style="width: 100%">
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
+                <input
+                    type="datetime-local"
+                    v-model="evaluationEnd"
+                    class="dialog__input"
+                    :class="{ 'error': form.errors.evaluation_end }"
+                    @input="clearFieldError('evaluation_end')"
+                    style="width: 100%"
+                >
+            </div>
+        </div>
+        <small v-if="form.errors.evaluation_start" class="error__text">{{ form.errors.evaluation_start }}</small>
+        <small v-if="form.errors.evaluation_end" class="error__text">{{ form.errors.evaluation_end }}</small>
     </div>
     <div class="dialog__block">
         <div class="dialog__component medium">

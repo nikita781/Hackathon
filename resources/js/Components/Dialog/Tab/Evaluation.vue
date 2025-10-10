@@ -21,15 +21,11 @@ const langStore = useLangStore()
 const loaded = ref(false)
 const dirty  = ref(false)
 
-const evaluationStart = ref('')
-const evaluationEnd   = ref('')
 const groups   = ref([])
 const dlgShown = ref(false)
 const editingIdx = ref(null)
 const deleted = []
 const editingId = ref(null)
-
-const errors = ref({ evaluation_start: '', evaluation_end: '' })
 
 function openAdd () {
     editingId.value = null
@@ -79,10 +75,6 @@ const fetchData = async () => {
         // группы критериев (как и было)
         groups.value = data?.hackathon?.original?.criteria_groups ?? []
 
-        const h = data?.hackathon?.original
-        evaluationStart.value = h?.evaluation_start ? h.evaluation_start.slice(0,16) : ''
-        evaluationEnd.value   = h?.evaluation_end   ? h.evaluation_end.slice(0,16)   : ''
-
         await nextTick()
         loaded.value = true
     }catch(e){
@@ -92,50 +84,50 @@ const fetchData = async () => {
 }
 onMounted(fetchData)
 
-/* dirty только после загрузки */
-watch([evaluationStart, evaluationEnd], () => {
-    if (!loaded.value) return
-    if (!dirty.value) {
-        dirty.value = true
-        emit('dirty', true)
+function pad2(n) { return String(n).padStart(2, '0') }
+
+/** "2025-10-01T10:00" (локаль) → "2025-10-01T08:00:00.000Z" (UTC) */
+function localDateTimeToUtcISO(localStr) {
+    if (!localStr) return ''
+    const [datePart, timePart] = localStr.split('T')
+    if (!datePart || !timePart) return ''
+    const [y, m, d] = datePart.split('-').map(Number)
+    const [hh, mm]  = timePart.split(':').map(Number)
+    const local = new Date(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0)
+    return isNaN(local.getTime()) ? '' : local.toISOString()
+}
+
+/** Приводим всё, что похоже на UTC без суффикса, к ISO с Z */
+function normalizeToIsoZ(s) {
+    const t = s.trim()
+    // "YYYY-MM-DD HH:mm[:ss[.ms]]" или "YYYY-MM-DDTHH:mm[:ss[.ms]]"
+    const re = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/
+    if (re.test(t) && !/[zZ]|[+\-]\d{2}:\d{2}$/.test(t)) {
+        return t.replace(' ', 'T') + 'Z'
     }
-})
+    return t
+}
+
+/** "2025-10-01T08:00:00Z" (UTC) → "2025-10-01T10:00" (локаль для <input type="datetime-local">) */
+function utcToLocalInputValue(utcStr) {
+    if (!utcStr) return ''
+    const d = new Date(normalizeToIsoZ(utcStr))
+    if (isNaN(d.getTime())) return ''
+    const y = d.getFullYear()
+    const m = pad2(d.getMonth() + 1)
+    const day = pad2(d.getDate())
+    const hh = pad2(d.getHours())
+    const mm = pad2(d.getMinutes())
+    return `${y}-${m}-${day}T${hh}:${mm}`
+}
 
 async function save() {
-    // чистим старые ошибки
-    errors.value.evaluation_start = ''
-    errors.value.evaluation_end   = ''
-
-    const fd = new FormData()
-    fd.append('evaluation_start', evaluationStart.value || '')
-    fd.append('evaluation_end',   evaluationEnd.value   || '')
-    fd.append('_method','PATCH')
-
-    try {
-        await axios.post(
-            route('hackathons.update', { hackathon: props.hackathonSlug }),
-            fd,
-            { headers:{ 'Content-Type':'multipart/form-data', Accept:'application/json' } }
-        )
-        dirty.value = false
-        emit('dirty', false)
-        emit('saved', { slug: props.hackathonSlug })
-    } catch (e) {
-        if (e?.response?.status === 422) {
-            const err = e.response.data?.errors || {}
-            errors.value.evaluation_start = Array.isArray(err.evaluation_start) ? err.evaluation_start[0] : (err.evaluation_start || '')
-            errors.value.evaluation_end   = Array.isArray(err.evaluation_end)   ? err.evaluation_end[0]   : (err.evaluation_end   || '')
-        } else {
-            console.error('evaluation-save', e?.response ?? e)
-        }
-        // если валидация не прошла — не продолжаем
-        return
-    }
+    dirty.value = false
+    emit('dirty', false)
+    emit('saved', { slug: props.hackathonSlug })
 }
 
 const reset = () => {
-    evaluationStart.value = ''
-    evaluationEnd.value   = ''
     groups.value = []
     deleted.splice(0)
     dlgShown.value   = false
@@ -154,37 +146,6 @@ onMounted(async () => { await langStore.fetchTranslations() })
 </script>
 
 <template>
-    <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.reviewTime) }}</p>
-        <div class="dialog__horizontal">
-            <div class="dialog__info" style="width: 100%">
-                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
-                <input
-                    type="datetime-local"
-                    v-model="evaluationStart"
-                    class="dialog__input"
-                    :class="{ error: !!errors.evaluation_start }"
-                    @input="errors.evaluation_start=''"
-                    style="width: 100%"
-                >
-            </div>
-
-            <div class="dialog__info" style="width: 100%">
-                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
-                <input
-                    type="datetime-local"
-                    v-model="evaluationEnd"
-                    class="dialog__input"
-                    :class="{ error: !!errors.evaluation_end }"
-                    @input="errors.evaluation_end=''"
-                    style="width: 100%"
-                >
-            </div>
-        </div>
-        <small v-if="errors.evaluation_start" class="error__text">{{ errors.evaluation_start }}</small>
-        <small v-if="errors.evaluation_end" class="error__text">{{ errors.evaluation_end }}</small>
-    </div>
-
     <div class="dialog__prize">
         <div class="dialog__title_header">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.evaluationCriteria) }}</p>
