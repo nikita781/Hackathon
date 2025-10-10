@@ -1,9 +1,10 @@
 <script setup>
-import {onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import DropPPTX from "@/Components/DropPPTX.vue";
 import DropFiles from "@/Components/DropFiles.vue";
 import axios from "axios";
 import {useLangStore} from "@/store/lang.js";
+import {router} from "@inertiajs/vue3";
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
@@ -14,15 +15,37 @@ const props = defineProps({
 const emit = defineEmits(['success', 'cancel'])
 
 watch(() => props.oneProject, () => {
-    if (props.oneProject.slug) {
-        if (props.oneProject.video_link) {
-            videoLink.value = props.oneProject.video_link
-        }
-        pptx.value = props.oneProject.presentation_path
-            ? getPresentation(props.oneProject.presentation_path)
-            : null
+    if (!props.oneProject.slug) return
+
+    if (props.oneProject.video_link) {
+        videoLink.value = props.oneProject.video_link
     }
-});
+
+    fetchPresentation(props.oneProject.slug)
+})
+
+async function fetchPresentation(projectSlug) {
+    try {
+        const { data } = await axios.get(
+            route('hackathons.projects.presentation', {
+                hackathon: props.hackathonSlug,
+                project: projectSlug,
+            }),
+            { headers: { Accept: 'application/json' } }
+        )
+        hasServerPresentation.value   = true
+        serverPresentationFilename.value = data?.name || getPresentation(data?.url) || 'presentation'
+        pptx.value = serverPresentationFilename.value
+    } catch (e) {
+        if (e?.response?.status === 404) {
+            hasServerPresentation.value = false
+            serverPresentationFilename.value = null
+            if (typeof pptx.value === 'string') pptx.value = null
+        } else {
+            console.error('fetch-presentation', e?.response ?? e)
+        }
+    }
+}
 
 function getPresentation(presentation_path) {
     if (typeof presentation_path !== 'string' || !presentation_path) return null
@@ -48,6 +71,14 @@ async function getGallery(slugId) {
         console.error('hackathon-load', e?.response ?? e);
     }
 }
+
+const hasServerPresentation = ref(false)
+const serverPresentationFilename = ref(null)
+const pendingDeleteServer = ref(false)
+
+const isLocalFile      = computed(() => pptx.value instanceof File)
+const canClearLocal    = computed(() => isLocalFile.value)
+const canDeleteServer  = computed(() => hasServerPresentation.value && !isLocalFile.value)
 
 const pptx = ref(null);
 const existingGallery = ref([])
@@ -83,16 +114,44 @@ const resetState = () => {
 }
 
 onMounted(() => {
-    if (props.oneProject.slug) {
-        if (props.oneProject.video_link) {
-            videoLink.value = props.oneProject.video_link
-        }
-        pptx.value = props.oneProject.presentation_path
-            ? getPresentation(props.oneProject.presentation_path)
-            : null
-        getGallery(props.oneProject.slug)
+    if (!props.oneProject.slug) return
+
+    if (props.oneProject.video_link) {
+        videoLink.value = props.oneProject.video_link
     }
+
+    fetchPresentation(props.oneProject.slug)
+    getGallery(props.oneProject.slug)
 })
+
+function clearLocalPptx() {
+    pptx.value = hasServerPresentation.value ? serverPresentationFilename.value : null
+    if (errors.value.presentation) delete errors.value.presentation
+}
+
+async function deleteServerPresentation() {
+    if (!hasServerPresentation.value) return
+    pendingDeleteServer.value = true
+    try {
+        await router.delete(
+            route('hackathons.projects.delete-presentation', {
+                hackathon: props.hackathonSlug,
+                project:   props.project.slug,
+            }),
+            { preserveScroll: true }
+        )
+        hasServerPresentation.value = false
+        serverPresentationFilename.value = null
+        if (typeof pptx.value === 'string') {
+            pptx.value = null
+        }
+        if (errors.value.presentation) delete errors.value.presentation
+    } catch (e) {
+        console.error('delete-presentation', e?.response ?? e)
+    } finally {
+        pendingDeleteServer.value = false
+    }
+}
 
 async function submit() {
     pending.value = true
@@ -156,6 +215,25 @@ onMounted(async () => {
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.presentation) }}</p>
             <DropPPTX v-model:file="pptx" />
             <span v-if="errors.presentation" class="error">{{ errors.presentation[0] }}</span>
+            <button
+                v-if="canClearLocal"
+                type="button"
+                class="main__btn dialog__btn"
+                style="width: fit-content"
+                @click="clearLocalPptx"
+            >
+                Очистить файл
+            </button>
+            <button
+                v-if="canDeleteServer"
+                type="button"
+                class="main__btn dialog__btn"
+                style="width: fit-content"
+                :disabled="pending || pendingDeleteServer"
+                @click="deleteServerPresentation"
+            >
+                Удалить презентацию
+            </button>
         </div>
         <div class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.project_gallery) }}</p>

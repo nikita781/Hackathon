@@ -88,6 +88,22 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+function getPreviewProject(project) {
+    const slug = project?.slug ?? project?.id;
+    const hackSlug =
+        props.hackathon?.slug
+
+    if (slug && hackSlug && typeof route === "function") {
+        try {
+            return route("hackathons.projects.image", {
+                hackathon: hackSlug,
+                project: slug,
+            });
+        } catch (_) { /* no-op */ }
+    }
+    return "/project.jpg";
+}
+
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
@@ -109,7 +125,7 @@ onMounted(async () => {
                         <img :src="'/krasnyi-konvert-s-priglasit-karty.jpg'" alt="">
                     </div>
                     <div class="notification__image" v-else>
-                        <img :src="n?.hackathon?.image_path ?? n?.project?.preview_path ?? '/test.jpg'" alt="">
+                        <img :src="n?.hackathon?.image_path ?? n?.project?.slug ? getPreviewProject(n?.project) : '/test.jpg' ?? '/test.jpg'" alt="">
                     </div>
 
 <!--                    <pre>{{n}}</pre>-->

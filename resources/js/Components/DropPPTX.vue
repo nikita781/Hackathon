@@ -51,7 +51,7 @@ function handleFiles(files) {
     emit('update:file', file)
 }
 
-function onInput(e) { handleFiles(e.target.files) }
+function onInput(e) { handleFiles(e.target.files); e.target.value = '' }
 function onDrop(e) { e.preventDefault(); dragging.value = false; handleFiles(e.dataTransfer.files) }
 function onDrag(e) { e.preventDefault(); dragging.value = e.type === 'dragenter' || e.type === 'dragover' }
 

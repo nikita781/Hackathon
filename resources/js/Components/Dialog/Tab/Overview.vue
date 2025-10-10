@@ -48,28 +48,40 @@ const deletedMediaIds = ref([])   // number[]
 
 const nominations = ref(null)
 
-async function fetchHackathon ({ refreshDates = true } = {}) {
+async function fetchHackathon ({
+   refreshEditors = true,
+   refreshPartners = true,
+   refreshNominations = true,
+} = {}) {
     try {
         const { data } = await axios.get(
             route('hackathons.show', { hackathon: props.hackathonSlug }),
             { headers: { Accept: 'application/json' } }
         )
+
         if (props.isEdit) {
-            const hackathon = data.tabs.original[0];
+            const overviewTab = data.tabs.original[0]
+            const h = data.hackathon.original
 
-            const overviewTab = data.tabs.original[0];      // сам таб «Обзор»
-            const h = data.hackathon.original;              // <- сам хакатон
+            if (refreshEditors) {
+                const desc = overviewTab.sections.find(s => s.title === 'Описание')?.content || ''
+                const pln  = overviewTab.sections.find(s => s.title === 'План проведения')?.content || ''
 
-            form.sections[0].content = overviewTab.sections.find(s => s.title === 'Описание')?.content || '';
-            form.sections[1].content = overviewTab.sections.find(s => s.title === 'План проведения')?.content || '';
+                form.sections[0].content = desc
+                form.sections[1].content = pln
+                description.value = desc
+                plan.value = pln
+            }
 
-            description.value = form.sections[0].content
-            plan.value = form.sections[1].content
-
-            await getPartner(hackathon.id);
+            if (refreshPartners) {
+                await getPartner(overviewTab.id)
+            }
         }
 
-        nominations.value = data.hackathon.original.nominations
+        if (refreshNominations) {
+            nominations.value = data.hackathon.original.nominations
+        }
+
         await nextTick()
         loaded.value = true
     } catch (err) {
@@ -95,9 +107,12 @@ onMounted(() => {
     }
 })
 
-function openAdd()              { editingIndex.value = null; dlgShown.value = true ; fetchHackathon({ refreshDates: false }) }
+function openAdd() { editingIndex.value = null; dlgShown.value = true }
 function openEdit(idx)          { editingIndex.value = idx;  dlgShown.value = true }
-function onSaved()              { dlgShown.value = false; fetchHackathon({ refreshDates: false }) }
+function onSaved() {
+    dlgShown.value = false
+    fetchHackathon({ refreshEditors: false, refreshPartners: false, refreshNominations: true })
+}
 
 async function removeNomination(idx){
     const id = nominations.value[idx].id

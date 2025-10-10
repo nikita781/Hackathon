@@ -377,6 +377,7 @@ onBeforeUnmount(() => {
             </div>
         </div>
     </div>
+<!--    <pre>{{form.errors}}</pre>-->
     <div class="dialog__component">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.registration_deadline) }}</p>
         <input
@@ -384,10 +385,12 @@ onBeforeUnmount(() => {
             type="datetime-local"
             id="datepicker"
             class="dialog__input"
-            :class="{ 'error': form.errors.registration_end }"
+            :class="{ 'error': form.errors.registration_end || form.errors.registration_start }"
             @input="clearFieldError('registration_end')"
         />
-        <small v-if="form.errors.registration_end" class="error__text">{{ form.errors.registration_end }}</small>
+        <small v-if="form.errors.registration_start || form.errors.registration_end" class="error__text">
+            {{ form.errors.registration_start }}<br>{{ form.errors.registration_end }}
+        </small>
     </div>
     <div class="dialog__block">
         <div class="dialog__component" style="width: 100%">
