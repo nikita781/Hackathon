@@ -40,8 +40,6 @@ const dirty = ref(false)
 const dlgShown     = ref(false)
 const editingIndex = ref(null)
 
-const taskStart = ref(null)
-const taskEnd   = ref(null)
 const description     = ref(null)
 const plan            = ref(null)
 const partnerLogos    = ref([])
@@ -64,11 +62,6 @@ async function fetchHackathon ({ refreshDates = true } = {}) {
 
             form.sections[0].content = overviewTab.sections.find(s => s.title === 'Описание')?.content || '';
             form.sections[1].content = overviewTab.sections.find(s => s.title === 'План проведения')?.content || '';
-
-            if (refreshDates) {
-                taskStart.value = utcToLocalInputValue(h.work_time_start)
-                taskEnd.value   = utcToLocalInputValue(h.work_time_end)
-            }
 
             description.value = form.sections[0].content
             plan.value = form.sections[1].content
@@ -137,7 +130,7 @@ function clearFieldError(field) {
 }
 
 watch(
-    [description, plan, partnerLogos, taskStart, taskEnd],
+    [description, plan, partnerLogos],
     () => {
         if (!loaded.value) return
         if (!dirty.value) {
@@ -188,34 +181,6 @@ function utcToLocalInputValue(utcStr) {
 async function save () {
     form.sections[0].content = description.value ?? ''
     form.sections[1].content = plan.value        ?? ''
-
-    console.log(taskStart.value)
-
-    const fdHack = new FormData()
-    fdHack.append('work_time_start', localDateTimeToUtcISO(taskStart.value))
-    fdHack.append('work_time_end',   localDateTimeToUtcISO(taskEnd.value))
-    fdHack.append('_method','PATCH')
-
-    form.clearErrors('work_time_start')
-    form.clearErrors('work_time_end')
-
-    try {
-        await axios.post(
-            route('hackathons.update', { hackathon: props.hackathonSlug }),
-            fdHack,
-            { headers:{ 'Content-Type':'multipart/form-data', Accept:'application/json' } }
-        )
-    } catch (e) {
-        if (e.response?.status === 422) {
-            const errors = e.response.data.errors || {}
-            Object.entries(errors).forEach(([field, messages]) => {
-                form.setError(field, Array.isArray(messages) ? messages[0] : String(messages))
-            })
-        } else {
-            console.error('hackathon-update', e)
-        }
-        return
-    }
 
     const fd = new FormData();
     fd.append('title', 'Обзор');
@@ -285,8 +250,6 @@ defineExpose({ save })
 const resetState = () => {
     description.value  = null
     plan.value         = null
-    taskStart.value    = null
-    taskEnd.value      = null
     partnerLogos.value = []
     nominations.value  = []
     dlgShown.value     = false
@@ -314,36 +277,6 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.taskTime) }}</p>
-        <div class="dialog__horizontal">
-            <div class="dialog__info" style="width: 100%">
-                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
-                <input
-                    type="datetime-local"
-                    v-model="taskStart"
-                    class="dialog__input"
-                    :class="{ 'error': form.errors.work_time_start }"
-                    @input="clearFieldError('work_time_start')"
-                    style="width: 100%"
-                >
-            </div>
-
-            <div class="dialog__info" style="width: 100%">
-                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.to) }}</p>
-                <input
-                    type="datetime-local"
-                    v-model="taskEnd"
-                    class="dialog__input"
-                    :class="{ 'error': form.errors.work_time_end }"
-                    @input="clearFieldError('work_time_end')"
-                    style="width: 100%"
-                >
-            </div>
-        </div>
-        <small v-if="form.errors.work_time_start" class="error__text">{{ form.errors.work_time_start }}</small>
-        <small v-if="form.errors.work_time_end" class="error__text">{{ form.errors.work_time_end }}</small>
-    </div>
     <div class="dialog__component" v-if="!isEdit || loaded">
         <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.description) }}</p>
         <EditorField v-model="description" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
