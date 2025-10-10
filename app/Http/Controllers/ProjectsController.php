@@ -15,8 +15,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Arr;
-use Inertia\Inertia;
-use Inertia\Response;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\MediaCannotBeDeleted;
@@ -49,6 +47,7 @@ class ProjectsController extends Controller
     /**
      * @throws FileIsTooBig
      * @throws FileDoesNotExist
+     * @param \Illuminate\Http\Request|\App\Http\Requests\StoreProjectRequest $request
      */
     public function store(StoreProjectRequest $request, Hackathon $hackathon, Team $team): JsonResponse
     {
@@ -84,8 +83,20 @@ class ProjectsController extends Controller
         }
 
         $project->load('team.teamUsers.user', 'team.teamUsers.position');
+
+        $groupCriteries = null;
+
+        if ($hackathon->is_finished) {
+            $groupCriteries = $hackathon->criteriaGroups()->with([
+                'criteria.evaluations' => function($q) use($project) {
+                    $q->where("evaluations.project_id", $project->id);
+                }
+            ])->get();
+        }
+
         return response()->json([
-            'project' => new ProjectResource($project)
+            'project' => new ProjectResource($project),
+            'groupCriteries' => $groupCriteries,
         ]);
     }
 
@@ -93,6 +104,7 @@ class ProjectsController extends Controller
      * @throws FileDoesNotExist
      * @throws FileIsTooBig
      * @throws MediaCannotBeDeleted
+     * @param \Illuminate\Http\Request|\App\Http\Requests\UpdateProjectRequest $request
      */
     public function update(UpdateProjectRequest $request, Hackathon $hackathon, Project $project): RedirectResponse
     {

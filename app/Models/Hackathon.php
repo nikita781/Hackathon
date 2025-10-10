@@ -22,10 +22,29 @@ class Hackathon extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
-        'user_id', 'title', 'format', 'type', 'min_team_size', 'max_team_size', 'registration_start',
-        'registration_end', 'event_start', 'event_end', 'prize_type', 'prize_pool', 'work_time_start', 'work_time_end',
-        'evaluation_start', 'evaluation_end', 'slug', 'status', 'moderated_time', 'published_time', 'blocked_time',
-        'comment', 'is_finished',
+        'user_id',
+        'title',
+        'format',
+        'type',
+        'min_team_size',
+        'max_team_size',
+        'registration_start',
+        'registration_end',
+        'event_start',
+        'event_end',
+        'prize_type',
+        'prize_pool',
+        'work_time_start',
+        'work_time_end',
+        'evaluation_start',
+        'evaluation_end',
+        'slug',
+        'status',
+        'moderated_time',
+        'published_time',
+        'blocked_time',
+        'comment',
+        'is_finished',
     ];
 
     public const STATUSES = [self::STATUS_DRAFT, self::STATUS_MODERATION, self::STATUS_PUBLISHED, self::STATUS_BLOCKED];
@@ -175,6 +194,15 @@ class Hackathon extends Model implements HasMedia
                 $place++;
             }
         });
+    }
+
+    public function getMemberPlace(User $member): int
+    {
+        $team = $this->teams()
+            ->whereHas('teamUsers', fn($q) => $q->where('user_id', $member->id))
+            ->first();
+
+        return $team->place;
     }
 
     /**

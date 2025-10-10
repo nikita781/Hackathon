@@ -135,6 +135,7 @@ class HackathonController extends Controller
     /**
      * @throws FileDoesNotExist
      * @throws FileIsTooBig
+     * @param \Illuminate\Http\Request|\App\Http\Requests\HackathonRequest $request
      */
     public function store(HackathonRequest $request): JsonResponse
     {
@@ -153,7 +154,7 @@ class HackathonController extends Controller
             }
             $hackathon->addMediaFromRequest('image_path')->toMediaCollection('main_image');
         }
-        $hackathon->tags()->sync($request->tags);
+        $hackathon->tags()->sync($request->input('tags'));
 
         foreach (Tab::defaultStructure() as $tabTitle => $sections) {
             $tab = $hackathon->tabs()->create(['title' => $tabTitle]);
@@ -283,7 +284,8 @@ class HackathonController extends Controller
     /**
      * @throws FileDoesNotExist
      * @throws FileIsTooBig
-     */
+     * @param \Illuminate\Http\Request|\App\Http\Requests\HackathonUpdateRequest $request
+    */
     public function update(HackathonUpdateRequest $request, Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('update', $hackathon)) {
@@ -309,8 +311,8 @@ class HackathonController extends Controller
             }
             $hackathon->addMediaFromRequest('image_path')->toMediaCollection('main_image');
         }
-        if (isset($request->tags)) {
-            $hackathon->tags()->sync($request->tags);
+        if ($request->filled('tags')) {
+            $hackathon->tags()->sync($request->input('tags'));
         }
         return back()->with('status', 'Хакатон обновлен');
     }

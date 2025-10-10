@@ -187,6 +187,8 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
+        $project->load('hackathon');
+
         $message = 'Проект "' . $project->title . '" опубликован';
 
         if ($captain = $project->team->captain()) {
@@ -223,6 +225,8 @@ class AdminController extends Controller
             'published_time' => Carbon::now(),
             'comment' => $comment
         ]);
+
+        $project->load('hackathon');
 
         $message = 'Проект "' . $project->title . '" отклонен';
 

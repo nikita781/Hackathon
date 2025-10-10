@@ -3,18 +3,15 @@
 namespace App\Notifications;
 
 use App\Http\Resources\HackathonResource;
-use App\Http\Resources\ProjectResource;
 use App\Models\Hackathon;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class HackathonFinishedNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(public Hackathon $hackathon) {}
+    public function __construct(public Hackathon $hackathon, public int $place) {}
 
     public function via(object $notifiable): array
     {
@@ -25,7 +22,7 @@ class HackathonFinishedNotification extends Notification
     {
         return [
             'title' => 'Хакатон завершён',
-            'description' => "Хакатон «{$this->hackathon->title}» завершился. Узнайте своё место!",
+            'description' => "Хакатон «{$this->hackathon->title}» завершился. Вы заняли {$this->place}-е место.",
             'hackathon' => new HackathonResource($this->hackathon),
             'url' => route('hackathons.show', $this->hackathon),
             'send_at' => now()->toDateString(),
