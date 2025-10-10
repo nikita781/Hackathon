@@ -198,7 +198,7 @@ class AdminController extends Controller
                 'title' => $message,
                 'send_at' => now()->toDateString(),
                 'hackathon' => null,
-                'project' => $project,
+                'project' => new ProjectResource($project),
             ]));
         }
 
@@ -237,7 +237,7 @@ class AdminController extends Controller
                 'title' => $message,
                 'send_at' => now()->toDateString(),
                 'hackathon' => null,
-                'project' => $project,
+                'project' => new ProjectResource($project),
             ]));
         }
 
