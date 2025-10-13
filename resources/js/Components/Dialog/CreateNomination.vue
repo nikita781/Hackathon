@@ -84,7 +84,7 @@ const resetForm = () => {
     winnersInput.value = 1
 }
 
-async function submit(){
+function submit(){
     const payload = {
         title : form.title.trim(),
         prize : form.prize.trim(),
@@ -92,28 +92,28 @@ async function submit(){
             .map((p,i)=>({ place:i+1, prize:p.trim() }))
     }
 
-    try{
-        if (form.id){                                         /* UPDATE */
-            await router.patch(
-                route('hackathons.nominations.update',
-                    { hackathon: props.hackathonSlug, nomination: form.id }),
+        const opts = {
+          preserveScroll: true,
+          onSuccess: () => {        // вызывается после успешного ответа сервера
+            emit('saved')
+            resetForm()
+            close()
+          },
+          onError: (err) => console.error('nomination-save-error', err),
+        }
+        if (form.id){
+          router.patch(
+              route('hackathons.nominations.update', { hackathon: props.hackathonSlug, nomination: form.id }),
+              payload,
+              opts
+          )
+        } else {
+            router.post(
+                route('hackathons.nominations.store', { hackathon: props.hackathonSlug }),
                 payload,
-                { preserveScroll:true }
-            )
-        } else {                                              /* CREATE */
-            await router.post(
-                route('hackathons.nominations.store',
-                    { hackathon: props.hackathonSlug }),
-                payload,
-                { preserveScroll:true }
+                opts
             )
         }
-        emit('saved')
-        resetForm()
-        close()
-    } catch (err){
-        console.error('nomination-save-error', err?.response ?? err)
-    }
 }
 
 function capitalizeFirstLetter(str) {

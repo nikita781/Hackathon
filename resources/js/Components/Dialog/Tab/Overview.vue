@@ -79,7 +79,12 @@ async function fetchHackathon ({
         }
 
         if (refreshNominations) {
-            nominations.value = data.hackathon.original.nominations
+            const raw = data.hackathon.original.nominations || []
+            nominations.value = raw.map(n => ({
+                ...n,
+                    distribution: Array.isArray(n.distribution) ? n.distribution : (n.distribution && typeof n.distribution === 'object' ? Object.values(n.distribution).sort((a,b)=>(a.place??0)-(b.place??0))
+                            : [])
+                }))
         }
 
         await nextTick()
@@ -109,9 +114,9 @@ onMounted(() => {
 
 function openAdd() { editingIndex.value = null; dlgShown.value = true }
 function openEdit(idx)          { editingIndex.value = idx;  dlgShown.value = true }
-function onSaved() {
+async function onSaved() {
     dlgShown.value = false
-    fetchHackathon({ refreshEditors: false, refreshPartners: false, refreshNominations: true })
+    await fetchHackathon({ refreshEditors: false, refreshPartners: false, refreshNominations: true })
 }
 
 async function removeNomination(idx){
@@ -322,7 +327,8 @@ onMounted(async () => {
                         </div>
                     </div>
                     <p class="dialog__prize_text">{{ n.prize || capitalizeFirstLetter(langStore.translations.no_amount) }}</p>
-                    <p class="dialog__prize_number">{{ capitalizeFirstLetter(langStore.translations.winnersCount) }}: {{ n.distribution.length }}</p>
+                    <p class="dialog__prize_number">{{ capitalizeFirstLetter(langStore.translations.winnersCount) }}: {{ Array.isArray(n.distribution) ? n.distribution.length : Object.keys(n.distribution || {}).length }}
+                    </p>
                 </div>
             </div>
         </div>

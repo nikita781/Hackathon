@@ -127,7 +127,7 @@ watch(() => langStore.translations,
             capitalizeFirstLetter(langStore.translations.rules),
             capitalizeFirstLetter(langStore.translations.contacts),
             capitalizeFirstLetter(langStore.translations.evaluation),
-            capitalizeFirstLetter(langStore.translations.awards)
+            'Достижения'
         ];
     }
 )
@@ -148,7 +148,7 @@ onMounted(async () => {
         capitalizeFirstLetter(langStore.translations.rules),
         capitalizeFirstLetter(langStore.translations.contacts),
         capitalizeFirstLetter(langStore.translations.evaluation),
-        capitalizeFirstLetter(langStore.translations.awards)
+        'Достижения'
     ];
     initMode()
 });
