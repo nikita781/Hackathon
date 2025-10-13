@@ -127,7 +127,7 @@ onMounted(async () => {
 <template>
     <div class="project__form">
         <div class="dialog__component">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectPreview) }}</p>
+            <p class="dialog__title large">{{ capitalizeFirstLetter(langStore.translations.projectPreview) }}</p>
             <div class="project__form_preview">
                 <div class="hackathon__my-project__item">
                     <div class="hackathon__my-project__item_header">
@@ -150,7 +150,7 @@ onMounted(async () => {
         </div>
 <!--        <pre>>{{props.oneProject}}</pre>-->
         <div class="dialog__component">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rulesAndConditions) }}</p>
+            <p class="dialog__title large">{{ capitalizeFirstLetter(langStore.translations.rulesAndConditions) }}</p>
             <div class="dialog__checkbox" style="margin-top: 10px">
                 <div>
                     <div @click="toggleAgree" class="custom-checkbox" :class="agree ? 'active' : ''">

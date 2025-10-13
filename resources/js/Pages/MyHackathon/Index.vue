@@ -220,10 +220,10 @@ async function publishHackathon(hackathon) {
         <div class="my-hackathon__tabs_cont">
             <div class="my-hackathon__tabs">
                 <p :class="['my-hackathon__tabs_item',{active:activeTab===0}]" @click="setActiveTab(0)">
-                    {{ langStore.translations.upcoming_plural }}
+                    {{ capitalizeFirstLetter(langStore.translations.upcoming_plural) }}
                 </p>
                 <p :class="['my-hackathon__tabs_item',{active:activeTab===1}]" @click="setActiveTab(1)">
-                    {{ langStore.translations.past_plural }}
+                    {{ capitalizeFirstLetter(langStore.translations.past_plural) }}
                 </p>
                 <div
                     class="slider"

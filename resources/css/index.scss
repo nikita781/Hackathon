@@ -192,13 +192,13 @@ $x-big: 1829.98px;
             align-items: center;
             gap: 10px;
             p {
-                font-size: 22px;
+                font-size: 20px;
                 font-family: 'Cera';
                 @media screen and (max-width: $large){
-                    font-size: 18px;
+                    font-size: 16px;
                 }
                 @media screen and (max-width: $small){
-                    font-size: 14px;
+                    font-size: 12px;
                 }
             }
         }

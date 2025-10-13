@@ -88,22 +88,32 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-function getPreviewProject(project) {
-    const slug = project?.slug ?? project?.id;
-    const hackSlug =
-        props.hackathon?.slug
+const isNonEmptyStr = v => typeof v === 'string' && v.trim().length > 0
 
-    if (slug && hackSlug && typeof route === "function") {
-        try {
-            return route("hackathons.projects.image", {
-                hackathon: hackSlug,
-                project: slug,
-            });
-        } catch (_) { /* no-op */ }
+function getNotificationImage(n) {
+    // 1) Для приглашений — фиксированная картинка
+    if (n?.notification_type === 'InviteNotification') {
+        return '/krasnyi-konvert-s-priglasit-karty.jpg'
     }
-    return "/project.jpg";
-}
 
+    // 2) Приоритет — картинка хакатона, если она есть и не пустая
+    const hackImg = n?.hackathon?.image_path
+    if (isNonEmptyStr(hackImg)) {
+        return hackImg
+    }
+
+    // 3) Затем превью проекта, если можем его корректно построить
+    if (n?.project?.slug && n?.project?.hackathon?.slug) {
+        const preview = getPreviewProject(n.project)
+        // Если getPreviewProject вернул свою заглушку '/project.jpg', используем общий фолбэк
+        if (preview && preview !== '/project.jpg') {
+            return preview
+        }
+    }
+
+    // 4) Общий фолбэк
+    return '/test.jpg'
+}
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
@@ -121,14 +131,11 @@ onMounted(async () => {
                 <div v-for="n in props.notifications.data" :key="n.id"
                      class="notification__item"
                      >
-                    <div class="notification__image" v-if="n?.notification_type === 'InviteNotification'">
-                        <img :src="'/krasnyi-konvert-s-priglasit-karty.jpg'" alt="">
-                    </div>
-                    <div class="notification__image" v-else>
-                        <img :src="n?.hackathon?.image_path ?? n?.project?.slug ? getPreviewProject(n?.project) : '/test.jpg' ?? '/test.jpg'" alt="">
+                    <div class="notification__image">
+                        <img :src="getNotificationImage(n)" alt="">
                     </div>
 
-<!--                    <pre>{{n}}</pre>-->
+<!--                    <pre>{{n?.hackathon?.image_path}}</pre>-->
 
                     <div class="notification__content">
                         <div class="notification__main">

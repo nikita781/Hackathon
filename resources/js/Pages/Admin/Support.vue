@@ -20,9 +20,23 @@ const showFilter = ref(false);
 const showAnswer = ref(false);
 const messageAnswer = ref([]);
 
-function openAnswer(message) {
-    messageAnswer.value = message;
-    showAnswer.value = true;
+const locallyReadIds = ref(new Set())
+const isUnread = (s) => !(s?.is_read || locallyReadIds.value.has(s.id))
+
+async function markAsReadIfNeeded(s) {
+    if (!s?.id || !isUnread(s)) return
+    try {
+        await axios.patch(route('support.read', s.id), {}, { headers: { Accept: 'application/json' } })
+        // locallyReadIds.value = new Set([...locallyReadIds.value, s.id])
+    } catch (e) {
+        console.error('Не удалось пометить сообщение прочитанным', e)
+    }
+}
+
+async function openAnswer(message) {
+    messageAnswer.value = message
+    showAnswer.value = true
+    await markAsReadIfNeeded(message)
 }
 
 // серверные пропсы
@@ -119,7 +133,9 @@ function formatDate(s, { utc = false } = {}) {
 }
 
 function openRow(s) {
-    router.visit(`/admin/support/${s.id}`)
+    markAsReadIfNeeded(s).finally(() => {
+        router.visit(`/admin/support/${s.id}`)
+    })
 }
 
 onMounted(async () => {
@@ -214,8 +230,11 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="s in rows" :key="s.id" @click="openAnswer(s)">
-                        <td>{{ s.creator.nickname }}</td>
+                    <tr v-for="s in rows" :key="s.id" @click="openAnswer(s)" :class="{ unread: isUnread(s) }">
+                        <td>
+                            <span class="unread-dot" v-if="isUnread(s)"></span>
+                            {{ s.creator.nickname }}
+                        </td>
                         <td>
                             <p v-if="s.type === 'bug'">Сообщение об ошибке</p>
                             <p v-if="s.type === 'suggestion'">Предложение</p>
@@ -273,5 +292,27 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
 
 .admin__table_clickable tbody tr:hover td {
     background: rgba(0, 0, 0, .04);
+}
+
+.admin__table_clickable tbody tr.unread td {
+    background: rgba(232, 0, 36, .06); /* нежно-красная подложка */
+    font-weight: 600;
+    transition: background .2s ease;
+}
+.admin__table_clickable tbody tr.unread:hover td {
+    background: rgba(232, 0, 36, .10);
+}
+.admin__table_clickable tbody tr.unread td:first-child {
+    position: relative;
+}
+.admin__table_clickable tbody tr.unread td:first-child::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 4px;
+    background: #E80024;        /* фирменный красный */
+    border-radius: 4px;
 }
 </style>

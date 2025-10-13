@@ -51,6 +51,7 @@ const oneProject = ref(null)
 const isOne = computed(() => !!oneProject.value)
 const oneGallery = ref([])
 const galleryLoading = ref(false)
+let projectAbortCtrl = null
 
 let abortCtrl = null
 let searchTimer = null
@@ -75,6 +76,25 @@ const mapSortToBackend = (v) => {
         case 'titleA': return 'titleA'
         case 'titleD': return 'titleD'
         default:       return undefined
+    }
+}
+
+async function fetchOneProject (slug) {
+    if (!slug) return
+    if (projectAbortCtrl) projectAbortCtrl.abort()
+    projectAbortCtrl = new AbortController()
+    try {
+        const { data } = await axios.get(
+            route('hackathons.projects.show', { hackathon: props.hackathon.slug, project: slug }),
+            +       { headers: { Accept: 'application/json' }, signal: projectAbortCtrl.signal }
+        )
+        if (data?.project) {
+            oneProject.value = data.project
+            await loadProjectGallery({ slug: data.project.slug })
+        }
+        console.log(data)
+    } catch (e) {
+        if (e?.name !== 'CanceledError') console.error('project-show', e?.response ?? e)
     }
 }
 
@@ -213,6 +233,7 @@ const getPreviewSrc = (p) => {
 function openProject(p) {
     oneProject.value = p
     loadProjectGallery(p)
+    fetchOneProject(p?.slug ?? p?.id)
 }
 function closeProject() {
     oneProject.value = null

@@ -93,7 +93,7 @@ async function save () {
 
         fd.append(key, value ?? '')
     })
-    // console.log('FD →', [...fd.entries()].map(([k, v]) => [k, v instanceof File ? v.name : v]));
+    console.log('FD →', [...fd.entries()].map(([k, v]) => [k, v instanceof File ? v.name : v]));
 
     try {
         const { data: res } = await axios.post(

@@ -124,12 +124,8 @@ $x-big: 1829.98px;
             padding: 17px 16px;
             color: #FFFFFF;
             letter-spacing: 1px;
-            font-size: 22px;
+            font-size: 17px;
             cursor: pointer;
-
-            @media screen and (max-width: $x-large){
-                font-size: 18px;
-            }
             @media screen and (max-width: $medium){
                 font-size: 15px;
                 padding: 13px;
@@ -364,7 +360,7 @@ $x-big: 1829.98px;
                 }
             }
             &_text {
-                font-size: 22px;
+                font-size: 20px;
                 font-family: "Cera";
                 @media screen and (max-width: $small){
                     font-size: 18px;
@@ -431,7 +427,7 @@ $x-big: 1829.98px;
             gap: 4px;
         }
         &_name {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 600;
             letter-spacing: 1px;
         }
@@ -685,7 +681,7 @@ $x-big: 1829.98px;
     }
     &__participants {
         &_text {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             margin-bottom: -20px;
         }
