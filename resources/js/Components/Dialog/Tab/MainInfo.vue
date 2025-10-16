@@ -34,6 +34,39 @@ const form = useForm({
     tags             : [],
 })
 
+const pad2 = (n) => String(n).padStart(2, '0')
+function toLocalInput(d) {
+    const y = d.getFullYear()
+    const m = pad2(d.getMonth() + 1)
+    const day = pad2(d.getDate())
+    const hh = pad2(d.getHours())
+    const mm = pad2(d.getMinutes())
+    return `${y}-${m}-${day}T${hh}:${mm}`
+}
+function shiftLocalByMinutes(localStr, deltaMin) {
+    if (!localStr) return ''
+    const [datePart, timePart] = localStr.split('T')
+    if (!datePart || !timePart) return ''
+    const [y, m, d] = datePart.split('-').map(Number)
+    const [hh, mm]  = timePart.split(':').map(Number)
+    const dt = new Date(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0)
+    if (isNaN(dt.getTime())) return ''
+    dt.setMinutes(dt.getMinutes() + deltaMin)
+    return toLocalInput(dt)
+}
+
+watch(() => form.event_start, (v) => {
+    if (v && !taskStart.value) {
+        taskStart.value = shiftLocalByMinutes(v, +1)
+    }
+})
+
+watch(() => form.event_end, (v) => {
+    if (v && !evaluationEnd.value) {
+        evaluationEnd.value = shiftLocalByMinutes(v, -1)
+    }
+})
+
 const DATE_FIELDS = ['registration_end', 'event_start', 'event_end'];
 
 function localDateTimeToUtcISO(localStr) {

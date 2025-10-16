@@ -27,7 +27,7 @@ async function markAsReadIfNeeded(s) {
     if (!s?.id || !isUnread(s)) return
     try {
         await axios.patch(route('support.read', s.id), {}, { headers: { Accept: 'application/json' } })
-        // locallyReadIds.value = new Set([...locallyReadIds.value, s.id])
+        locallyReadIds.value = new Set([...locallyReadIds.value, s.id])
     } catch (e) {
         console.error('Не удалось пометить сообщение прочитанным', e)
     }

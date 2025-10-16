@@ -131,6 +131,10 @@ onMounted(async () => {
                     <div class="hackathon__my-project__item_header">
                         <img :src="previews[project.slug]" v-if="previews[project.slug]" alt="">
                         <div class="skeleton-loader" v-if="!previews[project.slug]"></div>
+                        <p class="main__card_photo-status black" v-if="project.status === 1">Черновик</p>
+                        <p class="main__card_photo-status yellow" v-if="project.status === 2">На рассмотрении</p>
+                        <p class="main__card_photo-status red" v-else-if="project.status === 4">Отклонен</p>
+                        <p class="main__card_photo-status green" v-else-if="project.status === 3">Принят</p>
                         <button
                             type="button"
                             class="main__btn_main hackathon__my-project__team_svg"

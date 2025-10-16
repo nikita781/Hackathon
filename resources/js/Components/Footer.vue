@@ -24,7 +24,7 @@ function capitalizeFirstLetter(str) {
                 </div>
                 <div class="footer__header_logo">
                     <div class="footer__header_social">
-                        <svg width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <a href="https://t.me/foncode" target="_blank"><svg width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clip-path="url(#clip0_681_250)">
                                 <path d="M16 32.5C24.8366 32.5 32 25.3366 32 16.5C32 7.66344 24.8366 0.5 16 0.5C7.16344 0.5 0 7.66344 0 16.5C0 25.3366 7.16344 32.5 16 32.5Z" fill="#E80024"/>
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M7.24248 16.3312C11.9068 14.299 15.0171 12.9593 16.5733 12.312C21.0167 10.4638 21.94 10.1428 22.5418 10.1322C22.6741 10.1299 22.9701 10.1627 23.1618 10.3182C23.3236 10.4496 23.3682 10.627 23.3895 10.7515C23.4108 10.876 23.4373 11.1597 23.4162 11.3814C23.1755 13.9114 22.1336 20.0509 21.6035 22.8846C21.3792 24.0836 20.9376 24.4856 20.5101 24.5249C19.5809 24.6104 18.8754 23.9109 17.9754 23.321C16.5672 22.3979 15.7717 21.8233 14.4048 20.9225C12.8251 19.8815 13.8491 19.3093 14.7494 18.3743C14.985 18.1296 19.0789 14.4059 19.1581 14.0681C19.168 14.0258 19.1772 13.8684 19.0836 13.7852C18.9901 13.7021 18.852 13.7305 18.7524 13.7531C18.6111 13.7852 16.3615 15.2721 12.0035 18.2139C11.3649 18.6524 10.7866 18.866 10.2683 18.8548C9.69706 18.8425 8.59814 18.5318 7.78121 18.2662C6.77921 17.9405 5.98284 17.7683 6.05218 17.2152C6.0883 16.927 6.48507 16.6324 7.24248 16.3312Z" fill="white"/>
@@ -34,8 +34,8 @@ function capitalizeFirstLetter(str) {
                                     <rect width="32" height="32" fill="white" transform="translate(0 0.5)"/>
                                 </clipPath>
                             </defs>
-                        </svg>
-                        <svg width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        </svg></a>
+                        <a href="https://vk.com/foncode" target="_blank"><svg width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clip-path="url(#clip0_681_254)">
                                 <mask id="mask0_681_254" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="32" height="33">
                                     <path d="M31.8416 0.5H0.158447V32.5H31.8416V0.5Z" fill="white"/>
@@ -50,7 +50,7 @@ function capitalizeFirstLetter(str) {
                                     <rect width="32" height="32" fill="white" transform="translate(0 0.5)"/>
                                 </clipPath>
                             </defs>
-                        </svg>
+                        </svg></a>
                     </div>
                     <img src="/logo.png" alt="Logo" class="footer__logo" />
                 </div>

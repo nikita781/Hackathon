@@ -42,6 +42,15 @@ const isOne      = computed(() => !!oneProject.value)
 const oneGallery = ref([])
 const galleryLoading = ref(false)
 
+const groupCriteries = ref([])
+
+const getReadonlyScore = (criterion) => {
+    const arr = Array.isArray(criterion?.evaluations) ? criterion.evaluations : []
+    if (!arr.length) return 0
+    const avg = arr.reduce((s,e)=> s + Number(e?.score || 0), 0) / arr.length
+    return Math.round(avg)
+}
+
 let abortCtrl = null
 let searchTimer = null
 
@@ -253,12 +262,27 @@ const getPreviewSrc = (p) => {
 }
 
 function openProject(p) {
-    oneProject.value = p
+    fetchOneProject(p?.slug ?? p?.id)
     loadProjectGallery(p)
 }
 function closeProject() {
     oneProject.value = null
     oneGallery.value = []
+    groupCriteries.value = []
+}
+
+async function fetchOneProject (slugOrId) {
+    if (!slugOrId) return
+    try {
+        const { data } = await axios.get(
+            route('hackathons.projects.show', { hackathon: props.hackathon.slug, project: slugOrId }),
+            { headers: { Accept: 'application/json' } }
+        )
+        if (data?.project) oneProject.value = data.project
+        groupCriteries.value = Array.isArray(data?.groupCriteries) ? data.groupCriteries : []
+    } catch (e) {
+        console.error('project-show', e?.response ?? e)
+    }
 }
 
 async function loadProjectGallery (project) {
@@ -517,6 +541,25 @@ onMounted(async () => {
                     <div class="hackathon__oneProject_media-item">
                         <Hyperlink />
                         <a :href="links.video" target="_blank" rel="noopener noreferrer">{{ capitalizeFirstLetter(langStore.translations.videoLink) }}</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hackathon__tab_container" v-if="groupCriteries?.length">
+                <p class="hackathon__my-project__title">Итоговая оценка</p>
+                <div v-for="group in groupCriteries" :key="group.id" class="dialog__prize">
+                    <div class="dialog__eva_container">
+                        <p class="dialog__eva">{{ group.title }}</p>
+                    </div>
+                    <div v-for="criterion in group.criteria" :key="criterion.id" class="dialog__eva_item">
+                        <p class="dialog__eva_title">{{ criterion.title }}</p>
+                        <div class="dialog__eva_number dialog__eva_number-readonly">
+                            <p
+                                v-for="n in criterion.max_score"
+                                :key="n"
+                                :class="{ active: n <= getReadonlyScore(criterion) }"
+                            >{{ n }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
