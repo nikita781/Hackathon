@@ -171,12 +171,33 @@ async function publishHackathon(hackathon) {
                 { hackathon: hackathon.slug })
             )
         // toast.success('Хакатон отправлен на модерацию', { position:'top-right', timeout:5000 })
+        fetchHackathonsNow(1)
     } else {
         commentText.value = getCommentText(hackathon.comment)
         resendSlug.value = hackathon.slug;
         showResend.value = true;
     }
 }
+
+
+function fetchHackathonsNow(page = 1) {
+    router.get(
+        route('my-hackathons'),
+        buildQuery(page),
+        { preserveState: true, preserveScroll: true, replace: true }
+    )
+}
+
+watch(showDialog, (isOpen, wasOpen) => {
+    if (wasOpen && !isOpen) {
+        fetchHackathonsNow(1)
+    }
+})
+watch(showResend, (isOpen, wasOpen) => {
+    if (wasOpen && !isOpen) {
+        fetchHackathonsNow(1)
+    }
+})
 
 </script>
 

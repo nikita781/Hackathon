@@ -166,11 +166,37 @@ onMounted(async () => {
 
 <template>
     <div class="dialog__component" v-if="!isEdit || loaded">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rules) }}</p>
+        <div class="dialog__title_container">
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rules) }}</p>
+            <div class="help-tt" aria-label="help">
+                <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#000" />
+                    <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="1" fill="#000"/>
+                </svg>
+                <div class="tooltipSquare"></div>
+                <div class="tooltip">
+                    <p>Это блок правил мероприятия</p>
+                </div>
+            </div>
+        </div>
         <EditorField v-model="rulesText" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.files) }}</p>
+        <div class="dialog__title_container">
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.files) }}</p>
+            <div class="help-tt" aria-label="help">
+                <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#000" />
+                    <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="1" fill="#000"/>
+                </svg>
+                <div class="tooltipSquare"></div>
+                <div class="tooltip">
+                    <p>Это блок для добавления файлов и дальнейшего скачивания на вкладке Правила</p>
+                </div>
+            </div>
+        </div>
         <DropPDFs
             :files="rulesFiles"
             @update:files="handleFilesUpdate"

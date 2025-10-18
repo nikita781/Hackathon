@@ -90,31 +90,36 @@ function go (pageUrl) {
 }
 
 async function onApprove() {
-    console.log(oneProject.value.slug)
     try {
-        const response = await axios.post(route('admin.moderation.projectsaccept', { project: oneProject.value.slug }, {
-            comment: ''
-        }));
-
-        toast.success("Проект принят!");
+        await axios.post(
+            route('admin.moderation.projectsaccept', { project: oneProject.value.slug }),
+            { comment: '' }
+        );
+        toast.success('Проект принят!');
     } catch (e) {
-        toast.error("Ошибка при принятии проекта.");
+        toast.error('Ошибка при принятии проекта.');
         console.error('approve-error', e?.response ?? e);
     }
 }
 
 async function onReject() {
     try {
-        const response = await axios.post(route('admin.moderation.projectsreject', { project: oneProject.value.slug }, {
-            comment: ''
-        }));
-
-        toast.success("Проект отклонен!");
+        await axios.post(
+            route('admin.moderation.projectsreject', { project: oneProject.value.slug }),
+            { comment: '' }
+        );
+        toast.success('Проект отклонен!');
     } catch (e) {
-        toast.error("Ошибка при отклонении проекта.");
+        toast.error('Ошибка при отклонении проекта.');
         console.error('reject-error', e?.response ?? e);
     }
 }
+
+watch(showView, (isOpen, wasOpen) => {
+    if (wasOpen && !isOpen) {
+        router.reload({ only: ['projects'] })
+    }
+})
 
 /** Дебаунс поиска */
 const debouncedSearch = debounce(() => runSearch(), 400);

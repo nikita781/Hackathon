@@ -8,6 +8,7 @@ import { useToast } from 'vue-toastification';
 import DialogCreateHackathon from "@/Components/Dialog/CreateHackathon.vue";
 import RejectHackathon from "@/Components/Dialog/RejectHackathon.vue";
 import {useLangStore} from "@/store/lang.js";
+import {router} from "@inertiajs/vue3";
 
 const props = defineProps({
     hackathon: Object,
@@ -140,27 +141,25 @@ const closeMenu = ()=>{
 
 
 function acceptHackathon() {
-    if (!props.can.hackathon.moderate) {
-        return
-    }
+    if (!props.can.hackathon.moderate) return
 
-    axios.post(route('admin.moderation.hackathonsaccept', { hackathon: props.hackathon.slug }), {
-        comment: ''
-    })
-        .then((response) => {
-            toast.success('Хакатон принят и опубликован', {
-                position: 'top-right',
-                timeout: 5000,
-            })
+    axios.post(route('admin.moderation.hackathonsaccept', { hackathon: props.hackathon.slug }), { comment: '' })
+        .then(() => {
+            toast.success('Хакатон принят и опубликован', { position: 'top-right', timeout: 5000 })
+            // подтянуть свежие данные только для нужных пропсов
+            router.reload({only: ['hackathon', 'can', 'tabs']});
         })
         .catch((error) => {
             console.error('Ошибка при принятии хакатона:', error)
-            toast.error('Не удалось принять хакатон', {
-                position: 'top-right',
-                timeout: 5000,
-            })
+            toast.error('Не удалось принять хакатон', { position: 'top-right', timeout: 5000 })
         })
 }
+
+watch(showRejectHackathon, (isOpen, wasOpen) => {
+    if (wasOpen && !isOpen) {
+        router.reload({ only: ['hackathon', 'can', 'tabs'] })
+    }
+})
 
 function formatDate(s, { utc = false } = {}) {
     if (!s) return "—"

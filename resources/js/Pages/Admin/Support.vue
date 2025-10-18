@@ -138,6 +138,12 @@ function openRow(s) {
     })
 }
 
+watch(showAnswer, (isOpen, wasOpen) => {
+    if (wasOpen && !isOpen) {
+        router.reload({ only: ['support'] })
+    }
+})
+
 onMounted(async () => {
     await langStore.fetchTranslations()
     await nextTick(() => {

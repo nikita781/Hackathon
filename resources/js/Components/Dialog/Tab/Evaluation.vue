@@ -111,7 +111,20 @@ onMounted(async () => { await langStore.fetchTranslations() })
 <template>
     <div class="dialog__prize">
         <div class="dialog__title_header">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.evaluationCriteria) }}</p>
+            <div class="dialog__title_container">
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.evaluationCriteria) }}</p>
+                <div class="help-tt" aria-label="help">
+                    <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#000" />
+                        <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                        <circle cx="12" cy="8" r="1" fill="#000"/>
+                    </svg>
+                    <div class="tooltipSquare"></div>
+                    <div class="tooltip">
+                        <p>Это блок для добавления критериев оценки проектов мероприятия</p>
+                    </div>
+                </div>
+            </div>
             <div class="dialog__plus" @click="openAdd">
                 <svg width="17" height="16" viewBox="0 0 17 16"><path d="M13.17 7.33H9.17V3.33a.67.67 0 0 0-1.34 0v4H3.83a.67.67 0 0 0 0 1.34h4v4a.67.67 0 0 0 1.34 0v-4h4a.67.67 0 0 0 0-1.34Z" fill="#E80024"/></svg>
                 <p>{{ capitalizeFirstLetter(langStore.translations.addMore) }}</p>

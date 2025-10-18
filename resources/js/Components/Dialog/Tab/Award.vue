@@ -109,7 +109,20 @@ function capitalizeFirstLetter(str) {
 <template>
     <div class="dialog__prize">
         <div class="dialog__title_header">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.awards_all_participants) }}</p>
+            <div class="dialog__title_container">
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.awards_all_participants) }}</p>
+                <div class="help-tt" aria-label="help">
+                    <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#000" />
+                        <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                        <circle cx="12" cy="8" r="1" fill="#000"/>
+                    </svg>
+                    <div class="tooltipSquare"></div>
+                    <div class="tooltip">
+                        <p>Это блок достижений, получаемых после завершения хакатона</p>
+                    </div>
+                </div>
+            </div>
             <div class="dialog__plus" @click="openAdd('forAll')">
                 <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z" fill="#E80024"/>
@@ -133,7 +146,20 @@ function capitalizeFirstLetter(str) {
     </div>
     <div class="dialog__prize">
         <div class="dialog__title_header">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.awards_prize_places) }}</p>
+            <div class="dialog__title_container">
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.awards_prize_places) }}</p>
+                <div class="help-tt" aria-label="help">
+                    <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#000" />
+                        <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                        <circle cx="12" cy="8" r="1" fill="#000"/>
+                    </svg>
+                    <div class="tooltipSquare"></div>
+                    <div class="tooltip">
+                        <p>Это блок достижений, получаемых после завершения хакатона</p>
+                    </div>
+                </div>
+            </div>
             <div class="dialog__plus" @click="openAdd('forPrize')">
                 <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z" fill="#E80024"/>

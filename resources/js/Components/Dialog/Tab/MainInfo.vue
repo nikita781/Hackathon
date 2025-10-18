@@ -242,7 +242,22 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_title) }}</p>
+        <div class="dialog__title_container">
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_title) }} *</p>
+
+            <div class="help-tt" aria-label="help">
+                <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#000" />
+                    <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="1" fill="#000"/>
+                </svg>
+                <div class="tooltipSquare"></div>
+                <div class="tooltip">
+                    <p>Это название мероприятия, отображаемое на карточке и странице хакатона</p>
+                </div>
+            </div>
+        </div>
+
         <input
             v-model="form.title"
             type="text"
@@ -270,7 +285,7 @@ onBeforeUnmount(() => {
             </select>
         </div>
         <div v-if="form.type === 'team'" class="dialog__component">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.team_size) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.team_size) }} *</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
                     <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
@@ -304,7 +319,20 @@ onBeforeUnmount(() => {
         </div>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.categories_plural) }}</p>
+        <div class="dialog__title_container">
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.categories_plural) }}</p>
+            <div class="help-tt" aria-label="help">
+                <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#000" />
+                    <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="1" fill="#000"/>
+                </svg>
+                <div class="tooltipSquare"></div>
+                <div class="tooltip">
+                    <p>Это теги мероприятия, помогающие его поиску</p>
+                </div>
+            </div>
+        </div>
         <div class="custom-container" ref="rootRef">
             <div class="custom-select" @click="toggleDropdownVisibility">
                 <div class="selected-option">
@@ -339,7 +367,21 @@ onBeforeUnmount(() => {
         </div>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.registration_deadline) }}</p>
+        <div class="dialog__title_container">
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.registration_deadline) }} *</p>
+            <div class="help-tt" aria-label="help">
+                <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#000" />
+                    <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="1" fill="#000"/>
+                </svg>
+                <div class="tooltipSquare"></div>
+                <div class="tooltip">
+                    <p>Это дата, по истечению которой, прекратиться прием участников на мероприятие</p>
+                    <p>Стартовая дата наступит в момент публикации мероприятия</p>
+                </div>
+            </div>
+        </div>
         <input
             v-model="form.registration_end"
             type="datetime-local"
@@ -352,7 +394,20 @@ onBeforeUnmount(() => {
     </div>
     <div class="dialog__block">
         <div class="dialog__component" style="width: 100%">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.event_date) }}</p>
+            <div class="dialog__title_container">
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.event_date) }} *</p>
+                <div class="help-tt" aria-label="help">
+                    <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#000" />
+                        <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                        <circle cx="12" cy="8" r="1" fill="#000"/>
+                    </svg>
+                    <div class="tooltipSquare"></div>
+                    <div class="tooltip">
+                        <p>Это интервал дат мероприятия, включающий в себя решение задания и оценку проектов</p>
+                    </div>
+                </div>
+            </div>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
                     <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
@@ -388,7 +443,20 @@ onBeforeUnmount(() => {
         </div>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.taskTime) }}</p>
+        <div class="dialog__title_container">
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.taskTime) }} *</p>
+            <div class="help-tt" aria-label="help">
+                <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#000" />
+                    <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="1" fill="#000"/>
+                </svg>
+                <div class="tooltipSquare"></div>
+                <div class="tooltip">
+                    <p>Это интервал дат, в который участник (команда) может отправить свое решение на проверку</p>
+                </div>
+            </div>
+        </div>
         <div class="dialog__horizontal">
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
@@ -418,7 +486,20 @@ onBeforeUnmount(() => {
         <small v-if="form.errors.work_time_end" class="error__text">{{ form.errors.work_time_end }}</small>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.reviewTime) }}</p>
+        <div class="dialog__title_container">
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.reviewTime) }} *</p>
+            <div class="help-tt" aria-label="help">
+                <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#000" />
+                    <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="1" fill="#000"/>
+                </svg>
+                <div class="tooltipSquare"></div>
+                <div class="tooltip">
+                    <p>Это интервал дат, в который судьи оценивают работы участников</p>
+                </div>
+            </div>
+        </div>
         <div class="dialog__horizontal">
             <div class="dialog__info" style="width: 100%">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.from) }}</p>
@@ -456,7 +537,7 @@ onBeforeUnmount(() => {
             </select>
         </div>
         <div class="dialog__component large">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.prize_fund) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.prize_fund) }} *</p>
             <input
                 v-model="form.prize_pool"
                 type="text" class="dialog__input"
@@ -468,7 +549,21 @@ onBeforeUnmount(() => {
         </div>
     </div>
     <div class="dialog__component">
-        <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_card_preview) }}</p>
+        <div class="dialog__title_container">
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_card_preview) }} *</p>
+            <div class="help-tt" aria-label="help">
+                <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#000" />
+                    <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="1" fill="#000"/>
+                </svg>
+                <div class="tooltipSquare"></div>
+                <div class="tooltip">
+                    <p>Это картинка для карточки хакатона и страницы мероприятия</p>
+                    <p>JPG/PNG, до 5 МБ</p>
+                </div>
+            </div>
+        </div>
         <DropFile v-model:file="form.image_path" />
         <small v-if="form.errors.image_path" class="error__text">{{ form.errors.image_path }}</small>
     </div>

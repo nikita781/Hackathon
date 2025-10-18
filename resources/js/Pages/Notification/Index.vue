@@ -98,7 +98,8 @@ function getNotificationImage(n) {
 
     // 2) Приоритет — картинка хакатона, если она есть и не пустая
     const hackImg = n?.hackathon?.image_path
-    if (isNonEmptyStr(hackImg)) {
+    // console.log(n)
+    if (hackImg) {
         return hackImg
     }
 
@@ -114,7 +115,24 @@ function getNotificationImage(n) {
     // 4) Общий фолбэк
     return '/test.jpg'
 }
-onMounted(async () => {
+
+function getPreviewProject(project) {
+    const slug = project?.slug ?? project?.id;
+    const hackSlug =
+        project?.hackathon?.slug
+
+    if (slug && hackSlug && typeof route === "function") {
+        try {
+            return route("hackathons.projects.image", {
+                hackathon: hackSlug,
+                project: slug,
+            });
+        } catch (_) { /* no-op */ }
+    }
+    return "/project.jpg";
+}
+
+    onMounted(async () => {
     await langStore.fetchTranslations()
 });
 </script>
@@ -127,10 +145,11 @@ onMounted(async () => {
 <!--            <pre>{{props.notifications}}</pre>-->
             <h2 class="notification__title">{{ capitalizeFirstLetter(langStore.translations.notifications) }}</h2>
             <div class="notification__container">
-<!--                <pre>{{props.notifications}}</pre>-->
+<!--                <pre>{{props.notifications.data}}</pre>-->
                 <div v-for="n in props.notifications.data" :key="n.id"
                      class="notification__item"
                      >
+<!--                    <pre>{{n}}</pre>-->
                     <div class="notification__image">
                         <img :src="getNotificationImage(n)" alt="">
                     </div>
