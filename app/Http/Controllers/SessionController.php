@@ -45,7 +45,7 @@ class SessionController extends Controller
         return redirect()->route('home');
     }
 
-    public function loginGet()
+    public function loginGet(): RedirectResponse
     {
         return redirect()->route('home')->with('status', "Сначала авторизуйтесь в системе");
     }
