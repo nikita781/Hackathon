@@ -190,7 +190,12 @@ async function submit() {
     } catch (e) {
         console.error(e)
         if (e.response?.status === 422) {
-            errors.value = e.response.data.errors
+            const errs = e.response.data?.errors || {}
+            for (const k in errs) {
+                const base = k.split('.')[0]
+                if (!errs[base]) errs[base] = errs[k]
+            }
+            errors.value = errs
         }
     } finally {
         pending.value = false
@@ -214,7 +219,7 @@ onMounted(async () => {
         <div class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.presentation) }}</p>
             <DropPPTX v-model:file="pptx" />
-            <span v-if="errors.presentation" class="error">{{ errors.presentation[0] }}</span>
+            <span v-if="errors.presentation" class="error__text">{{ errors.presentation[0] }}</span>
             <button
                 v-if="canClearLocal"
                 type="button"
@@ -242,7 +247,9 @@ onMounted(async () => {
                 @update:files="handleFilesUpdate"
                 @deleting-ids="handleDeletingIds"
             />
-            <span v-if="errors.gallery" class="error">{{ errors.gallery[0] }}</span>
+            <span v-if="errors.gallery || errors['gallery.0']" class="error__text">
+                {{ (errors.gallery ?? errors['gallery.0'])[0] }}
+            </span>
         </div>
         <div class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectLink) }}</p>
@@ -252,7 +259,7 @@ onMounted(async () => {
                 class="dialog__input"
                 :placeholder="capitalizeFirstLetter(langStore.translations.videoLinkHint)"
             >
-            <span v-if="errors.video_link" class="error">{{ errors.video_link[0] }}</span>
+            <span v-if="errors.video_link" class="error__text">{{ errors.video_link[0] }}</span>
         </div>
         <div class="project__form_btns">
             <button

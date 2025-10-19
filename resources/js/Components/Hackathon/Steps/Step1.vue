@@ -196,7 +196,7 @@ onMounted(async () => {
                 class="dialog__input"
                 :placeholder="capitalizeFirstLetter(langStore.translations.enterProjectTitle)"
             >
-            <span v-if="errors.title" class="error">{{ errors.title[0] }}</span>
+            <span v-if="errors.title" class="error__text">{{ errors.title[0] }}</span>
         </div>
         <div class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.shortDescription) }}</p>
@@ -206,12 +206,12 @@ onMounted(async () => {
                 class="dialog__textarea"
                 :placeholder="capitalizeFirstLetter(langStore.translations.enterProjectDescription)"
             />
-            <span v-if="errors.description" class="error">{{ errors.description[0] }}</span>
+            <span v-if="errors.description" class="error__text">{{ errors.description[0] }}</span>
         </div>
         <div class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectPreview) }}</p>
             <DropFile v-model:file="preview" />
-            <span v-if="errors.preview" class="error">{{ errors.preview[0] }}</span>
+            <span v-if="errors.preview" class="error__text">{{ errors.preview[0] }}</span>
         </div>
         <div class="project__form_btns">
             <button

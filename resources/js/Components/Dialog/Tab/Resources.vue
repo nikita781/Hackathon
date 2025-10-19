@@ -68,8 +68,27 @@ const form = useForm({
     delete_media_ids : []
 })
 
+const filesErrors = computed(() => {
+    const out = [];
+    for (const [k, v] of Object.entries(form.errors ?? {})) {
+        if (k.startsWith('files') || k.startsWith('delete_media_ids')) {
+            out.push(Array.isArray(v) ? v.join(' ') : String(v));
+        }
+    }
+    return out;
+});
+
+function applyBackendErrors(errs) {
+    form.clearErrors();
+    if (!errs || typeof errs !== 'object') return;
+    Object.entries(errs).forEach(([field, messages]) => {
+        form.setError(field, Array.isArray(messages) ? messages.join(' ') : String(messages));
+    });
+}
+
 watch(description,     v  => { form.sections[0].content = v ?? '' })
 watch(resourcesFiles,  arr => { form.files = arr }, { deep:true })
+watch(description, () => form.clearErrors('sections.0.content'))
 
 watch(
     [description, resourcesFiles],
@@ -118,6 +137,10 @@ async function save () {
         emit('dirty', false)
         emit('saved', { slug : props?.hackathonSlug })
     } catch (err) {
+        if (err?.response?.status === 422) {
+            applyBackendErrors(err.response.data?.errors || {})
+            return
+        }
         console.error('tab-errors', err?.response ?? err)
     }
 }
@@ -142,12 +165,19 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+function clearFilesErrors() {
+    Object.keys(form.errors).forEach(k => {
+        if (k.startsWith('files') || k.startsWith('delete_media_ids')) form.clearErrors(k)
+    })
+}
+
 const handleFilesUpdate = (mixed) => {
     resourcesFiles.value = mixed
     // если где-то используете form.files — оставьте только новые файлы:
     form.files = mixed.filter(x => x instanceof File)
+    clearFilesErrors()
 }
-const handleDeletingIds = (ids) => { deletedMediaIds.value = ids }
+const handleDeletingIds = (ids) => { deletedMediaIds.value = ids; clearFilesErrors() }
 
 onMounted(async () => {
     await langStore.fetchTranslations()
@@ -171,6 +201,9 @@ onMounted(async () => {
             </div>
         </div>
         <EditorField v-model="description" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
+        <small v-if="form.errors['sections.0.content']" class="error__text">
+          {{ form.errors['sections.0.content'] }}
+        </small>
     </div>
     <div class="dialog__component">
         <div class="dialog__title_container">
@@ -192,6 +225,9 @@ onMounted(async () => {
             @update:files="handleFilesUpdate"
             @deleting-ids="handleDeletingIds"
         />
+        <div v-if="filesErrors.length" style="margin-top:6px">
+          <small v-for="(msg,i) in filesErrors" :key="i" class="error__text">{{ msg }}</small>
+        </div>
     </div>
     <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ langStore.translations.cansel }}</button>

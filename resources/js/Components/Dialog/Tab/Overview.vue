@@ -34,6 +34,25 @@ const form = useForm({
     delete_media_ids: []
 });
 
+const partnersErrors = computed(() => {
+    const out = [];
+    for (const [k, v] of Object.entries(form.errors ?? {})) {
+        if (k.startsWith('partners') || k.startsWith('files') || k.startsWith('delete_media_ids')) {
+            out.push(typeof v === 'string' ? v : String(v));
+        }
+    }
+    return out;
+});
+
+function applyBackendErrors(errs) {
+    form.clearErrors();
+    if (!errs || typeof errs !== 'object') return;
+    Object.entries(errs).forEach(([field, messages]) => {
+        const msg = Array.isArray(messages) ? messages.join(' ') : String(messages);
+        form.setError(field, msg);
+    });
+}
+
 const loaded = ref(false)
 const dirty = ref(false)
 
@@ -234,17 +253,26 @@ async function save () {
         newPartnerFiles.value = [];
         deletedMediaIds.value = [];
     } catch (e) {
-        const errs = e?.response?.data?.errors
-        if (errs) console.error(humanizeErrors(errs, newPartnerFiles.value))
-        console.log('tab-errors', e)
-        console.log(e.response?.data)
-        return
+        if (e?.response?.status === 422) {
+            applyBackendErrors(e.response.data?.errors || {});
+            return;
+        }
+        console.error('tab-errors', e?.response ?? e);
+        return;
     }
     dirty.value = false
     loaded.value = true
     emit('dirty', false)
     emit('saved', { slug : props?.hackathonSlug })
 }
+
+watch(description, () => form.clearErrors('sections.0.content'));
+watch(plan,        () => form.clearErrors('sections.1.content'));
+watch(newPartnerFiles, () => {
+    Object.keys(form.errors).forEach(k => {
+        if (k.startsWith('partners') || k.startsWith('files')) form.clearErrors(k);
+    });
+});
 
 function humanizeErrors(errors, files) {
     if (!errors || typeof errors !== 'object') return 'Ошибка валидации'
@@ -313,6 +341,8 @@ onMounted(async () => {
             </div>
         </div>
         <EditorField v-model="description" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
+        <small v-if="form.errors['sections.0.content']" class="error__text">{{ form.errors['sections.0.content'] }}
+        </small>
     </div>
     <div class="dialog__component" v-if="!isEdit || loaded">
         <div class="dialog__title_container">
@@ -330,6 +360,8 @@ onMounted(async () => {
             </div>
         </div>
         <EditorField v-model="plan" :placeholder="capitalizeFirstLetter(langStore.translations.enterPlan)"/>
+        <small v-if="form.errors['sections.1.content']" class="error__text">{{ form.errors['sections.1.content'] }}
+        </small>
     </div>
     <div class="dialog__prize">
         <div class="dialog__title_header">
@@ -399,6 +431,8 @@ onMounted(async () => {
             @update:files="handleFilesUpdate"
             @deleting-ids="handleDeletingIds"
         />
+        <div v-if="partnersErrors.length" style="margin-top:6px"><small v-for="(msg, i) in partnersErrors" :key="i" class="error__text">{{ msg }}</small>
+        </div>
     </div>
     <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>

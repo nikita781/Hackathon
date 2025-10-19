@@ -110,7 +110,7 @@ onMounted(async () => {
                 class="dialog__textarea"
                 :placeholder="capitalizeFirstLetter(langStore.translations.projectStory)"
             />
-            <span v-if="errors.about" class="error">{{ errors.about[0] }}</span>
+            <span v-if="errors.about" class="error__text">{{ errors.about[0] }}</span>
         </div>
         <div class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.techStack) }}</p>
@@ -120,7 +120,7 @@ onMounted(async () => {
                 class="dialog__input"
                 :placeholder="capitalizeFirstLetter(langStore.translations.techStackHint)"
             >
-            <span v-if="errors.stack" class="error">{{ errors.stack[0] }}</span>
+            <span v-if="errors.stack" class="error__text">{{ errors.stack[0] }}</span>
         </div>
         <div class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectLink) }}</p>
@@ -130,7 +130,7 @@ onMounted(async () => {
                 class="dialog__input"
                 :placeholder="capitalizeFirstLetter(langStore.translations.projectLinkHint)"
             >
-            <span v-if="errors.project_link" class="error">{{ errors.project_link[0] }}</span>
+            <span v-if="errors.project_link" class="error__text">{{ errors.project_link[0] }}</span>
         </div>
         <div class="project__form_btns">
             <button

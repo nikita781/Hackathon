@@ -69,6 +69,26 @@ const form = useForm({
 })
 watch(rulesFiles, files => { form.files = files })
 
+const filesErrors = computed(() => {
+        const out = []
+        for (const [k, v] of Object.entries(form.errors ?? {})) {
+            if (k.startsWith('files') || k.startsWith('delete_media_ids')) {
+                out.push(Array.isArray(v) ? v.join(' ') : String(v))
+            }
+        }
+        return out
+    })
+
+function applyBackendErrors(errs) {
+    form.clearErrors()
+    if (!errs || typeof errs !== 'object') return
+    Object.entries(errs).forEach(([field, messages]) => {
+        form.setError(field, Array.isArray(messages) ? messages.join(' ') : String(messages))
+    })
+}
+
+watch(rulesText, () => form.clearErrors('sections.0.content'))
+
 watch(
     [rulesText, rulesFiles],
     () => {
@@ -115,8 +135,18 @@ async function save () {
         emit('dirty', false)
         emit('saved', { slug : props?.hackathonSlug })
     } catch (err) {
+        if (err?.response?.status === 422) {
+            applyBackendErrors(err.response.data?.errors || {})
+            return
+        }
         console.log('rules-errors', err?.response ?? err)
     }
+}
+
+function clearFilesErrors() {
+    Object.keys(form.errors).forEach(k => {
+        if (k.startsWith('files') || k.startsWith('delete_media_ids')) form.clearErrors(k)
+    })
 }
 
 defineExpose({ save })
@@ -143,8 +173,9 @@ const handleFilesUpdate = (mixed) => {
     rulesFiles.value = mixed
     // если где-то используете form.files — оставьте только новые файлы:
     form.files = mixed.filter(x => x instanceof File)
+    clearFilesErrors()
 }
-const handleDeletingIds = (ids) => { deletedMediaIds.value = ids }
+const handleDeletingIds = (ids) => { deletedMediaIds.value = ids; clearFilesErrors() }
 
 watch(
     [rulesFiles],
@@ -181,6 +212,9 @@ onMounted(async () => {
             </div>
         </div>
         <EditorField v-model="rulesText" :placeholder="capitalizeFirstLetter(langStore.translations.enterDescription)"/>
+        <small v-if="form.errors['sections.0.content']" class="error__text">
+          {{ form.errors['sections.0.content'] }}
+        </small>
     </div>
     <div class="dialog__component">
         <div class="dialog__title_container">
@@ -202,6 +236,9 @@ onMounted(async () => {
             @update:files="handleFilesUpdate"
             @deleting-ids="handleDeletingIds"
         />
+        <div v-if="filesErrors.length" style="margin-top:6px">
+          <small v-for="(msg,i) in filesErrors" :key="i" class="error__text">{{ msg }}</small>
+        </div>
     </div>
     <div class="dialog__btns" v-if="!isAdmin">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
