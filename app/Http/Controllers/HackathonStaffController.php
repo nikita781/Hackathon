@@ -110,7 +110,7 @@ class HackathonStaffController extends Controller
             $invitedUser = User::findOrFail($invitedUserId);
             $invitedUserRole = Role::findOrFail($invitedRoleId);
 
-            if ($hackathon->users()->where('user_id', $invitedUserId)->wherePivotIn('role_id', Role::MEMBER)->exists() && $invitedUser->teams()->where('hackathon_id', $hackathon->id)) {
+            if ($hackathon->users()->where('user_id', $invitedUserId)->wherePivot('role_id', Role::MEMBER)->exists() && $invitedUser->teams()->where('hackathon_id', $hackathon->id)) {
                 return back()->with('error', 'Пользователь «'.$invitedUser->nickname.'» уже в является участником хакатона');
             }
 

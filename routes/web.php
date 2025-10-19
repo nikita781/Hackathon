@@ -26,6 +26,7 @@ Route::get('/lang/{locale}.json', [LanguageController::class, 'json'])->name('la
 // REGISTER ROUTES
 Route::middleware('guest')->group(function () {
     Route::post('/login', [SessionController::class, 'login'])->name('login')->middleware('throttle:10,1');
+    Route::get('/login', [SessionController::class, 'loginGet'])->name('login-get');
 });
 
 // HOME

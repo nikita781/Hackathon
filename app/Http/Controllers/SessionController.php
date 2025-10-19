@@ -45,6 +45,11 @@ class SessionController extends Controller
         return redirect()->route('home');
     }
 
+    public function loginGet()
+    {
+        return redirect()->route('home')->with('status', "Сначала авторизуйтесь в системе");
+    }
+
     private function syncUserFromMainSite(string $login): ?User
     {
         $externalUser = DB::connection('main_site')
