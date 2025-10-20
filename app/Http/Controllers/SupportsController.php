@@ -98,6 +98,8 @@ class SupportsController extends Controller
 
         $user = auth()->user();
 
+        $request->validated();
+
         $type = $request->input('type');
         $message = $request->input('message');
 
