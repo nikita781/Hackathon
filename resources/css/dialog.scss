@@ -29,11 +29,31 @@ $x-big: 1829.98px;
         gap: 30px;
         overflow-y: auto;
         &_small {
+            max-width: 675px !important;
+        }
+        &_x-small {
+            max-width: 430px !important;
+        }
+    }
+    &__container_custom {
+        width: 100%;
+        max-width: 1063px;
+        max-height: 85vh;
+        background-color: white;
+        border-radius: 10px;
+        overflow-y: auto;
+        &_small {
             max-width: 675px;
         }
         &_x-small {
             max-width: 430px;
         }
+    }
+    &__inner {
+        padding: 30px 26px;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
         @media screen and (max-width: $small){
             gap: 20px;
             padding: 20px;

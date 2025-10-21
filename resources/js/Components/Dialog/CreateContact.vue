@@ -52,14 +52,41 @@ onMounted( async () => {
             </div>
 
             <div class="dialog__component">
-                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.contactTitle) }}</p>
+                <div class="dialog__title_container">
+                    <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.contactTitle) }}</p>
+                    <div class="help-tt" aria-label="help">
+                        <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="#000" />
+                            <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                            <circle cx="12" cy="8" r="1" fill="#000"/>
+                        </svg>
+                        <div class="tooltipSquare"></div>
+                        <div class="tooltip">
+                            <p>Это название контакта, то что будет отображаться на кнопке перехода по ссылке</p>
+                        </div>
+                    </div>
+                </div>
                 <input v-model="form.title" class="dialog__input" :placeholder="capitalizeFirstLetter(langStore.translations.enterContactTitle)" />
             </div>
 
             <div class="dialog__component">
-                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.contactInfo) }}</p>
+                <div class="dialog__title_container">
+                    <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.contactInfo) }}</p>
+                    <div class="help-tt" aria-label="help">
+                        <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="#000" />
+                            <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                            <circle cx="12" cy="8" r="1" fill="#000"/>
+                        </svg>
+                        <div class="tooltipSquare"></div>
+                        <div class="tooltip">
+                            <p>Это поле для ввода ссылки или телефона в формате 89999999999</p>
+                        </div>
+                    </div>
+                </div>
                 <input v-model="form.value" class="dialog__input"
-                       :placeholder="capitalizeFirstLetter(langStore.translations.enterContactInfo)" />
+                       :placeholder="capitalizeFirstLetter(langStore.translations.enterContactInfo)"
+                       @keydown.enter.prevent="submit"/>
             </div>
 
             <div class="dialog__btns">

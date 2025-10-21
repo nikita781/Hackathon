@@ -12,7 +12,7 @@ const props = defineProps({
     isEdit   : { type:Boolean, default:false },
     admin      : { type:Boolean, default:() => false },
 })
-const emit = defineEmits(['saved', 'cancel', 'dirty'])
+const emit = defineEmits(['saved', 'cancel', 'dirty', 'saving'])
 
 const isAdmin = computed(() => !!props.admin)
 
@@ -103,6 +103,7 @@ watch(
 )
 
 async function save () {
+    emit('saving', true)
     try {
         const fd = new FormData()
 
@@ -142,6 +143,8 @@ async function save () {
             return
         }
         console.error('tab-errors', err?.response ?? err)
+    } finally {
+        emit('saving', false)
     }
 }
 

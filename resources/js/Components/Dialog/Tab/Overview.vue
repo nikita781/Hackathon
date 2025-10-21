@@ -17,7 +17,7 @@ const props = defineProps({
     isEdit   : { type:Boolean, default:false },
     admin      : { type:Boolean, default:() => false },
 })
-const emit = defineEmits(['saved', 'cancel', 'dirty'])
+const emit = defineEmits(['saved', 'cancel', 'dirty', 'saving'])
 
 const isAdmin = computed(() => !!props.admin)
 
@@ -221,6 +221,8 @@ async function save () {
     form.sections[0].content = description.value ?? ''
     form.sections[1].content = plan.value        ?? ''
 
+    emit('saving', true)
+
     const fd = new FormData();
     fd.append('title', 'Обзор');
     form.sections.forEach((s, si) => {
@@ -259,6 +261,8 @@ async function save () {
         }
         console.error('tab-errors', e?.response ?? e);
         return;
+    }finally {
+        emit('saving', false)
     }
     dirty.value = false
     loaded.value = true

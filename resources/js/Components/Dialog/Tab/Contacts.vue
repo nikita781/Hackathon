@@ -14,7 +14,7 @@ const props = defineProps({
     isEdit        : { type:Boolean, default:false },
     admin      : { type:Boolean, default:() => false },
 })
-const emit = defineEmits(['saved','cancel','dirty'])
+const emit = defineEmits(['saved','cancel','dirty', 'saving'])
 
 const isAdmin = computed(() => !!props.admin)
 
@@ -98,6 +98,7 @@ async function fetchContacts(){
 
 /* ------------ сохранение ------------ */
 async function save(){
+    emit('saving', true)
     const fd = new FormData()
     fd.append('title', 'Контакты')
 
@@ -122,6 +123,8 @@ async function save(){
         emit('saved', { slug: props.hackathonSlug })
     } catch (err){
         console.error('contacts-tab-errors', err?.response ?? err)
+    } finally {
+        emit('saving', false)
     }
 }
 

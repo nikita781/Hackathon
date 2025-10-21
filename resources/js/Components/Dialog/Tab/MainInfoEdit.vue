@@ -11,7 +11,7 @@ const props = defineProps({
     isEdit   : { type:Boolean, default:false },
     admin      : { type:Boolean, default:() => false },
 })
-const emit = defineEmits(['saved','cancel','dirty'])
+const emit = defineEmits(['saved','cancel','dirty', 'saving'])
 
 const isAdmin = computed(() => !!props.admin)
 
@@ -186,6 +186,8 @@ function localDateTimeToUtcISO(localStr) {
 async function save(){
     form.clearErrors()
 
+    emit('saving', true)
+
     const fd = new FormData()
     const data = form.data()
 
@@ -238,6 +240,8 @@ async function save(){
 
             console.error('hackathon-update', e)
         }
+    }finally {
+        emit('saving', false)
     }
 }
 

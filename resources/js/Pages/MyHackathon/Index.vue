@@ -15,6 +15,7 @@ const props = defineProps({
     user: Object,
     can: Object,
     upcomingHackathons: Object,
+    currentHackathons: Object,
     pastHackathons: Object,
     query: Object,
     tags: Object,
@@ -50,7 +51,13 @@ const toast = useToast();
 const search    = ref(usePage().props.query?.q     ?? '')
 const sort      = ref(usePage().props.query?.order ?? 'dateA')
 
-const activeTab = ref(usePage().props.query?.tab   === 'past' ? 1 : 0)
+const activeTab = ref(
+    usePage().props.query?.tab === 'past'
+        ? 2
+        : usePage().props.query?.tab === 'ongoing'
+            ? 1
+            : 0
+)
 
 function setActiveTab(idx) {
     if (activeTab.value === idx) return
@@ -59,9 +66,9 @@ function setActiveTab(idx) {
 }
 
 const hackathons = computed(() => {
-    return activeTab.value === 0
-        ? props.upcomingHackathons
-        : props.pastHackathons
+    if (activeTab.value === 0) return props.upcomingHackathons
+    if (activeTab.value === 1) return props.currentHackathons
+    return props.pastHackathons
 })
 
 function go(pageUrl) {
@@ -72,7 +79,7 @@ function go(pageUrl) {
 const buildQuery = (page = 1) => ({
     q     : search.value      || undefined,
     order : sort.value        || undefined,
-    tab   : activeTab.value===0 ? 'upcoming' : 'past',
+    tab   : activeTab.value === 0 ? 'upcoming' : activeTab.value === 1 ? 'ongoing' : 'past',
     page  : page
 })
 
@@ -244,6 +251,9 @@ watch(showResend, (isOpen, wasOpen) => {
                     {{ capitalizeFirstLetter(langStore.translations.upcoming_plural) }}
                 </p>
                 <p :class="['my-hackathon__tabs_item',{active:activeTab===1}]" @click="setActiveTab(1)">
+                    {{ capitalizeFirstLetter(langStore.translations.current_plural ?? 'Текущие') }}
+                </p>
+                <p :class="['my-hackathon__tabs_item',{active:activeTab===2}]" @click="setActiveTab(2)">
                     {{ capitalizeFirstLetter(langStore.translations.past_plural) }}
                 </p>
                 <div
@@ -251,9 +261,9 @@ watch(showResend, (isOpen, wasOpen) => {
                     :style="sliderStyle"
                 ></div>
             </div>
-<!--            <pre>{{hackathons.data}}</pre>-->
+<!--            <pre>{{hackathons}}</pre>-->
             <div class="main__cards" style="margin-top: 40px">
-                <a v-for="hackathon in hackathons.data" :key="hackathon.id" class="main__card" :href="`/hackathons/${hackathon.slug}`">
+                <a v-for="hackathon in hackathons?.data" :key="hackathon.id" class="main__card" :href="`/hackathons/${hackathon.slug}`">
                     <div class="main__card_photo">
                         <img :src="hackathon.image_path" alt="Photo">
                         <p class="main__card_photo-status black" v-if="hackathon.status === 1 && props.can.create">
@@ -343,7 +353,7 @@ watch(showResend, (isOpen, wasOpen) => {
                     </div>
                 </a>
             </div>
-            <Pagination :links="hackathons.meta.links" @navigate="go" style="margin-top: 30px" />
+<!--            <Pagination :links="hackathons?.meta.links" @navigate="go" style="margin-top: 30px" />-->
             <DialogCreateHackathon v-model="showDialog" :tags="props.tags ?? []"/>
             <ResendHackathon v-model="showResend" :hackathon-slug="resendSlug" :comment-text="commentText" />
         </div>

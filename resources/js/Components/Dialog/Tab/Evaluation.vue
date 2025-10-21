@@ -12,7 +12,7 @@ const props = defineProps({
     allTags       : { type:Array, default:() => [] },
     admin      : { type:Boolean, default:() => false },
 })
-const emit = defineEmits(['saved', 'cancel', 'dirty'])
+const emit = defineEmits(['saved', 'cancel', 'dirty', 'saving'])
 
 const isAdmin = computed(() => !!props.admin)
 

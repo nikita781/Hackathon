@@ -20,6 +20,7 @@ const { copy, copied } = useClipboard();
 
 // поле «пригласить по ID»
 const userIds = ref([{ user_id: "", role_id: null }]);
+const rowErrors = ref({})
 
 // роли подтягиваем один раз при открытии
 async function getRoles() {
@@ -68,10 +69,10 @@ const removeUserField = (index) => {
 
 const inviteUsers = async () => {
     try {
-        // приводим к числам по возможности
+        rowErrors.value = {}
         const payload = {
             users: userIds.value.map(u => ({
-                user_id: u.user_id ? Number(u.user_id) : null,
+                user_id: (u.user_id ?? '').toString().trim(),
                 role_id: u.role_id ? Number(u.role_id) : null,
             })),
         };
@@ -85,7 +86,15 @@ const inviteUsers = async () => {
 
         close();
     } catch (error) {
-        console.error("invite-by-id-error", error);
+        if (error?.response?.status === 422) {
+            const errs = error.response.data?.errors || {}
+            for (const [k, msgs] of Object.entries(errs)) {
+                const m = k.match(/^users\.(\d+)\.user_id$/)
+                if (m) rowErrors.value[Number(m[1])] = msgs?.[0] ?? ''
+            }
+        } else {
+            console.error("invite-by-id-error", error);
+        }
     }
 };
 
@@ -150,7 +159,10 @@ onMounted(async () => {
                         class="dialog__input"
                         :placeholder="capitalizeFirstLetter(langStore.translations.enterMemberId)"
                         style="width: 100%"
+                        :class="{ error: rowErrors[index] }"
+                        @input="rowErrors[index] && (rowErrors[index] = '')"
                     />
+                    <small v-if="rowErrors[index]" class="error__text">{{ rowErrors[index] }}</small>
                     <div class="dialog__input_reset">
                         <select
                             v-model="user.role_id"

@@ -10,7 +10,7 @@ const props = defineProps({
     allTags  : { type:Array, default:() => [] },
     isEdit   : { type:Boolean, default:false }
 })
-const emit = defineEmits(['saved', 'cancel', 'dirty'])
+const emit = defineEmits(['saved', 'cancel', 'dirty', 'saving'])
 
 const langStore = useLangStore()
 
@@ -56,15 +56,15 @@ function shiftLocalByMinutes(localStr, deltaMin) {
 }
 
 watch(() => form.event_start, (v) => {
-    if (v && !taskStart.value) {
-        taskStart.value = shiftLocalByMinutes(v, +1)
-    }
+    if (v && !taskStart.value) taskStart.value = v
 })
 
 watch(() => form.event_end, (v) => {
-    if (v && !evaluationEnd.value) {
-        evaluationEnd.value = shiftLocalByMinutes(v, -1)
-    }
+    if (v && !evaluationEnd.value) evaluationEnd.value = v
+})
+
+watch(taskEnd, (v) => {
+    if (v && !evaluationStart.value) evaluationStart.value = v
 })
 
 const DATE_FIELDS = ['registration_end', 'event_start', 'event_end'];
@@ -89,6 +89,8 @@ function localDateTimeToUtcISO(localStr) {
 
 async function save () {
     form.clearErrors()
+
+    emit('saving', true)
 
     const data = form.data()
 
@@ -151,6 +153,8 @@ async function save () {
 
             console.error('hackathon-create', e)
         }
+    } finally {
+        emit('saving', false)
     }
 }
 

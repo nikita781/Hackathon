@@ -27,6 +27,7 @@ const props = defineProps({
     notifications : { type:Object, required:true },
 })
 
+console.log(props.is_join)
 console.log(props.can)
 console.log(props.hackathon)
 // console.log(props.auth)
@@ -60,7 +61,7 @@ const availableTabs = computed(() => {
         {key: 'resources', title: capitalizeFirstLetter(langStore.translations.resources), blocked: !props.can?.hackathon?.viewTask},
         {key: 'rules', title: capitalizeFirstLetter(langStore.translations.rules), blocked: false},
         {key: 'contacts', title: capitalizeFirstLetter(langStore.translations.contacts), blocked: false},
-        {key: 'support', title: capitalizeFirstLetter(langStore.translations.support), blocked: false, noVisible: props.can?.hackathon.moderate},
+        {key: 'support', title: capitalizeFirstLetter(langStore.translations.support), blocked: !props.can.hackathon.viewSupport, noVisible: props.can?.hackathon.moderate},
     ]
 })
 
@@ -320,6 +321,15 @@ async function downloadProtokol() {
                                     v-if="props.can.hackathon.join"
                                 >
                                     {{joined ? capitalizeFirstLetter(langStore.translations.cancelParticipation) : capitalizeFirstLetter(langStore.translations.participate)}}
+                                </button>
+                                <button
+                                    type="button"
+                                    class="main__btn_main hackathon__btn"
+                                    @click="showTakePart = true"
+                                    :class="{ main__btn_white: joined}"
+                                    v-if="joined && !props.hackathon.is_finished"
+                                >
+                                    {{capitalizeFirstLetter(langStore.translations.cancelParticipation)}}
                                 </button>
                                 <button
                                     type="button"

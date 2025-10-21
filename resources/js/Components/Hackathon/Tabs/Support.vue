@@ -158,11 +158,14 @@ onMounted(async () => {
                     <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.myRequests) }}</p>
                     <button
                         type="button"
-                        class="main__btn_main hackathon__btn"
+                        class="hackathon__btn main__btn"
                         @click="isForm = true"
+                        :class="{ blocked: !props?.can?.support?.create }"
+                        :disabled="!props?.can?.support?.create"
                     >
                         {{ capitalizeFirstLetter(langStore.translations.createRequest) }}
                     </button>
+                    {{ props?.support }}
                     <WriteAppeal
                         :hackathonSlug="props.hackathon.slug"
                         :org="isOrganizer"
