@@ -172,15 +172,39 @@ const resendSlug = ref('');
 const showResend = ref(false)
 
 async function publishHackathon(hackathon) {
+    // if (hackathon.status === 1) {
+    //     try {
+    //         await router.post(
+    //             route('hackathons.publish', { hackathon: hackathon.slug })
+    //         );
+            
+    //         // toast.success('Хакатон отправлен на модерацию', { position:'top-right', timeout:5000 })
+    //         fetchHackathonsNow(1);
+    //     } catch (error) {
+    //         if (error.name !== 'NavigationDuplicated') {
+    //             console.error('Ошибка публикации:', error);
+    //         }
+    //     }
+    // } else {
+    //     commentText.value = getCommentText(hackathon.comment);
+    //     resendSlug.value = hackathon.slug;
+    //     showResend.value = true;
+    // }
     if (hackathon.status === 1) {
-        await router.post(
-            route('hackathons.publish',
-                { hackathon: hackathon.slug })
-            )
-        // toast.success('Хакатон отправлен на модерацию', { position:'top-right', timeout:5000 })
-        fetchHackathonsNow(1)
+        try {
+            const response = await axios.post(
+                route('hackathons.publish', { hackathon: hackathon.slug })
+            );
+            
+            // toast.success('Хакатон отправлен на модерацию')
+            fetchHackathonsNow(1);
+        } catch (error) {
+            if (!axios.isCancel(error)) {
+                console.error('Ошибка публикации:', error);
+            }
+        }
     } else {
-        commentText.value = getCommentText(hackathon.comment)
+        commentText.value = getCommentText(hackathon.comment);
         resendSlug.value = hackathon.slug;
         showResend.value = true;
     }

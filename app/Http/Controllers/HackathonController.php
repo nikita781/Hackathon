@@ -90,13 +90,13 @@ class HackathonController extends Controller
         $upcoming = Hackathon::query()
             ->whereIn('id', $hackathonIds)
             ->filter($request)
-            ->where('event_start', '>', now())
+           ->where('event_start', '>', now())
             ->with('tags')
             ->orderBy('event_start')
             ->paginate($perPage)
             ->withQueryString();
 
-        $continue = $past = Hackathon::query()
+        $continue = Hackathon::query()
             ->whereIn('id', $hackathonIds)
             ->filter($request)
             ->where('event_start', '<', now())
