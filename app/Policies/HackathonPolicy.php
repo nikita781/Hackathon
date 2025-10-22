@@ -55,7 +55,7 @@ class HackathonPolicy
             return true;
         }
 
-        if ($hackathon->event_end < now()) {
+        if ($hackathon->is_finished === true) {
             return false;
         }
 
