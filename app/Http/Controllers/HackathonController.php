@@ -253,6 +253,7 @@ class HackathonController extends Controller
                     'join' => Gate::check('join', $hackathon),
                     'update' => Gate::check('update', $hackathon),
                     'delete' => Gate::check('delete', $hackathon),
+                    'finish' => Gate::check('finish', $hackathon),
                     'viewTask' => Gate::check('viewTask', $hackathon),
                     'rate' => Gate::check('evaluation', $hackathon),
                     'publish' => Gate::check('publish', $hackathon),

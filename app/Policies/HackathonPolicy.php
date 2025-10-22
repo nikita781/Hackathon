@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Hackathon;
 use App\Models\Role;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class HackathonPolicy
@@ -223,5 +224,17 @@ class HackathonPolicy
         }
 
         return $user->hackathons()->where('hackathon_id', $hackathon->id)->wherePivot('role_id', Role::JUDGE)->exists();
+    }
+
+    public function finish(User $user, Hackathon $hackathon)
+    {
+        if ($hackathon->event_end < Carbon::now() 
+            && $hackathon->status === Hackathon::STATUS_PUBLISHED
+            && $hackathon->is_finished === false
+            ) {
+            return true;
+        }
+
+        return false;
     }
 }
