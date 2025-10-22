@@ -15,54 +15,50 @@ class SyncUsers
             Telescope::stopRecording();
         }
 
-        $countCreated = 0;
-        $countUpdated = 0;
+        $countSync = 0;
 
-        DB::connection('main_site')
+       DB::connection('main_site')
             ->table('users')
             ->orderBy('id')
-            ->chunk(500, function ($mainUsers) use (&$countCreated, &$countUpdated) {
+            ->chunk(500, function ($mainUsers) use (&$countSync) {
+                $records = [];
                 foreach ($mainUsers as $mainUser) {
-                    $localUser = DB::table('users')->where('email', $mainUser->email)->first();
-
-                    if (!$localUser) {
-                        DB::table('users')->insert([
-                            'id' => $mainUser->id,
-                            'name' => $mainUser?->fio,
-                            'nickname' => $mainUser->name,
-                            'email' => $mainUser->email,
-                            'password' => $mainUser->password,
-                            'birthday' => $mainUser?->birthday,
-                            'photo' => $mainUser?->photo,
-                            'status' => User::STATUS_ACTIVE,
-                            'created_at' => now(),
-                            'updated_at' => $mainUser->updated_at,
-                        ]);
-                        $countCreated++;
-                    } else {
-                        if (Carbon::parse($mainUser->updated_at)->gt(Carbon::parse($localUser->updated_at))) {
-                            DB::connection('pgsql')
-                                ->table('users')
-                                ->where('id', $localUser->id)
-                                ->update([
-                                    'name' => $mainUser?->fio,
-                                    'nickname' => $mainUser->name,
-                                    'email' => $mainUser->email,
-                                    'password' => $mainUser->password,
-                                    'birthday' => $mainUser?->birthday,
-                                    'photo' => $mainUser?->photo,
-                                    'status' => User::STATUS_ACTIVE,
-                                    'updated_at' => $mainUser->updated_at,
-                                ]);
-                            $countUpdated++;
-                        }
-                    }
+                    $records[] = [
+                        'id' => $mainUser->id,
+                        'name' => $mainUser?->fio,
+                        'nickname' => $mainUser->name,
+                        'email' => $mainUser->email,
+                        'password' => $mainUser->password,
+                        'birthday' => $mainUser?->birthday,
+                        'photo' => $mainUser?->photo,
+                        'status' => User::STATUS_ACTIVE,
+                        'created_at' => now(),
+                        'updated_at' => $mainUser->updated_at,
+                    ];
                 }
+
+                $count = DB::table('users')->upsert(
+                    $records,
+                    ['id'],
+                    [
+                        'name',
+                        'nickname',
+                        'email',
+                        'password',
+                        'birthday',
+                        'photo',
+                        'status',
+                        'updated_at',
+                    ]
+                );
+
+                $countSync += $count;
             });
 
+        DB::statement("SELECT setval('users_id_seq', (SELECT MAX(id) FROM users))");
+
         return [
-            'created' => $countCreated,
-            'updated' => $countUpdated,
+            'sync' => $countSync
         ];
     }
 }

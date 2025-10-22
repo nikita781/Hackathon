@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('/{hackathon}')->group(function () {
             Route::patch('/', [HackathonController::class, 'update'])->name('update');
             Route::post('/publish', [HackathonController::class, 'publish'])->name('publish');
+            Route::post('/finish', [HackathonController::class, 'finishHackathon'])->name('finish');
             Route::post('/join', [HackathonController::class, 'joinHackathon'])->name('join');
             Route::post('/leave', [HackathonController::class, 'leaveHackathon'])->name('leave');
             Route::prefix('/tabs')->name('tabs.')->group(function () {

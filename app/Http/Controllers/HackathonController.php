@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\FinishOneHackathon;
 use App\Exports\HackathonUsersExport;
 use App\Http\Requests\HackathonRequest;
 use App\Http\Requests\HackathonUpdateRequest;
@@ -431,5 +432,19 @@ class HackathonController extends Controller
         return response()->json([
             'gallery' => ProjectResource::collection($paginator)->response()->getData(true),
         ]);
+    }
+
+    public function finishHackathon(Hackathon $hackathon)
+    {
+        Gate::authorize('update', $hackathon);
+
+        $action = New FinishOneHackathon();
+        $ok = $action($hackathon->slug);
+
+        if (!$ok) {
+            return back()->with('error', "Сейчас хакатон нельзя завершить");
+        }
+
+        return back()->with('status', "Хакатон \"{$hackathon->slug}\" завершен");
     }
 }

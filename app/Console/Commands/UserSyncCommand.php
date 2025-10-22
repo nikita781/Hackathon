@@ -20,6 +20,6 @@ class UserSyncCommand extends Command
 
         $counters = $action();
 
-        $this->info("Синхронизация завершена. Создано: {$counters['created']}, обновлено: {$counters['updated']}");
+        $this->info("Синхронизация завершена. Синхронизировано: {$counters['sync']}");
     }
 }

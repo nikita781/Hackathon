@@ -536,8 +536,7 @@ class AdminController extends Controller
         $counters = $action();
 
         return response()->json([
-            'created' => $counters['created'],
-            'updated' => $counters['created'],
+            'sync' => $counters['sync'],
         ]);
     }
 
