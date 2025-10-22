@@ -92,6 +92,8 @@ class HackathonStaffController extends Controller
             'users.*.role_id' => 'required|exists:roles,id',
         ]);
 
+        $org = auth()->user();
+
         foreach ($data['users'] as $user) {
             do {
                 $token = Str::random(32);
@@ -105,6 +107,7 @@ class HackathonStaffController extends Controller
                     $invitedUserId = str_replace("ID", "", $invitedUserId);
                     $invitedUserId = (int) $invitedUserId;
                 }
+                return back()->with('error', 'Пользователь с ID «'.$invitedUserId.'» не найден');
             }
 
             $invitedUser = User::findOrFail($invitedUserId);
@@ -132,7 +135,7 @@ class HackathonStaffController extends Controller
 
             $invitedUser->notify(new InviteNotification([
                 'title' => 'Приглашение на хакатон от организатора',
-                'description' => "Организатор хакатонов {$invitedUser->nickname} пригласил Вас на свой хакатон «{$hackathon->title}» на роль “{$invitedUserRole->title}”.",
+                'description' => "Организатор хакатонов {$org->nickname} пригласил Вас на свой хакатон «{$hackathon->title}» на роль “{$invitedUserRole->title}”.",
                 'url' => route('hackathons.staff.accept-invite', [$hackathon, $invite->token]),
                 'send_at' => now()->toDateString(),
                 'is_active' => true,
