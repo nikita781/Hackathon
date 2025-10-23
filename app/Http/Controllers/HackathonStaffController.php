@@ -106,8 +106,15 @@ class HackathonStaffController extends Controller
             $invitedUserId = $user['user_id'];
             $invitedRoleId = $user['role_id'];
 
-            if (is_string($invitedUserId) && str_contains($invitedUserId, "ID")) {
-                $invitedUserId = (int) str_replace("ID", "", $invitedUserId);
+            if (is_string($invitedUserId)) {
+                if (str_contains($invitedUserId, "ID")) {
+                    $invitedUserId = (int) str_replace("ID", "", $invitedUserId);
+                }
+
+                if ($invitedUserId === 0 || is_string($invitedUserId)) {
+                    $errors["users.$index.user_id"] = ["Пользователь с ID «{$user['user_id']}» не найден"];
+                    continue;
+                }
             }
 
             $invitedUser = User::find($invitedUserId);
