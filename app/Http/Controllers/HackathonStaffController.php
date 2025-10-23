@@ -109,7 +109,7 @@ class HackathonStaffController extends Controller
                     $invitedUserId = (int) str_replace("ID", "", $invitedUserId);
                 }
 
-                if ($invitedUserId === 0) {
+                if ($invitedUserId === 0 || is_string($invitedUserId)) {
                     throw ValidationException::withMessages([
                         'users' => ["Пользователь с ID «{$invitedUserId}» не найден"],
                     ]);
@@ -128,7 +128,7 @@ class HackathonStaffController extends Controller
             if (
                 $invitedUser->teams()
                     ->where('hackathon_id', $hackathon->id)
-                    ->whereHas('project', function ($query) {
+                    ->whereHas('projects', function ($query) {
                         $query->whereIn('status', [Project::MODERATION, Project::PUBLISHED]);
                     })
                     ->exists()
@@ -169,7 +169,7 @@ class HackathonStaffController extends Controller
             ]));
         }
 
-        return response();
+        return response()->noContent();
     }
 
     public function update(UpdateHackathonStaffRequest $request, Hackathon $hackathon): RedirectResponse
