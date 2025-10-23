@@ -51,6 +51,8 @@ class HackathonUpdateRequest extends FormRequest
         if (!empty($merge)) {
             $this->merge($merge);
         }
+
+        $this->merge(['_hackathon_status' => $hackathon->status]);
     }
 
     /**
@@ -67,7 +69,7 @@ class HackathonUpdateRequest extends FormRequest
             'type' => ['nullable', 'in:individual,team'],
             'min_team_size' => ['exclude_if:type,individual', 'nullable', 'integer', 'min:1', 'lte:max_team_size'],
             'max_team_size' => ['exclude_if:type,individual', 'nullable', 'integer', 'min:1', 'gte:min_team_size'],
-            'registration_start' => ['nullable', 'date', 'before:registration_end'],
+            'registration_start' => ['nullable', 'date'],
             'registration_end' => ['nullable', 'date', 'before_or_equal:event_start'],
             'event_start' => ['nullable', 'date', 'before:event_end'],
             'event_end' => ['nullable', 'date'],
@@ -92,6 +94,14 @@ class HackathonUpdateRequest extends FormRequest
         return [
             function (Validator $validator) {
                 $data = $this->validated();
+                $status = (int) $this->input('_hackathon_status', 0);
+
+                if (in_array($status, [
+                    Hackathon::STATUS_MODERATION,
+                    Hackathon::STATUS_PUBLISHED
+                ], true)) {
+                    return;
+                }
 
                 if (!empty($data['registration_end'])) {
                     $end = Carbon::parse($data['registration_end']);
