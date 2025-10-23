@@ -71,10 +71,13 @@ const inviteUsers = async () => {
     try {
         rowErrors.value = {}
         const payload = {
-            users: userIds.value.map(u => ({
-                user_id: (u.user_id ?? '').toString().trim(),
-                role_id: u.role_id ? Number(u.role_id) : null,
-            })),
+            users: userIds.value.map(u => {
+                const raw = (u.user_id ?? '').toString().trim()
+                return {
+                        user_id: raw === '' ? null : (/^\d+$/.test(raw) ? Number(raw) : raw),
+                        role_id: u.role_id ? Number(u.role_id) : null,
+                    }
+            }),
         };
 
         await axios.post(

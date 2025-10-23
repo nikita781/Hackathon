@@ -15,7 +15,7 @@ const props = defineProps({
     user: Object,
     can: Object,
     upcomingHackathons: Object,
-    currentHackathons: Object,
+    continueHackathons: Object,
     pastHackathons: Object,
     query: Object,
     tags: Object,
@@ -24,29 +24,35 @@ const props = defineProps({
     flash: Object,
 })
 
-const showToast = () => {
-    if (props.flash?.error) {
-        toast.error(props.flash.error, {
-            position: 'top-right',
-            timeout: 5000,
-        });
-    } else if (props.flash?.status) {
-        toast.success(props.flash.status, {
-            position: 'top-right',
-            timeout: 5000,
-        });
-    }
-};
+const page = usePage()
+const toast = useToast()
 
-watch(() => props.flash, (newFlash) => {
-    if (newFlash) {
-        showToast();
-    }
-});
+const show = (err, ok) => {
+    if (err) toast.error(err, { position: 'top-right', timeout: 5000 })
+    else if (ok) toast.success(ok, { position: 'top-right', timeout: 5000 })
+}
+
+const lastFlash = ref({ error: null, status: null })
+
+watch(
+    () => usePage().props.flash,
+    (f) => {
+        if (!f) return
+        const { error = null, status = null } = f
+        const changed =
+            (error || status) &&
+            (error !== lastFlash.value.error || status !== lastFlash.value.status)
+
+        if (changed) {
+            show(error, status)
+            lastFlash.value = { error, status }
+        }
+    },
+    { immediate: true, deep: true }
+)
 
 const langStore = useLangStore()
 const notificationsStore = useNotificationsStore()
-const toast = useToast();
 
 const search    = ref(usePage().props.query?.q     ?? '')
 const sort      = ref(usePage().props.query?.order ?? 'dateA')
@@ -54,7 +60,7 @@ const sort      = ref(usePage().props.query?.order ?? 'dateA')
 const activeTab = ref(
     usePage().props.query?.tab === 'past'
         ? 2
-        : usePage().props.query?.tab === 'ongoing'
+        : usePage().props.query?.tab === 'continue'
             ? 1
             : 0
 )
@@ -67,7 +73,7 @@ function setActiveTab(idx) {
 
 const hackathons = computed(() => {
     if (activeTab.value === 0) return props.upcomingHackathons
-    if (activeTab.value === 1) return props.currentHackathons
+    if (activeTab.value === 1) return props.continueHackathons
     return props.pastHackathons
 })
 
@@ -79,7 +85,7 @@ function go(pageUrl) {
 const buildQuery = (page = 1) => ({
     q     : search.value      || undefined,
     order : sort.value        || undefined,
-    tab   : activeTab.value === 0 ? 'upcoming' : activeTab.value === 1 ? 'ongoing' : 'past',
+    tab   : activeTab.value === 0 ? 'upcoming' : activeTab.value === 1 ? 'continue' : 'past',
     page  : page
 })
 
@@ -171,43 +177,23 @@ const commentText = ref('');
 const resendSlug = ref('');
 const showResend = ref(false)
 
-async function publishHackathon(hackathon) {
-    // if (hackathon.status === 1) {
-    //     try {
-    //         await router.post(
-    //             route('hackathons.publish', { hackathon: hackathon.slug })
-    //         );
-            
-    //         // toast.success('Хакатон отправлен на модерацию', { position:'top-right', timeout:5000 })
-    //         fetchHackathonsNow(1);
-    //     } catch (error) {
-    //         if (error.name !== 'NavigationDuplicated') {
-    //             console.error('Ошибка публикации:', error);
-    //         }
-    //     }
-    // } else {
-    //     commentText.value = getCommentText(hackathon.comment);
-    //     resendSlug.value = hackathon.slug;
-    //     showResend.value = true;
-    // }
-    if (hackathon.status === 1) {
-        try {
-            const response = await axios.post(
-                route('hackathons.publish', { hackathon: hackathon.slug })
-            );
-            
-            // toast.success('Хакатон отправлен на модерацию')
-            fetchHackathonsNow(1);
-        } catch (error) {
-            if (!axios.isCancel(error)) {
-                console.error('Ошибка публикации:', error);
-            }
+async function publishHackathon(h) {
+    lastFlash.value = { error: null, status: null }
+    router.post(
+        route('hackathons.publish', { hackathon: h.slug }),
+        {},
+        {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            onSuccess: (page) => {
+                router.reload({
+                    only: ['upcomingHackathons', 'continueHackathons', 'pastHackathons', 'flash'],
+                    preserveScroll: true,
+                })
+            },
         }
-    } else {
-        commentText.value = getCommentText(hackathon.comment);
-        resendSlug.value = hackathon.slug;
-        showResend.value = true;
-    }
+    )
 }
 
 

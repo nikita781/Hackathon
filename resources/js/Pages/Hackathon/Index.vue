@@ -11,6 +11,7 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination, Autoplay } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
+import {useToast} from "vue-toastification";
 
 const langStore = useLangStore()
 
@@ -41,6 +42,25 @@ function bannerSrc(banner) {
         console.error(e)
     }
 }
+
+const toast = useToast()
+
+const show = (err, ok) => {
+    if (err) toast.error(err, { position: 'top-right', timeout: 5000 })
+    else if (ok) toast.success(ok, { position: 'top-right', timeout: 5000 })
+}
+
+onMounted(async () => {
+    await nextTick()
+    show(page.props.flash?.error, page.props.flash?.status)
+})
+
+watch(
+    () => [page.props.flash?.error, page.props.flash?.status],
+    ([e, s], [pe, ps] = []) => {
+        if ((e || s) && (e !== pe || s !== ps)) show(e, s)
+    }
+)
 
 const showToast = () => {
     if (props.flash?.error) {

@@ -1,11 +1,12 @@
 <script setup>
 import IconsPencilMyProject from "@/Components/Icons/PencilMyProject.vue";
 import InvitationToTheManager from "@/Components/Dialog/InvitationToTheManager.vue";
-import {onMounted, ref} from "vue";
+import {onMounted, ref, watch} from "vue";
 import InvitationToTheTeam from "@/Components/Dialog/InvitationToTheTeam.vue";
 import EditManagers from "@/Components/Dialog/EditManagers.vue";
 import EditTeam from "@/Components/Dialog/EditTeam.vue";
 import {useLangStore} from "@/store/lang.js";
+import {router} from "@inertiajs/vue3";
 
 const props = defineProps({
     positions : { type: Array,   default : () => [] },
@@ -32,6 +33,17 @@ function avatarSrc(photo) {
 
     return url;
 }
+
+function refreshManagers () {
+    router.reload({
+        only: ['hackathonStaff', 'flash'],
+        preserveScroll: true,
+    })
+}
+
+watch([showInvitation, showEditTeam], ([inv, edit], [pInv, pEdit]) => {
+    if ((pInv && !inv) || (pEdit && !edit)) refreshManagers()
+})
 
 function imgFallback(e) {
     e.target.onerror = null;

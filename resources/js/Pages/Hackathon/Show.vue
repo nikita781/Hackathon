@@ -8,7 +8,7 @@ import { useToast } from 'vue-toastification';
 import DialogCreateHackathon from "@/Components/Dialog/CreateHackathon.vue";
 import RejectHackathon from "@/Components/Dialog/RejectHackathon.vue";
 import {useLangStore} from "@/store/lang.js";
-import {router} from "@inertiajs/vue3";
+import {router, usePage} from "@inertiajs/vue3";
 
 const props = defineProps({
     hackathon: Object,
@@ -65,27 +65,30 @@ const availableTabs = computed(() => {
     ]
 })
 
-const toast = useToast();
+const page = usePage()
+const toast = useToast()
+const lastFlash = ref({ error: null, status: null })
 
-const showToast = () => {
-    if (props.flash?.error) {
-        toast.error(props.flash.error, {
-            position: 'top-right',
-            timeout: 5000,
-        });
-    } else if (props.flash?.status) {
-        toast.success(props.flash.status, {
-            position: 'top-right',
-            timeout: 5000,
-        });
-    }
-};
+const show = (err, ok) => {
+    if (err) toast.error(err, { position: 'top-right', timeout: 5000 })
+    else if (ok) toast.success(ok, { position: 'top-right', timeout: 5000 })
+}
 
-watch(() => props.flash, (newFlash) => {
-    if (newFlash) {
-        showToast();
-    }
-});
+watch(
+    () => page.props.flash,
+    (f) => {
+        console.log(page.props.flash)
+        if (!f) return
+        const { error = null, status = null } = f
+        const changed = (error || status) &&
+            (error !== lastFlash.value.error || status !== lastFlash.value.status)
+        if (changed) {
+            show(error, status)
+            lastFlash.value = { error, status }
+        }
+    },
+    { immediate: true, deep: true }
+)
 
 onMounted(async () => {
     await langStore.fetchTranslations()
@@ -148,7 +151,7 @@ function acceptHackathon() {
         .then(() => {
             toast.success('Хакатон принят и опубликован', { position: 'top-right', timeout: 5000 })
             // подтянуть свежие данные только для нужных пропсов
-            router.reload({only: ['hackathon', 'can', 'tabs']});
+            router.reload({only: ['hackathon', 'can', 'tabs', 'flash']});
         })
         .catch((error) => {
             console.error('Ошибка при принятии хакатона:', error)
@@ -158,7 +161,7 @@ function acceptHackathon() {
 
 watch(showRejectHackathon, (isOpen, wasOpen) => {
     if (wasOpen && !isOpen) {
-        router.reload({ only: ['hackathon', 'can', 'tabs'] })
+        router.reload({ only: ['hackathon', 'can', 'tabs', 'flash'] })
     }
 })
 
