@@ -14,6 +14,7 @@ use App\Notifications\KickNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -82,7 +83,7 @@ class HackathonStaffController extends Controller
         return redirect()->route('hackathons.show', $hackathon)->with('status', 'Теперь вы персонал хакатона!');
     }
 
-    public function inviteUserById(Request $request, Hackathon $hackathon)
+    public function inviteUserById(Request $request, Hackathon $hackathon): Response
     {
         if (!Gate::check('update', $hackathon)) {
             abort(403);
@@ -95,8 +96,9 @@ class HackathonStaffController extends Controller
         ]);
 
         $org = auth()->user();
+        $errors = [];
 
-        foreach ($data['users'] as $user) {
+        foreach ($data['users'] as $index => $user) {
             do {
                 $token = Str::random(32);
             } while (HackathonInvite::where('token', $token)->exists());
@@ -104,26 +106,21 @@ class HackathonStaffController extends Controller
             $invitedUserId = $user['user_id'];
             $invitedRoleId = $user['role_id'];
 
-            if (is_string($invitedUserId)) {
-                if (str_contains($invitedUserId, "ID")) {
-                    $invitedUserId = (int) str_replace("ID", "", $invitedUserId);
-                }
-
-                if ($invitedUserId === 0 || is_string($invitedUserId)) {
-                    throw ValidationException::withMessages([
-                        'users' => ["Пользователь с ID «{$invitedUserId}» не найден"],
-                    ]);
-                }
+            if (is_string($invitedUserId) && str_contains($invitedUserId, "ID")) {
+                $invitedUserId = (int) str_replace("ID", "", $invitedUserId);
             }
 
             $invitedUser = User::find($invitedUserId);
             if (!$invitedUser) {
-                throw ValidationException::withMessages([
-                    'users' => ["Пользователь с ID «{$invitedUserId}» не найден"],
-                ]);
+                $errors["users.$index.user_id"] = ["Пользователь с ID «{$user['user_id']}» не найден"];
+                continue;
             }
 
-            $invitedUserRole = Role::findOrFail($invitedRoleId);
+            $invitedUserRole = Role::find($invitedRoleId);
+            if (!$invitedUserRole) {
+                $errors["users.$index.role_id"] = ["Роль с ID «{$invitedRoleId}» не найдена"];
+                continue;
+            }
 
             if (
                 $invitedUser->teams()
@@ -132,23 +129,21 @@ class HackathonStaffController extends Controller
                         $query->whereIn('status', [Project::MODERATION, Project::PUBLISHED]);
                     })
                     ->exists()
-            ) {                throw ValidationException::withMessages([
-                    'users' => ["Пользователь «{$invitedUser->nickname}» уже является участником хакатона"],
-                ]);
+            ) {
+                $errors["users.$index.user_id"] = ["Пользователь «{$invitedUser->nickname}» уже является участником хакатона"];
+                continue;
             }
 
             if ($hackathon->getAllHackathonStaff()->contains($invitedUser->id)) {
-                throw ValidationException::withMessages([
-                    'users' => ["Пользователь «{$invitedUser->nickname}» уже в персонале хакатона"],
-                ]);
+                $errors["users.$index.user_id"] = ["Пользователь «{$invitedUser->nickname}» уже в персонале хакатона"];
+                continue;
             }
 
             if (HackathonInvite::where('hackathon_id', $hackathon->id)
                 ->where('user_id', $invitedUserId)
                 ->exists()) {
-                throw ValidationException::withMessages([
-                    'users' => ["Приглашение пользователю «{$invitedUser->nickname}» уже отправлено"],
-                ]);
+                $errors["users.$index.user_id"] = ["Приглашение пользователю «{$invitedUser->nickname}» уже отправлено"];
+                continue;
             }
 
             $invite = HackathonInvite::create([
@@ -161,12 +156,16 @@ class HackathonStaffController extends Controller
 
             $invitedUser->notify(new InviteNotification([
                 'title' => 'Приглашение на хакатон от организатора',
-                'description' => "Организатор хакатонов {$org->nickname} пригласил Вас на свой хакатон «{$hackathon->title}» на роль “{$invitedUserRole->title}”.",
+                'description' => "Организатор {$org->nickname} пригласил Вас на хакатон «{$hackathon->title}» на роль “{$invitedUserRole->title}”.",
                 'url' => route('hackathons.staff.accept-invite', [$hackathon, $invite->token]),
                 'send_at' => now()->toDateString(),
                 'is_active' => true,
                 'hackathon' => $hackathon,
             ]));
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
         }
 
         return response()->noContent();
