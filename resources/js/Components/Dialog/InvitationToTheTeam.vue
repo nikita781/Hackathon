@@ -15,6 +15,8 @@ const emit = defineEmits([
     'update:modelValue',
 ])
 
+const rowErrors = ref([])
+
 function close(){ emit('update:modelValue',false) }
 
 const inviteLink = ref('')
@@ -38,14 +40,27 @@ async function getLink () {
     } catch (e) { console.error('link-error', e) }
 }
 
-watch(() => props.modelValue, v => { if (v) getLink() })
+watch(() => props.modelValue, v => {
+    if (v) {
+        rowErrors.value = []
+        getLink()
+    }
+})
 
 const addUserField = () => {
-    userIds.value.push({ user_id: '', position_id: props.positions[0]?.id }) // Добавляем новое поле
+    userIds.value.push({ user_id: '', position_id: props.positions[0]?.id })
+    rowErrors.value.push('')
 }
 
 const removeUserField = (index) => {
-    userIds.value.splice(index, 1) // Удаляем поле
+    userIds.value.splice(index, 1)
+    rowErrors.value.splice(index, 1)
+}
+
+const toId = (val) => {
+    if (typeof val === 'number') return val
+    const s = String(val ?? '').trim()
+    return /^\d+$/.test(s) ? Number(s) : s
 }
 
 const inviteUsers = async () => {
@@ -55,11 +70,29 @@ const inviteUsers = async () => {
                 hackathon: props.hackathon.slug,
                 team     : props.ownTeam.id,
             }),
-            { users: userIds.value }      // тело запроса
+            {
+                users: userIds.value.map(({ user_id, position_id }) => ({
+                    user_id    : toId(user_id),
+                    position_id,
+                }))
+            }
         )
-        close()                         // закрываем модалку после успеха
+        toast.success("Приглашение отправлено", {
+            position: 'top-right',
+            timeout: 5000,
+        });
+        close()
     } catch (error) {
-        console.error(error)
+        if (error?.response?.status === 422) {
+            const errs = error.response.data?.errors ?? {}
+            rowErrors.value = Object.entries(errs).reduce((acc, [k, v]) => {
+                const i = +k.split('.')[1]
+                acc[i] = Array.isArray(v) ? v[0] : v
+                return acc
+            }, [])
+        } else {
+            console.error(error)
+        }
     }
 }
 
@@ -126,6 +159,9 @@ onMounted(async () => {
                         </div>
                     </div>
                 </div>
+                <p v-if="rowErrors[index]" style="color:#E80024; margin-top:6px">
+                    {{ rowErrors[index] }}
+                </p>
             </div>
             <div class="dialog__plus" style="margin-top: -10px" @click="addUserField">
                 <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">

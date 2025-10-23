@@ -65,30 +65,27 @@ const availableTabs = computed(() => {
     ]
 })
 
-const page = usePage()
-const toast = useToast()
-const lastFlash = ref({ error: null, status: null })
+const toast = useToast();
 
-const show = (err, ok) => {
-    if (err) toast.error(err, { position: 'top-right', timeout: 5000 })
-    else if (ok) toast.success(ok, { position: 'top-right', timeout: 5000 })
-}
+const showToast = () => {
+    if (props.flash?.error) {
+        toast.error(props.flash.error, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    } else if (props.flash?.status) {
+        toast.success(props.flash.status, {
+            position: 'top-right',
+            timeout: 5000,
+        });
+    }
+};
 
-watch(
-    () => page.props.flash,
-    (f) => {
-        console.log(page.props.flash)
-        if (!f) return
-        const { error = null, status = null } = f
-        const changed = (error || status) &&
-            (error !== lastFlash.value.error || status !== lastFlash.value.status)
-        if (changed) {
-            show(error, status)
-            lastFlash.value = { error, status }
-        }
-    },
-    { immediate: true, deep: true }
-)
+watch(() => props.flash, (newFlash) => {
+    if (newFlash) {
+        showToast();
+    }
+});
 
 onMounted(async () => {
     await langStore.fetchTranslations()
@@ -151,7 +148,7 @@ function acceptHackathon() {
         .then(() => {
             toast.success('Хакатон принят и опубликован', { position: 'top-right', timeout: 5000 })
             // подтянуть свежие данные только для нужных пропсов
-            router.reload({only: ['hackathon', 'can', 'tabs', 'flash']});
+            router.reload({only: ['hackathon', 'can', 'tabs']});
         })
         .catch((error) => {
             console.error('Ошибка при принятии хакатона:', error)
@@ -161,7 +158,7 @@ function acceptHackathon() {
 
 watch(showRejectHackathon, (isOpen, wasOpen) => {
     if (wasOpen && !isOpen) {
-        router.reload({ only: ['hackathon', 'can', 'tabs', 'flash'] })
+        router.reload({ only: ['hackathon', 'can', 'tabs'] })
     }
 })
 

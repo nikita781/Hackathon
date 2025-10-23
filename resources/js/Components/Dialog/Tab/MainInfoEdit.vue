@@ -216,8 +216,11 @@ async function save(){
     })
     if (form.image_path instanceof File) {
         fd.append('image_path', form.image_path)
+        // console.log(form.image_path)
     }
     fd.append('_method','PATCH')
+
+    // console.log('FD →', [...fd.entries()].map(([k, v]) => [k, v instanceof File ? v.name : v]));
 
     try{
         await axios.post(

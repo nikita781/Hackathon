@@ -87,6 +87,10 @@ const inviteUsers = async () => {
             payload
         );
 
+        toast.success("Приглашение отправлено", {
+            position: 'top-right',
+            timeout: 5000,
+        });
         close();
     } catch (error) {
         if (error?.response?.status === 422) {
@@ -149,7 +153,6 @@ onMounted(async () => {
                 </div>
             </div>
 
-            <!-- ПРИГЛАСИТЬ ПО ID (с выбором роли) -->
             <div
                 v-for="(user, index) in userIds"
                 :key="index"
@@ -165,7 +168,6 @@ onMounted(async () => {
                         :class="{ error: rowErrors[index] }"
                         @input="rowErrors[index] && (rowErrors[index] = '')"
                     />
-                    <small v-if="rowErrors[index]" class="error__text">{{ rowErrors[index] }}</small>
                     <div class="dialog__input_reset">
                         <select
                             v-model="user.role_id"
@@ -181,6 +183,7 @@ onMounted(async () => {
                         </div>
                     </div>
                 </div>
+                <small v-if="rowErrors[index]" class="error__text">{{ rowErrors[index] }}</small>
             </div>
 
             <div class="dialog__plus" style="margin-top: -10px" @click="addUserField">
