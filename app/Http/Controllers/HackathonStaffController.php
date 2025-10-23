@@ -142,7 +142,7 @@ class HackathonStaffController extends Controller
             }
 
             if ($hackathon->getAllHackathonStaff()->contains($invitedUser->id)) {
-                $errors["users.$index.user_id"] = ["Пользователь «{$invitedUser->nickname}» уже в персонале хакатона"];
+                $errors["users.$index.user_id"] = ["Пользователь «{$invitedUser->nickname}» уже является участником хакатона"];
                 continue;
             }
 
