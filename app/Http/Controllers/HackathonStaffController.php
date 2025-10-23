@@ -6,6 +6,7 @@ use App\Http\Requests\KickStaffRequest;
 use App\Http\Requests\UpdateHackathonStaffRequest;
 use App\Models\Hackathon;
 use App\Models\HackathonInvite;
+use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\InviteNotification;
@@ -16,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class HackathonStaffController extends Controller
 {
@@ -80,7 +82,7 @@ class HackathonStaffController extends Controller
         return redirect()->route('hackathons.show', $hackathon)->with('status', 'Теперь вы персонал хакатона!');
     }
 
-    public function inviteUserById(Request $request, Hackathon $hackathon): RedirectResponse
+    public function inviteUserById(Request $request, Hackathon $hackathon)
     {
         if (!Gate::check('update', $hackathon)) {
             abort(403);
@@ -104,25 +106,49 @@ class HackathonStaffController extends Controller
 
             if (is_string($invitedUserId)) {
                 if (str_contains($invitedUserId, "ID")) {
-                    $invitedUserId = str_replace("ID", "", $invitedUserId);
-                    $invitedUserId = (int) $invitedUserId;
+                    $invitedUserId = (int) str_replace("ID", "", $invitedUserId);
                 }
-                return back()->with('error', 'Пользователь с ID «'.$invitedUserId.'» не найден');
+
+                if ($invitedUserId === 0) {
+                    throw ValidationException::withMessages([
+                        'users' => ["Пользователь с ID «{$invitedUserId}» не найден"],
+                    ]);
+                }
             }
 
-            $invitedUser = User::findOrFail($invitedUserId);
+            $invitedUser = User::find($invitedUserId);
+            if (!$invitedUser) {
+                throw ValidationException::withMessages([
+                    'users' => ["Пользователь с ID «{$invitedUserId}» не найден"],
+                ]);
+            }
+
             $invitedUserRole = Role::findOrFail($invitedRoleId);
 
-            if ($hackathon->users()->where('user_id', $invitedUserId)->wherePivot('role_id', Role::MEMBER)->exists() && $invitedUser->teams()->where('hackathon_id', $hackathon->id)) {
-                return back()->with('error', 'Пользователь «'.$invitedUser->nickname.'» уже в является участником хакатона');
+            if (
+                $invitedUser->teams()
+                    ->where('hackathon_id', $hackathon->id)
+                    ->whereHas('project', function ($query) {
+                        $query->whereIn('status', [Project::MODERATION, Project::PUBLISHED]);
+                    })
+                    ->exists()
+            ) {                throw ValidationException::withMessages([
+                    'users' => ["Пользователь «{$invitedUser->nickname}» уже является участником хакатона"],
+                ]);
             }
 
             if ($hackathon->getAllHackathonStaff()->contains($invitedUser->id)) {
-                return back()->with('error', 'Пользователь «'.$invitedUser->nickname.'» уже в персонал хакатона');
+                throw ValidationException::withMessages([
+                    'users' => ["Пользователь «{$invitedUser->nickname}» уже в персонале хакатона"],
+                ]);
             }
 
-            if (HackathonInvite::where('hackathon_id', $hackathon->id)->where('user_id', $invitedUserId)->exists()) {
-                return back()->with('error', 'Приглашение пользователю «'.$invitedUser->nickname.'» уже отправлено');
+            if (HackathonInvite::where('hackathon_id', $hackathon->id)
+                ->where('user_id', $invitedUserId)
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'users' => ["Приглашение пользователю «{$invitedUser->nickname}» уже отправлено"],
+                ]);
             }
 
             $invite = HackathonInvite::create([
@@ -143,7 +169,7 @@ class HackathonStaffController extends Controller
             ]));
         }
 
-        return back()->with(['status' => 'Все отправлено']);
+        return response();
     }
 
     public function update(UpdateHackathonStaffRequest $request, Hackathon $hackathon): RedirectResponse
