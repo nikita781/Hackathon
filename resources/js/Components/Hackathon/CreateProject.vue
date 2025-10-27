@@ -19,9 +19,8 @@ const project  = ref(null)
 const tabs = [Step1, Step2, Step3, Step4];
 
 const nextStep = () => {
-    if (step.value < 5) {
-        step.value++;
-    }
+    if (step.value < 4) step.value++;
+    else close();
 };
 
 const goToStep = (targetStep) => {

@@ -25,7 +25,8 @@ async function send() {
         route('hackathons.publish',
             { hackathon: props.hackathonSlug })
     )
-    toast.success(capitalizeFirstLetter(langStore.translations.hackathon_sent_for_moderation), { position:'top-right', timeout:5000 })
+    close()
+    // toast.success(capitalizeFirstLetter(langStore.translations.hackathon_sent_for_moderation), { position:'top-right', timeout:5000 })
 }
 
 const langStore = useLangStore()

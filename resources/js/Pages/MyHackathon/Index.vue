@@ -196,6 +196,16 @@ async function publishHackathon(h) {
     )
 }
 
+function onPublishClick(h) {
+    if (h.status === 4) {
+        resendSlug.value = h.slug
+        commentText.value = getCommentText(h?.moderation_comment ?? h?.comment ?? h?.reject_comment)
+        showResend.value = true
+        return
+    }
+    publishHackathon(h)
+}
+
 
 function fetchHackathonsNow(page = 1) {
     router.get(
@@ -288,7 +298,7 @@ watch(showResend, (isOpen, wasOpen) => {
                             <button
                                 v-if="hackathon.can.publish"
                                 class="main__btn_main"
-                                @click.stop.prevent="publishHackathon(hackathon)"
+                                @click.stop.prevent="onPublishClick(hackathon)"
                                 style="max-width: unset"
                             >
                                 Опубликовать
