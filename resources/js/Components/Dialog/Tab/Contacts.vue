@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, nextTick, ref, watch, computed} from 'vue'
+import {onMounted, nextTick, ref, watch, computed, reactive} from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
 import DialogContact from '@/Components/Dialog/CreateContact.vue'
 
@@ -16,6 +16,26 @@ const props = defineProps({
 })
 const emit = defineEmits(['saved','cancel','dirty', 'saving'])
 
+const errors = reactive({})
+
+function setErrorsRaw(obj) {
+    for (const k in errors) delete errors[k]
+    if (obj && typeof obj === 'object') Object.assign(errors, obj)
+}
+function clearAllErrors() {
+    for (const k in errors) delete errors[k]
+}
+function itemErr(list, idx, field = 'content') {
+    const sec = list === 'contacts' ? 0 : 1
+    const key = `sections.${sec}.items.${idx}.${field}`
+    const v = errors[key]
+    return Array.isArray(v) ? v[0] : v || ''
+}
+function clearItemErr(list, idx, field = 'content') {
+    const sec = list === 'contacts' ? 0 : 1
+    delete errors[`sections.${sec}.items.${idx}.${field}`]
+}
+
 const isAdmin = computed(() => !!props.admin)
 
 const langStore = useLangStore()
@@ -30,9 +50,8 @@ const dlgShown    = ref(false)
 const dlgListName = ref('contacts')
 const editingIdx  = ref(null)
 
-/* ------------ диалог ------------ */
-function openAdd(list){ dlgListName.value = list; editingIdx.value = null; dlgShown.value = true }
-function openEdit(list, idx){ dlgListName.value = list; editingIdx.value = idx; dlgShown.value = true }
+function openAdd(list){ dlgListName.value = list; editingIdx.value = null; dlgShown.value = true; clearAllErrors() }
+function openEdit(list, idx){ dlgListName.value = list; editingIdx.value = idx; dlgShown.value = true; clearAllErrors() }
 
 function addItem(item){ (dlgListName.value === 'contacts' ? contacts : socials).value.push(item) }
 function updateItem(item){
@@ -40,7 +59,10 @@ function updateItem(item){
     if (editingIdx.value !== null) list.value[editingIdx.value] = item
     editingIdx.value = null
 }
-function removeItem(list, idx){ (list === 'contacts' ? contacts : socials).value.splice(idx,1) }
+function removeItem(list, idx){
+    (list === 'contacts' ? contacts : socials).value.splice(idx,1)
+    clearAllErrors()
+}
 
 /* ------------ форма для отправки ------------ */
 const form = useForm({
@@ -122,7 +144,11 @@ async function save(){
         emit('dirty', false)
         emit('saved', { slug: props.hackathonSlug })
     } catch (err){
-        console.error('contacts-tab-errors', err?.response ?? err)
+        if (err?.response?.status === 422) {
+            setErrorsRaw(err.response.data?.errors || {})
+        } else {
+            console.error('contacts-tab-errors', err?.response ?? err)
+        }
     } finally {
         emit('saving', false)
     }
@@ -130,7 +156,6 @@ async function save(){
 
 defineExpose({ save })
 
-/* ------------ reset / cancel ------------ */
 const resetState = () => {
     contacts.value = []
     socials.value  = []
@@ -138,6 +163,7 @@ const resetState = () => {
     editingIdx.value = null
     dlgListName.value = 'contacts'
     form.sections.forEach(s => (s.items = []))
+    clearAllErrors()
 }
 
 function cancel(){ resetState(); emit('cancel') }
@@ -171,14 +197,27 @@ function capitalizeFirstLetter(str) {
         </div>
 
         <div v-for="(c,idx) in contacts" :key="`c-${idx}`" class="dialog__component">
-            <p class="dialog__title">{{ c.title }}</p>
+            <p class="dialog__title">
+                {{ c.title }}
+            </p>
             <div class="dialog__input_btns">
-                <input v-model="c.value" class="dialog__input" readonly style="width:100%"/>
+                <input
+                    v-model="c.value"
+                    class="dialog__input"
+                    :class="{ error: !!itemErr('contacts', idx, 'content') }"
+                    readonly
+                    style="width:100%"/>
                 <div class="dialog__prize_btns">
                     <IconsPencil style="padding:5px" class="clickable" @click="openEdit('contacts',idx)" />
                     <IconsCancel class="clickable" @click="removeItem('contacts',idx)" />
                 </div>
             </div>
+            <small v-if="itemErr('contacts', idx, 'content')" class="error__text">
+                {{ itemErr('contacts', idx, 'content') }}
+            </small>
+            <small v-if="itemErr('contacts', idx, 'title')" class="error__text">
+                {{ itemErr('contacts', idx, 'title') }}
+            </small>
         </div>
     </div>
 
@@ -194,15 +233,24 @@ function capitalizeFirstLetter(str) {
         </div>
         <div v-for="(s,idx) in socials" :key="idx" class="dialog__component">
             <p class="dialog__title">{{ s.title }}</p>
-
             <div class="dialog__input_btns">
-                <input v-model="s.value" class="dialog__input" readonly style="width: 100%"/>
-
+                <input
+                    v-model="s.value"
+                    class="dialog__input"
+                    :class="{ error: !!itemErr('socials', idx, 'content') }"
+                    readonly
+                    style="width: 100%"/>
                 <div class="dialog__prize_btns">
                     <IconsPencil style="padding: 5px" class="clickable" @click="openEdit('socials',idx)" />
                     <IconsCancel class="clickable" @click="removeItem('socials',idx)" />
                 </div>
             </div>
+            <small v-if="itemErr('socials', idx, 'content')" class="error__text">
+                {{ itemErr('socials', idx, 'content') }}
+            </small>
+            <small v-if="itemErr('socials', idx, 'title')" class="error__text">
+                {{ itemErr('socials', idx, 'title') }}
+            </small>
         </div>
     </div>
     <DialogContact

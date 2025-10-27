@@ -227,6 +227,16 @@ async function downloadProtokol() {
         syncing.value = false
     }
 }
+
+const withCacheBust = (url, ver) => {
+    if (!url) return url
+    const v = ver ? new Date(ver).getTime() : Date.now() // updated_at → таймстамп
+    return url + (url.includes('?') ? '&' : '?') + 'v=' + v
+}
+
+const imgSrc = computed(() =>
+    withCacheBust(props.hackathon.image_path, props.hackathon.updated_at)
+)
 </script>
 
 <template>
@@ -244,7 +254,7 @@ async function downloadProtokol() {
             <transition name="accordion">
                 <div v-show="isOpen" class="hackathon__header_content">
                     <div class="hackathon__header_img">
-                        <img :src="props.hackathon.image_path" alt="Photo">
+                        <img :src="imgSrc" alt="Photo">
                     </div>
                     <div class="main__card_content">
                         <div class="main__card_info">
