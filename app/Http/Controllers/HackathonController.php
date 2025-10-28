@@ -437,7 +437,7 @@ class HackathonController extends Controller
 
     public function finishHackathon(Hackathon $hackathon)
     {
-        Gate::authorize('update', $hackathon);
+        Gate::authorize('finish', $hackathon);
 
         $action = New FinishOneHackathon();
         $ok = $action($hackathon->slug);

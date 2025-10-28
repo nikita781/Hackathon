@@ -232,13 +232,9 @@ class HackathonPolicy
 
     public function finish(User $user, Hackathon $hackathon)
     {
-        if ($hackathon->event_end < Carbon::now()
+        return $hackathon->event_end < Carbon::now()
             && $hackathon->status === Hackathon::STATUS_PUBLISHED
             && $hackathon->is_finished === false
-            ) {
-            return true;
-        }
-
-        return false;
+            && $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 }

@@ -25,8 +25,8 @@ class FinishOneHackathon
             return false;
         }
 
-        event(new HackathonFinished($hackathon));
         $hackathon->update(['is_finished' => true]);
+        event(new HackathonFinished($hackathon));
 
         return true;
     }

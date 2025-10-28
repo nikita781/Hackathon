@@ -196,13 +196,13 @@ class Hackathon extends Model implements HasMedia
         });
     }
 
-    public function getMemberPlace(User $member): int
+    public function getMemberPlace(User $member): int|null
     {
         $team = $this->teams()
             ->whereHas('teamUsers', fn($q) => $q->where('user_id', $member->id))
             ->first();
 
-        return $team->place;
+        return $team?->place;
     }
 
     /**
