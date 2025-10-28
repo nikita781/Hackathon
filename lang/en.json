@@ -76,7 +76,7 @@
     "prize_fund": "prize fund",
     "enter_prize_hint": "enter amount or number of prizes",
     "hackathon_card_preview": "hackathon card preview",
-    "file_upload_hint": "drag or select a file (JPG or PNG, max 5 MB)",
+    "file_upload_hint": "drag or select a file (JPG or PNG, max 2 MB)",
     "cansel": "cancel",
     "save": "save",
     "taskTime": "task time",

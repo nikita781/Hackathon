@@ -120,7 +120,7 @@ class TeamController extends Controller
         $invite = TeamInvite::where('token', $token)->firstOrFail();
 
         if ($invite->isExpired()) {
-            abort(410, 'Срок действия приглашения истёк');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Срок действия приглашения истёк');
         }
 
         $user = auth()->user();
@@ -169,14 +169,14 @@ class TeamController extends Controller
         }
 
         if ($invite->team->users()->where('user_id', $user->id)->exists()) {
-            abort(400, 'Вы уже в команде');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Вы уже в команде');
         }
 
         $maxSize = $hackathon->max_team_size;
         $currentCount = $team->users()->count();
 
         if ($currentCount >= $maxSize) {
-            abort(400, 'Команда уже заполнена');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Команда уже заполнена');
         }
 
         $invite->team->users()->attach($user->id, ['position_id' => $invite->position_id]);

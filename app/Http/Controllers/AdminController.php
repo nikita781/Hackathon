@@ -439,7 +439,7 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,', 'max:2140'],
         ]);
 
         $lastOrder = Banner::max('order') ?? 0;

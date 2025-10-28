@@ -76,7 +76,7 @@
     "prize_fund": "fundo de prêmios",
     "enter_prize_hint": "insira a quantia ou número de prêmios",
     "hackathon_card_preview": "pré-visualização do cartão do hackathon",
-    "file_upload_hint": "arraste ou selecione um arquivo (JPG ou PNG, máx. 5 MB)",
+    "file_upload_hint": "arraste ou selecione um arquivo (JPG ou PNG, máx. 2 MB)",
     "cansel": "cancelar",
     "save": "salvar",
     "taskTime": "tempo para tarefa",

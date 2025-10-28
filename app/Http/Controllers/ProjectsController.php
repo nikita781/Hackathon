@@ -172,7 +172,11 @@ class ProjectsController extends Controller
     public function publish(Hackathon $hackathon, Team $team, Project $project): RedirectResponse
     {
         if (!Gate::check('publish', $project)) {
-            abort(403);
+            return back()->with('error', 'Вы не можете опубликовать проект');
+        }
+
+        if ($team->users_count > $hackathon->max_team_size || $team->users_count < $hackathon->min_team_size) {
+            return back()->with("error", "Ваша команда не подходит под критерии хакатона");
         }
 
         $project->update([

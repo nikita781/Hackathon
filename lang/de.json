@@ -76,7 +76,7 @@
     "prize_fund": "Preispool",
     "enter_prize_hint": "Betrag oder Anzahl der Preise eingeben",
     "hackathon_card_preview": "Vorschau der Hackathon-Karte",
-    "file_upload_hint": "Datei ziehen oder auswählen (JPG oder PNG, max. 5 MB)",
+    "file_upload_hint": "Datei ziehen oder auswählen (JPG oder PNG, max. 2 MB)",
     "cansel": "Abbrechen",
     "save": "Speichern",
     "taskTime": "Aufgabenzeit",
