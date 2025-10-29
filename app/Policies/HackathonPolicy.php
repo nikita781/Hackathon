@@ -23,7 +23,7 @@ class HackathonPolicy
             return $hackathon->status !== Hackathon::STATUS_DRAFT;
         }
 
-        return $hackathon->status === Hackathon::STATUS_PUBLISHED || $user->isHackathonStaff($hackathon) || $user->isAdmin();
+        return true;
     }
 
     public function viewTask(?User $user, Hackathon $hackathon): bool
@@ -65,7 +65,7 @@ class HackathonPolicy
 
     public function publish(User $user, Hackathon $hackathon): bool
     {
-        if (!($hackathon->status === Hackathon::STATUS_DRAFT)) {
+        if (!($hackathon->status === Hackathon::STATUS_DRAFT) && !($hackathon->status === Hackathon::STATUS_BLOCKED)) {
             return false;
         }
 
@@ -228,13 +228,9 @@ class HackathonPolicy
 
     public function finish(User $user, Hackathon $hackathon)
     {
-        if ($hackathon->event_end < Carbon::now() 
+        return $hackathon->event_end < Carbon::now()
             && $hackathon->status === Hackathon::STATUS_PUBLISHED
             && $hackathon->is_finished === false
-            ) {
-            return true;
-        }
-
-        return false;
+            && $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 }

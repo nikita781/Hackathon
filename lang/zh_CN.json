@@ -202,7 +202,7 @@
     "authorize": "登录",
     "notifications": "通知",
     "certificate": "证书",
-    "upload_files_hint": "拖拽或选择文件 (PDF，最大 5 MB)",
+    "upload_files_hint": "拖拽或选择文件 (JPG，最大 2 MB)",
     "awards_all_participants": "所有参与者奖项",
     "awards_prize_places": "获奖名次奖项",
     "for_all": "所有",

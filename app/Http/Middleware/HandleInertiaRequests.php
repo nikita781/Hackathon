@@ -4,9 +4,11 @@ namespace App\Http\Middleware;
 
 use App\Http\Resources\UserResource;
 use App\Models\Hackathon;
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Middleware;
+use Symfony\Component\HttpFoundation\Response;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -23,6 +25,28 @@ class HandleInertiaRequests extends Middleware
     public function version(Request $request): string|null
     {
         return parent::version($request);
+    }
+
+    public function handle(Request $request, Closure $next): Response
+    {
+        $response = parent::handle($request, $next);
+
+        $vary = $response->headers->get('Vary');
+
+        if ($vary) {
+            $varyValues = array_map('trim', explode(',', $vary));
+            if (!in_array('X-Inertia', $varyValues)) {
+                $varyValues[] = 'X-Inertia';
+            }
+            if (!in_array('Accept-Encoding', $varyValues)) {
+                $varyValues[] = 'Accept-Encoding';
+            }
+            $response->headers->set('Vary', implode(', ', $varyValues));
+        } else {
+            $response->headers->set('Vary', 'Accept-Encoding, X-Inertia');
+        }
+
+        return $response;
     }
 
     /**

@@ -329,6 +329,10 @@ class HackathonController extends Controller
             return back()->with('error', 'Все даты хакатона должны быть заполнены');
         }
 
+        if ($hackathon->registration_end < now()) {
+            return back()->with('error', 'Дата конца регистрации уже прошла');
+        }
+
         if (!$hackathon->criteriaGroups()->has('criteria')->exists()) {
             return back()->with('error', 'Хакатон должен содержать критерии оценки');
         }
@@ -437,7 +441,7 @@ class HackathonController extends Controller
 
     public function finishHackathon(Hackathon $hackathon)
     {
-        Gate::authorize('update', $hackathon);
+        Gate::authorize('finish', $hackathon);
 
         $action = New FinishOneHackathon();
         $ok = $action($hackathon->slug);

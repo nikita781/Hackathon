@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\MediaCannotBeDeleted;
@@ -169,10 +170,18 @@ class ProjectsController extends Controller
         return back()->with('status', 'Проект успешно удален!');
     }
 
-    public function publish(Hackathon $hackathon, Team $team, Project $project): RedirectResponse
+    public function publish(Hackathon $hackathon, Team $team, Project $project)
     {
         if (!Gate::check('publish', $project)) {
-            abort(403);
+            throw ValidationException::withMessages([
+                'project' => 'Вы не можете опубликовать проект',
+            ]);
+        }
+
+        if ($team->users_count > $hackathon->max_team_size || $team->users_count < $hackathon->min_team_size) {
+            throw ValidationException::withMessages([
+                'team' => 'Ваша команда не подходит под критерии хакатона',
+            ]);
         }
 
         $project->update([
