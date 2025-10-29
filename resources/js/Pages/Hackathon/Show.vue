@@ -237,6 +237,30 @@ const withCacheBust = (url, ver) => {
 const imgSrc = computed(() =>
     withCacheBust(props.hackathon.image_path, props.hackathon.updated_at)
 )
+
+const finishing = ref(false)
+
+async function finishHackathon() {
+    if (finishing.value) return
+    try {
+        finishing.value = true
+        await axios.post(route('hackathons.finish', { hackathon: props.hackathon.slug }))
+        // показываем тост и подтягиваем свежие пропсы
+        toast.success(`Хакатон "${props.hackathon.slug}" завершён`, {
+            position: 'top-right',
+            timeout: 5000,
+        })
+        router.reload({ only: ['hackathon', 'can', 'tabs', 'flash'] })
+    } catch (e) {
+        console.error('finish-hackathon', e?.response ?? e)
+        toast.error('Сейчас хакатон нельзя завершить', {
+            position: 'top-right',
+            timeout: 5000,
+        })
+    } finally {
+        finishing.value = false
+    }
+}
 </script>
 
 <template>
@@ -396,6 +420,15 @@ const imgSrc = computed(() =>
                                     :disabled="syncing"
                                 >
                                     {{ syncing ? 'Выгружаем…' : 'Выгрузить отчёт' }}
+                                </button>
+                                <button
+                                    type="button"
+                                    class="main__btn hackathon__btn"
+                                    v-if="props.can.hackathon.finish"
+                                    @click="finishHackathon"
+                                    :disabled="finishing"
+                                >
+                                    {{ finishing ? 'Завершаем…' : 'Завершить хакатон' }}
                                 </button>
                             </div>
                             <TakePart

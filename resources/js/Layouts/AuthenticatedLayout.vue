@@ -31,7 +31,8 @@ const props = defineProps({
                     <slot/>
                 </main>
 
-                <Footer style="z-index: 2"/>
+<!--                <Footer style="z-index: 2"/>-->
+                <Footer />
             </div>
         </div>
     </div>

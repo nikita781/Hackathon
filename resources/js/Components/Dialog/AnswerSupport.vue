@@ -14,6 +14,7 @@ const emit = defineEmits(["update:modelValue", "sent"]);
 const textAppeal = ref('');
 const pending = ref(false);
 const errorMsg = ref('');
+const backendErrors = ref({});
 
 const toast = useToast();
 const isAdmin = ref(true);
@@ -32,6 +33,7 @@ function reset() {
     textAppeal.value = '';
     pending.value = false;
     errorMsg.value = '';
+    backendErrors.value = {};
 }
 function close() {
     reset();
@@ -40,7 +42,8 @@ function close() {
 
 async function submitAppeal() {
     errorMsg.value = '';
-    console.log(props.message.id)
+    backendErrors.value = {};
+    // console.log(props.message.id)
     // if (!textAppeal.value.trim()) {
     //     errorMsg.value = 'Введите текст обращения';
     //     return;
@@ -60,6 +63,10 @@ async function submitAppeal() {
         close();
     } catch (e) {
         const resp = e?.response;
+        if (resp?.status === 422) {
+            backendErrors.value = resp.data?.errors || {};
+            errorMsg.value = backendErrors.value?.message?.[0] ?? '';
+        }
         toast.error(capitalizeFirstLetter(langStore.translations.reply_failed), { position:'top-right', timeout:5000 })
         console.error('support-store', resp ?? e);
     } finally {
@@ -123,6 +130,7 @@ onMounted(async () => {
                     v-model="textAppeal"
                     style="min-height: 170px"
                     class="dialog__textarea"
+                    :class="{ error: backendErrors.message }"
                     :placeholder="capitalizeFirstLetter(langStore.translations.enter_reply_text)"
                 />
                 <p v-if="errorMsg" style="color:#e74c3c; margin-top:8px;">{{ errorMsg }}</p>
