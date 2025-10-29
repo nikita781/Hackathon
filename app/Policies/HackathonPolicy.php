@@ -69,10 +69,6 @@ class HackathonPolicy
             return false;
         }
 
-        if ($hackathon->registration_end < now()) {
-            return false;
-        }
-
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
