@@ -12,6 +12,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['cancel'])
+const toast = useToast();
 
 const previewUrl = ref(null);
 
@@ -88,7 +89,26 @@ async function publishProject() {
         const toast = useToast(); toast.success(capitalizeFirstLetter(langStore.translations.project_sent_for_moderation));
     } catch (e) {
         console.error('publish-project', e?.response ?? e);
-        const toast = useToast(); toast.error(capitalizeFirstLetter(langStore.translations.project_send_failed));
+
+        const resp = e?.response;
+        const errs = resp?.data?.errors;
+
+        if (resp?.status === 422 && errs) {
+            const msgs = [
+                ...(Array.isArray(errs.project) ? errs.project : []),
+                ...(Array.isArray(errs.team)    ? errs.team    : []),
+            ];
+            if (msgs.length) {
+                toast.error(msgs.join('\n'), { position: 'top-right', timeout: 7000 });
+            } else {
+                toast.error(capitalizeFirstLetter(langStore.translations.project_send_failed), {
+                    position: 'top-right', timeout: 5000,
+                });
+            }
+        } else {
+            const msg = resp?.data?.message || capitalizeFirstLetter(langStore.translations.project_send_failed);
+            toast.error(msg, { position: 'top-right', timeout: 5000 });
+        }
     } finally {
         pending.value = false;
         agree.value = false;
