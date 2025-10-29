@@ -163,7 +163,7 @@ class HackathonStaffController extends Controller
 
             $invitedUser->notify(new InviteNotification([
                 'title' => 'Приглашение на хакатон от организатора',
-                'description' => "Организатор {$org->nickname} пригласил Вас на хакатон «{$hackathon->title}» на роль “{$invitedUserRole->title}”.",
+                'description' => "Организатор {$org->nickname} пригласил Вас на хакатон «{$hackathon->title}» на роль «{$invitedUserRole->title}».",
                 'url' => route('hackathons.staff.accept-invite', [$hackathon, $invite->token]),
                 'send_at' => now()->toDateString(),
                 'is_active' => true,

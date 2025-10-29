@@ -362,7 +362,7 @@ class HackathonController extends Controller
         $user->hackathons()->attach($hackathon->id, ['role_id' => Role::MEMBER]);
 
         $team = $hackathon->teams()->create([
-            'title' => "Команда {$user->name}"
+            'title' => "Команда " . $user->nickname
         ]);
 
         $user->teams()->syncWithoutDetaching([
@@ -379,10 +379,49 @@ class HackathonController extends Controller
         }
 
         $user = auth()->user();
+        $team = $user->teams()->where('hackathon_id', $hackathon->id)->first();
+
+        if (!$team) {
+            return back()->with('error', 'Вы не состоите в команде этого хакатона.');
+        }
+
+        $membersCount = $team->users()->count();
+
+        $isCaptain = $team->teamUsers()
+            ->where('user_id', $user->id)
+            ->where('position_id', Position::CAPITAN_POSITION)
+            ->exists();
+
+        if ($membersCount === 1) {
+            if ($team->project) {
+                $team->project->delete();
+            }
+
+            $team->delete();
+
+            $user->hackathons()->detach($hackathon->id);
+
+            return back()->with('status', 'Вы покинули хакатон, команда и проект были удалены.');
+        }
+
+        if ($isCaptain) {
+            $nextCaptain = $team->users()
+                ->where('user_id', '!=', $user->id)
+                ->orderBy('team_user.created_at')
+                ->first();
+
+            if ($nextCaptain) {
+                $team->teamUsers()
+                    ->where('user_id', $nextCaptain->id)
+                    ->update(['position_id' => Position::CAPITAN_POSITION]);
+            }
+        }
+
+        $team->users()->detach($user->id);
 
         $user->hackathons()->detach($hackathon->id);
 
-        return back()->with('status', 'Вы успешно покинули хакатон!');
+        return back()->with('status', 'Вы покинули хакатон.');
     }
 
     public function downloadUsers(Hackathon $hackathon): BinaryFileResponse

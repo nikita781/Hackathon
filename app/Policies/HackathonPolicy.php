@@ -153,6 +153,10 @@ class HackathonPolicy
             return false;
         }
 
+        if ($hackathon->is_finished) {
+            return false;
+        }
+
         $team = $user
             ->teams()
             ->where('hackathon_id', $hackathon->id)

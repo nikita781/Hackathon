@@ -117,7 +117,7 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = 'Хакатон "' . $hackathon->title . '" опубликован';
+        $message = 'Хакатон «' . $hackathon->title . '» опубликован';
 
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'accept',
@@ -152,7 +152,7 @@ class AdminController extends Controller
             'comment' => $comment
         ]);
 
-        $message = 'Хакатон "' . $hackathon->title . '" отклонен';
+        $message = 'Хакатон «' . $hackathon->title . '» отклонен';
 
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'rejected',
@@ -189,7 +189,7 @@ class AdminController extends Controller
 
         $project->load('hackathon');
 
-        $message = 'Проект "' . $project->title . '" опубликован';
+        $message = 'Проект «' . $project->title . '» опубликован';
 
         if ($captain = $project->team->captain()) {
             $captain->notify(new ModerateNotification([
@@ -228,7 +228,7 @@ class AdminController extends Controller
 
         $project->load('hackathon');
 
-        $message = 'Проект "' . $project->title . '" отклонен';
+        $message = 'Проект «' . $project->title . '» отклонен';
 
         if ($captain = $project->team->captain()) {
             $captain->notify(new ModerateNotification([

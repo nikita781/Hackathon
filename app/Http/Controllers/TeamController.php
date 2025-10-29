@@ -74,6 +74,10 @@ class TeamController extends Controller
 
             $team->users()->detach($user->id);
 
+            if ($user->teams()->where('hackathon_id', $hackathon->id)->count() !== 0) {
+                return back()->with('error', 'Пользователь уже в другой команде');
+            }
+
             $newTeam = Team::create([
                 'hackathon_id' => $hackathon->id,
                 'title' => 'Команда ' . $user->nickname,
@@ -226,7 +230,7 @@ class TeamController extends Controller
                 continue;
             }
 
-            $invitedUserPosition = Role::find($invitedPositionId);
+            $invitedUserPosition = Position::find($invitedPositionId);
             if (!$invitedUserPosition) {
                 $errors["users.$index.position"] = ["Позиция с ID «{$invitedPositionId}» не найдена"];
                 continue;
@@ -255,7 +259,7 @@ class TeamController extends Controller
             }
 
             if (TeamInvite::where('team_id', $team->id)->where('user_id', $invitedUserId)->exists()) {
-                $errors["users.$index.user_id"] = ["Приглашение пользователю «' . $invitedUser->nickname . '» уже отправлено"];
+                $errors["users.$index.user_id"] = ["Приглашение пользователю «". $invitedUser->nickname . "» уже отправлено"];
                 continue;
             }
 
@@ -271,7 +275,7 @@ class TeamController extends Controller
 
             $invitedUser->notify(new InviteNotification([
                 'title' => 'Приглашение в команду',
-                'description' => "Пользователь {$sender->nickname} пригласил Вас в свою команду для хакатона «{$hackathon->title}» на роль “{$invitedUserPosition->title}”.",
+                'description' => "Пользователь {$sender->nickname} пригласил Вас в свою команду для хакатона «{$hackathon->title}» на роль «{$invitedUserPosition->title}».",
                 'url' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
                 'send_at' => now()->toDateString(),
                 'is_active' => true,

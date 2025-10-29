@@ -24,7 +24,7 @@ class SupportAnsweredNotification extends Notification
     {
         return [
             'title' => 'Ответ на обращение',
-            'description' => "Пользователь \"{$this->support->closer->nickname}\" ответил на ваше обращение на хакатоне \"{$this->support->hackathon->title}\".",
+            'description' => "Пользователь «{$this->support->closer->nickname}» ответил на ваше обращение на хакатоне «{$this->support->hackathon->title}».",
             'support_id' => $this->support->id,
             'type' => $this->support->type,
             'message' => $this->support->messages()->latest()->first()?->message,
