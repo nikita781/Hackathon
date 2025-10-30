@@ -141,7 +141,10 @@ class SupportsController extends Controller
                 foreach ($staff as $staffMember) {
                     $staffMember->notify(new NewSupportNotification($support));
                 }
-                $hackathon->owner->notify(new NewSupportNotification($support));
+
+                if (!$staff->contains($hackathon->owner)) {
+                    $hackathon->owner->notify(new NewSupportNotification($support));
+                }
 
                 break;
         }
