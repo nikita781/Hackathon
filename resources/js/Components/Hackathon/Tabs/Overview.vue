@@ -78,7 +78,9 @@ function capitalizeFirstLetter(str) {
                             <IconsCup />
                             <div class="hackathon__prizes_content">
                                 <p class="hackathon__prizes_name">{{ n.title }}</p>
-                                <p class="hackathon__prizes_prize">{{ formatNumber(n.prize) || capitalizeFirstLetter(langStore.translations.no_amount) }} ₽</p>
+                                <p class="hackathon__prizes_prize">
+                                    {{ Number.isFinite(+n.prize) ? (formatNumber(n.prize) + ' ₽') : n.prize }}
+                                </p>
                                 <p class="hackathon__prizes_count">
                                     {{ n.places.length }}
                                     {{ n.places.length === 1 ? capitalizeFirstLetter(langStore.translations.winner_singular) : n.places.length > 1 && n.places.length < 5 ? capitalizeFirstLetter(langStore.translations.winner_genitive) : capitalizeFirstLetter(langStore.translations.winner_plural) }}

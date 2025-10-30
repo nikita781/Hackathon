@@ -387,12 +387,16 @@ onBeforeUnmount(() => {
                     <div class="dialog__tags" v-if="selectedDirections.length > 0">
                         <div v-for="(direction, index) in selectedDirections" :key="index" class="dialog__tag" @click="removeDirection(direction, $event)">
                             <span>{{ direction.title }}</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 -960 960 960" width="16px" fill="#1f1f1f"><path fill="#000" d="m291-240-51-51 189-189-189-189 51-51 189 189 189-189 51 51-189 189 189 189-51 51-189-189-189 189Z"/></svg>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 -960 960 960" width="16px" fill="#1f1f1f"><path fill="#000" d="m291-240-51-51 189-189-189-189 51-51 189 189 189-189 51 51-189 189 189 189-51 51-189-189-189 189Z"/></svg>
+                            </div>
                         </div>
                     </div>
-                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 1L4 4L7 1" stroke="#E80024" stroke-width="1.5"/>
-                    </svg>
+                    <div>
+                        <svg width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1L4 4L7 1" stroke="#E80024" stroke-width="1.5"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
             <div v-if="toggleDropdown" class="dropdown-options">

@@ -3,6 +3,7 @@ import IconsCancel from "@/Components/Icons/Cancel.vue";
 import {onMounted, ref, watch} from "vue";
 import { useClipboard } from "@vueuse/core";
 import {useLangStore} from "@/store/lang.js";
+import {useToast} from "vue-toastification";
 
 // props
 const props = defineProps({
@@ -17,6 +18,8 @@ const close = () => emit("update:modelValue", false);
 const inviteLink = ref("");
 const rolesResp  = ref({ roles: [] });
 const { copy, copied } = useClipboard();
+
+const toast = useToast();
 
 // поле «пригласить по ID»
 const userIds = ref([{ user_id: "", role_id: null }]);

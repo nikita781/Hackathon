@@ -24,6 +24,17 @@ const form = reactive(empty())
 
 const saving = ref(false)
 
+const errors = reactive({})
+function setErrors(obj) {
+    Object.keys(errors).forEach(k => delete errors[k])
+    if (!obj) return
+    for (const [k, v] of Object.entries(obj)) {
+        errors[k] = Array.isArray(v) ? (v[0] ?? '') : v
+    }
+}
+function clearError(field) { if (errors[field]) delete errors[field] }
+const critKey = (idx) => `criteria.${idx}.title`
+
 watch(() => props.initial, v => {
     if (!v) {
         Object.assign(form, empty());
@@ -39,6 +50,7 @@ watch(() => props.initial, v => {
         title: v.title ?? '',
         items: items.length ? items : [{id: null, title: '', _key: uid()}],
     })
+    Object.keys(errors).forEach(k => delete errors[k])
 }, {immediate: true})
 
 function close() {
@@ -64,6 +76,8 @@ async function submit() {
         criteria: titles.map(t => ({title: t, max_score: 10})),
     }
 
+    Object.keys(errors).forEach(k => delete errors[k])
+
     const opts = {
         preserveScroll: true,
         preserveState: true,
@@ -75,6 +89,9 @@ async function submit() {
             emit('saved')
             Object.assign(form, empty())
             close()
+        },
+        onError: (err) => {
+            setErrors(err)
         },
         onFinish: () => {
             saving.value = false
@@ -130,8 +147,14 @@ function capitalizeFirstLetter(str) {
 
                 <div class="dialog__component">
                     <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.criteriaCategory) }}</p>
-                    <input v-model="form.title" class="dialog__input"
-                           :placeholder="capitalizeFirstLetter(langStore.translations.enterCriteriaCategory)"/>
+                    <input
+                        v-model="form.title"
+                        class="dialog__input"
+                        :placeholder="capitalizeFirstLetter(langStore.translations.enterCriteriaCategory)"
+                        :class="{ error: !!errors.title }"
+                        @input="clearError('title')"
+                    />
+                    <small v-if="errors.title" class="error__text">{{ errors.title }}</small>
                 </div>
 
                 <div class="dialog__title_header">
@@ -149,11 +172,17 @@ function capitalizeFirstLetter(str) {
                 <div class="dialog__component" v-for="(it,idx) in form.items" :key="idx">
                     <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.criterionTitle) }}</p>
                     <div class="dialog__input_btns">
-                        <input v-model="it.title" class="dialog__input"
-                               :placeholder="capitalizeFirstLetter(langStore.translations.enterCriterionTitle)"
-                               style="width:100%"/>
+                        <input
+                            v-model="it.title"
+                            class="dialog__input"
+                            :placeholder="capitalizeFirstLetter(langStore.translations.enterCriterionTitle)"
+                            style="width:100%"
+                            :class="{ error: !!errors[critKey(idx)] }"
+                            @input="clearError(critKey(idx))"
+                        />
                         <IconsCancel class="clickable" style="cursor:pointer" @click="removeItem(it.id ?? it._key)"/>
                     </div>
+                    <small v-if="errors[critKey(idx)]" class="error__text">{{ errors[critKey(idx)] }}</small>
                 </div>
 
                 <div class="dialog__btns">

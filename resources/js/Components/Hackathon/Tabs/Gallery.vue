@@ -88,10 +88,11 @@ async function fetchOneProject (slug) {
     try {
         const { data } = await axios.get(
             route('hackathons.projects.show', { hackathon: props.hackathon.slug, project: slug }),
-            +       { headers: { Accept: 'application/json' }, signal: projectAbortCtrl.signal }
+            { headers: { Accept: 'application/json' }, signal: projectAbortCtrl.signal }
         )
         if (data?.project) {
             oneProject.value = data.project
+            await fetchPresentation(data.project.slug)
             await loadProjectGallery({ slug: data.project.slug })
         }
         if (data?.groupCriteries) {
@@ -101,6 +102,42 @@ async function fetchOneProject (slug) {
     } catch (e) {
         if (e?.name !== 'CanceledError') console.error('project-show', e?.response ?? e)
     }
+}
+
+const pagerWrap = ref(null)
+
+function extractPage (url) {
+    if (!url) return null
+    try {
+        const u = new URL(url, window.location.origin)
+        const p = Number(u.searchParams.get('page') || '1')
+        return Number.isFinite(p) ? p : null
+    } catch {
+        const q = (url.split('?')[1] || '')
+        const sp = new URLSearchParams(q)
+        const p = Number(sp.get('page') || '1')
+        return Number.isFinite(p) ? p : null
+    }
+}
+
+function onPagerClick (e) {
+    const root = pagerWrap.value
+    if (!root) return
+    const a = e.target.closest('a')
+    if (!a || !root.contains(a)) return
+
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return
+
+    const href = a.getAttribute('href') || a.href
+    const page = extractPage(href)
+    if (!page) return
+
+    e.preventDefault()
+    e.stopPropagation()
+
+    fetchGallery(page)
+
+    window.history.replaceState({}, '', href)
 }
 
 const getReadonlyScore = (criterion) => {
@@ -285,7 +322,10 @@ const oneStack = computed(() => oneProject.value?.stack || '')
 const onePreview = computed(() => getPreviewSrc(oneProject.value))
 const links = computed(() => ({
     project:      oneProject.value?.project_link || '',
-    presentation: oneProject.value?.presentation_path || oneProject.value?.presentation_url || '',
+    presentation: presentationUrl.value
+        || oneProject.value?.presentation_path
+        || oneProject.value?.presentation_url
+        || '',
     video:        oneProject.value?.video_link || '',
 }))
 
@@ -304,6 +344,27 @@ function avatarSrc(photo) {
 function imgFallback(e) {
     e.target.onerror = null;
     e.target.src = PLACEHOLDER;
+}
+
+const presentationUrl = ref('')
+
+async function fetchPresentation(slug) {
+    if (!slug) { presentationUrl.value = ''; return }
+    try {
+        const { data } = await axios.get(
+            route('hackathons.projects.presentation', {
+                hackathon: props.hackathon.slug,
+                project: slug,
+            }),
+            { headers: { Accept: 'application/json' } }
+        )
+        presentationUrl.value = data?.url || ''
+    } catch (e) {
+        presentationUrl.value = ''
+        if (e?.response?.status !== 404) {
+            console.error('project-presentation', e?.response ?? e)
+        }
+    }
 }
 </script>
 
@@ -388,9 +449,9 @@ function imgFallback(e) {
                     </div>
                 </template>
             </div>
-            <Pagination
-                :links="pageLinks"
-            />
+            <div ref="pagerWrap" @click.capture="onPagerClick">
+                <Pagination :links="pageLinks" />
+            </div>
         </div>
         <div v-else class="hackathon__tab_main">
             <div class="hackathon__tab_container">
@@ -454,7 +515,9 @@ function imgFallback(e) {
                     <p class="hackathon__oneProject_media-title">{{ capitalizeFirstLetter(langStore.translations.presentation) }}</p>
                     <div class="hackathon__oneProject_media-item">
                         <Document />
-                        <a :href="links.presentation" target="_blank" rel="noopener noreferrer">{{ capitalizeFirstLetter(langStore.translations.file) }}</a>
+                        <a :href="links.presentation" download target="_blank" rel="noopener noreferrer">
+                            {{ capitalizeFirstLetter(langStore.translations.file) }}
+                        </a>
                     </div>
                 </div>
 

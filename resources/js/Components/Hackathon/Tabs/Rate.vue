@@ -128,10 +128,6 @@ const truncate = (text, max = 180) => {
 
 const pageLinks = ref([])
 
-const extractPage = (url) => {
-    try { return Number(new URL(url, window.location.origin).searchParams.get('page') || 1) }
-    catch { return 1 }
-}
 const go = (url) => {
     const p = extractPage(url)
     if (p) fetchGallery(p)
@@ -264,11 +260,13 @@ const getPreviewSrc = (p) => {
 function openProject(p) {
     fetchOneProject(p?.slug ?? p?.id)
     loadProjectGallery(p)
+    fetchPresentation(p?.slug ?? p?.id)
 }
 function closeProject() {
     oneProject.value = null
     oneGallery.value = []
     groupCriteries.value = []
+    presentationUrl.value = ''
 }
 
 async function fetchOneProject (slugOrId) {
@@ -316,7 +314,10 @@ const oneStack = computed(() => oneProject.value?.stack || '')
 const onePreview = computed(() => oneProject.value ? getPreviewSrc(oneProject.value) : '/project.jpg')
 const links = computed(() => ({
     project     : oneProject.value?.project_link || '',
-    presentation: oneProject.value?.presentation_path || oneProject.value?.presentation_url || '',
+    presentation: presentationUrl.value
+        || oneProject.value?.presentation_path
+        || oneProject.value?.presentation_url
+        || '',
     video       : oneProject.value?.video_link || '',
 }))
 
@@ -356,6 +357,51 @@ function capitalizeFirstLetter(str) {
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
+
+const presentationUrl = ref('')
+
+async function fetchPresentation(slug) {
+    if (!slug) { presentationUrl.value = ''; return }
+    try {
+        const { data } = await axios.get(
+            route('hackathons.projects.presentation', {
+                hackathon: props.hackathon.slug,
+                project : slug,
+            }),
+            { headers: { Accept: 'application/json' } }
+        )
+        presentationUrl.value = data?.url || ''
+    } catch (e) {
+        presentationUrl.value = ''
+        if (e?.response?.status !== 404) console.error('project-presentation', e?.response ?? e)
+    }
+}
+
+const pagerWrap = ref(null)
+
+function extractPage (url) {
+    try { return Number(new URL(url, window.location.origin).searchParams.get('page') || 1) }
+    catch { return 1 }
+}
+
+function onPagerClick(e) {
+    const root = pagerWrap.value
+    if (!root) return
+    const a = e.target.closest('a')
+    if (!a || !root.contains(a)) return
+
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return
+
+    const href = a.getAttribute('href') || a.href
+    const p = extractPage(href)
+    if (!p) return
+
+    e.preventDefault()
+    e.stopPropagation()
+
+    fetchGallery(p)
+    window.history.replaceState({}, '', href)
+}
 </script>
 
 <template>
@@ -462,11 +508,9 @@ onMounted(async () => {
                         :existing-evaluations="selectedEvaluations"
                     />
                 </div>
-                <Pagination
-                    :links="pageLinks"
-                    @navigate="go"
-                    style="margin-top:24px"
-                />
+                <div ref="pagerWrap" @click.capture="onPagerClick" style="margin-top:24px">
+                    <Pagination :links="pageLinks" @navigate="go" />
+                </div>
             </div>
         </div>
 

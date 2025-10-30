@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
     links: {
@@ -49,6 +49,15 @@ const fixLabel = (label) => {
     if (label === 'pagination.next') return '›'
     return label
 }
+
+function go(url) {
+    if (!url) return
+    router.visit(url, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+}
 </script>
 
 <template>
@@ -57,6 +66,7 @@ const fixLabel = (label) => {
             v-if="paginated.prev && paginated.prev.url"
             :href="paginated.prev.url"
             class="main__pagination_item arrow"
+            @click.prevent="go(paginated.prev.url)"
         >
             <svg width="20" height="20" viewBox="0 0 20 20">
                 <path d="M15 18l-6-6 6-6" fill="none" stroke="#E80024" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -77,6 +87,7 @@ const fixLabel = (label) => {
                 v-if="page.url"
                 :href="page.url"
                 :class="['main__pagination_item', { active: page.active }]"
+                @click.prevent="go(page.url)"
             >
                 <span v-html="fixLabel(page.label)" />
             </a>
@@ -93,6 +104,7 @@ const fixLabel = (label) => {
             v-if="paginated.next && paginated.next.url"
             :href="paginated.next.url"
             class="main__pagination_item arrow"
+            @click.prevent="go(paginated.next.url)"
         >
             <svg width="20" height="20" viewBox="0 0 20 20">
                 <path d="M9 6l6 6-6 6" fill="none" stroke="#E80024" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />

@@ -16,6 +16,8 @@ const emit = defineEmits(['update:modelValue', 'approve', 'reject'])
 const tabs = ['Основная информация', 'Описание', 'Материалы']
 const active = ref(0)
 
+console.log(props.project)
+
 const title      = computed(() => props.project?.title ?? '—')
 const shortDesc  = computed(() => props.project?.description ?? props.project?.short_description ?? '—')
 const about      = computed(() => props.project?.about ?? '—')
@@ -28,21 +30,51 @@ const links = computed(() => ({
     video:        props.project?.video_link ?? ''
 }))
 
-const pptx = ref(null);
-const projectImages = ref([])
+const pptx = ref(null)
+const hasServerPresentation = ref(false)
+const serverPresentationFilename = ref(null)
+const presentationUrl = ref(null)
 
+const projectImages = ref([])
 const preview     = ref(null)
 
-watch(() => props.modelValue, () => {
+watch(() => props.modelValue, async () => {
     getPreview(props.project.slug)
     getGallery(props.project.slug)
-    if (props.project.presentation_path) {
-        pptx.value = getPresentation(props.project.presentation_path)
-    }
+    await fetchPresentation(props.project.slug)
 });
 
 function getPresentation(presentation_path) {
-    return presentation_path.split('/').pop();
+    if (typeof presentation_path !== 'string' || !presentation_path) return ''
+    const i = presentation_path.lastIndexOf('/')
+    return i >= 0 ? presentation_path.slice(i + 1) : presentation_path
+}
+
+async function fetchPresentation(projectSlug) {
+    if (!projectSlug) return
+    try {
+        const { data } = await axios.get(
+            route('hackathons.projects.presentation', {
+                hackathon: props.hackathonSlug,
+                project:   projectSlug,
+            }),
+            { headers: { Accept: 'application/json' } }
+        )
+
+        hasServerPresentation.value     = true
+        presentationUrl.value           = data?.url ?? null
+        serverPresentationFilename.value= data?.name || getPresentation(data?.url) || 'presentation'
+        pptx.value = serverPresentationFilename.value
+    } catch (e) {
+        if (e?.response?.status === 404) {
+            hasServerPresentation.value      = false
+            presentationUrl.value            = null
+            serverPresentationFilename.value = null
+            if (typeof pptx.value === 'string') pptx.value = null
+        } else {
+            console.error('fetch-presentation', e?.response ?? e)
+        }
+    }
 }
 
 async function getPreview(slugId) {
@@ -168,10 +200,16 @@ function rejectP() { emit('reject',  props.project); close() }
                 <div v-else class="view-block">
                     <div class="dialog__component">
                         <p class="dialog__title">Презентация</p>
-                        <div v-if="pptx" class="upload-row">
-                            <a class="main__btn allow-pointer" :href="links.presentation" download :title="getPresentation(links.presentation)">
+                        <div v-if="pptx && presentationUrl" class="upload-row">
+                            <a
+                                class="main__btn allow-pointer"
+                                :href="presentationUrl"
+                                download
+                                :title="serverPresentationFilename || 'presentation.pptx'"
+                            >
                                 Скачать презентацию
                             </a>
+                            <span class="file-hint">{{ serverPresentationFilename }}</span>
                         </div>
                         <DropPPTX v-model:file="pptx" />
                     </div>

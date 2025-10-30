@@ -47,6 +47,27 @@ onMounted(async () => {
     await langStore.fetchTranslations()
 });
 
+const pagerWrap = ref(null)
+
+function onPaginationClick(e) {
+    const root = pagerWrap.value
+    if (!root) return
+    const a = e.target.closest('a')
+    if (!a || !root.contains(a)) return
+
+    if (a.target && a.target !== '_self') return
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return
+
+    const href = a.getAttribute('href') || a.href
+    if (!href) return
+
+    const page = extractPage(href)
+    if (!page) return
+
+    e.preventDefault()
+    fetchTeams(page)
+}
+
 // Фильтры (подписи любые — важны value)
 const filterGroups = ref([
     {
@@ -442,11 +463,9 @@ function imgFallback(e) {
                             </div>
                         </div>
                     </div>
-                    <Pagination
-                        :links="paginationLinks"
-                        @navigate="go"
-                        style="margin-top:24px"
-                    />
+                    <div ref="pagerWrap" @click="onPaginationClick" style="margin-top:24px">
+                        <Pagination :links="paginationLinks" />
+                    </div>
                 </div>
             </div>
         </div>

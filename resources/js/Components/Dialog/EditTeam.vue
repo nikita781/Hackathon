@@ -3,6 +3,7 @@ import ConfirmDialog from "@/Components/Dialog/ConfirmDialog.vue";
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import {computed, onMounted, ref} from "vue";
 import {useLangStore} from "@/store/lang.js";
+import {useToast} from "vue-toastification";
 
 const props = defineProps({
     modelValue : Boolean,
@@ -31,6 +32,8 @@ const closeConfirmDialog = () => {
     showConfirmDialog.value = false;
 };
 
+const toast = useToast();
+
 const removeUser = async () => {
     if (!userToRemove.value) return
 
@@ -40,15 +43,23 @@ const removeUser = async () => {
     })
 
     try {
-        await axios.delete(url, {
-            data: { members: [userToRemove.value] },
-            headers: { 'Content-Type': 'application/json' }
+        const fd = new FormData()
+        fd.append('_method', 'DELETE')
+        fd.append('members[]', userToRemove.value)
+
+        await axios.post(url, fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
         })
 
         props.team.users = props.team.users.filter(
             u => u.user.id !== userToRemove.value
         )
         closeConfirmDialog()
+        toast.success("Участник исключен", {
+            position: 'top-right',
+            timeout: 5000,
+        });
+        close()
     } catch (err) {
         console.error('Ошибка при удалении пользователя', err)
     }

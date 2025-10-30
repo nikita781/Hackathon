@@ -24,6 +24,11 @@ watch(() => props.oneProject, () => {
     fetchPresentation(props.oneProject.slug)
 })
 
+const presentationUrl = ref(null)
+const canDownloadServer = computed(
+    () => hasServerPresentation.value && !isLocalFile.value && !!presentationUrl.value
+)
+
 async function fetchPresentation(projectSlug) {
     try {
         const { data } = await axios.get(
@@ -34,11 +39,13 @@ async function fetchPresentation(projectSlug) {
             { headers: { Accept: 'application/json' } }
         )
         hasServerPresentation.value   = true
+        presentationUrl.value = data?.url ?? null
         serverPresentationFilename.value = data?.name || getPresentation(data?.url) || 'presentation'
         pptx.value = serverPresentationFilename.value
     } catch (e) {
         if (e?.response?.status === 404) {
             hasServerPresentation.value = false
+            presentationUrl.value = null
             serverPresentationFilename.value = null
             if (typeof pptx.value === 'string') pptx.value = null
         } else {
@@ -141,6 +148,7 @@ async function deleteServerPresentation() {
             { preserveScroll: true }
         )
         hasServerPresentation.value = false
+        presentationUrl.value = null
         serverPresentationFilename.value = null
         if (typeof pptx.value === 'string') {
             pptx.value = null
@@ -218,6 +226,16 @@ onMounted(async () => {
     <div class="project__form">
         <div class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.presentation) }}</p>
+            <a
+                v-if="canDownloadServer"
+                class="main__btn dialog__btn"
+                style="width: fit-content"
+                :href="presentationUrl"
+                download
+                :title="serverPresentationFilename || 'presentation.pptx'"
+            >
+                Скачать
+            </a>
             <DropPPTX v-model:file="pptx" />
             <span v-if="errors.presentation" class="error__text">{{ errors.presentation[0] }}</span>
             <button

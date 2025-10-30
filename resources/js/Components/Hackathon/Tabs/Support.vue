@@ -18,16 +18,59 @@ const props = defineProps({
 
 const supports = ref([]);
 
-async function fetchSupport() {
+async function fetchSupport(page = 1) {
     try {
         const { data } = await axios.get(
-            route('hackathons.support.index', { hackathon: props.hackathon.slug })
+            route('hackathons.support.index', { hackathon: props.hackathon.slug }),
+            { params: { page }, headers: { Accept: 'application/json' } }
         )
         supports.value = data
-        // console.log(supports.value)
     } catch (e) {
         console.error('support-fetch', e?.response ?? e)
     }
+}
+
+const pagerWrap = ref(null)
+
+function extractPage(url) {
+    if (!url) return null
+    try {
+        const u = new URL(url, window.location.origin)
+        const p = Number(u.searchParams.get('page') || '1')
+        return Number.isFinite(p) ? p : null
+    } catch {
+        const q = (url.split('?')[1] || '')
+        const sp = new URLSearchParams(q)
+        const p = Number(sp.get('page') || '1')
+        return Number.isFinite(p) ? p : null
+    }
+}
+
+function onPagerClick(e) {
+    const root = pagerWrap.value
+    if (!root) return
+
+    // Ищем ближайшую ссылку
+    const a = e.target.closest('a')
+    if (!a || !root.contains(a)) return
+
+    // игнор модификаторов/не левой кнопки
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return
+
+    const href = a.getAttribute('href') || a.href
+    const page = extractPage(href)
+    if (!page) return
+
+    // ВАЖНО: отменяем и гасим всплытие до Inertia
+    e.preventDefault()
+    e.stopPropagation()
+
+    fetchSupport(page)
+
+    // Поддержим адресную строку
+    const url = new URL(window.location.href)
+    url.searchParams.set('page', String(page))
+    window.history.replaceState({}, '', url)
 }
 
 const isForm = ref(false);
@@ -132,11 +175,11 @@ const pageLinks = computed(() =>
 );
 
 onMounted(async () => {
-    await fetchSupport();
+    await fetchSupport(Number(new URLSearchParams(location.search).get('page') || '1'))
     await nextTick(() => {
-        tabsRef.value = document.querySelectorAll('.my-hackathon__tabs_item');
-    });
-});
+        tabsRef.value = document.querySelectorAll('.my-hackathon__tabs_item')
+    })
+})
 
 const langStore = useLangStore()
 
@@ -148,6 +191,8 @@ function capitalizeFirstLetter(str) {
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
+
+watch([activeTab, statusFilter], () => fetchSupport(1))
 </script>
 
 <template>
@@ -210,10 +255,9 @@ onMounted(async () => {
                     Здесь пока пусто
                 </p>
 
-                <Pagination
-                    :links="pageLinks"
-                    style="margin-top: 30px"
-                />
+                <div ref="pagerWrap" @click.capture="onPagerClick" style="margin-top: 30px">
+                    <Pagination :links="pageLinks" />
+                </div>
             </div>
         </div>
 
