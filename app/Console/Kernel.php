@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('hackathons:finish')->hourlyAt('10');
+        $schedule->command('hackathons:finish')->everyMinute();
         $schedule->command('users:sync')->dailyAt('03:00');
         $schedule->command('editor:cleanup')->weeklyOn(6, '04:00');
     }
