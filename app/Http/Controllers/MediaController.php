@@ -118,10 +118,6 @@ class MediaController extends Controller
 
     public function showProjectPresentation(Hackathon $hackathon, Project $project): JsonResponse
     {
-        if (!Gate::check('view', $hackathon) || !Gate::check('view', $project)) {
-            abort(403);
-        }
-
         $media = $project->getFirstMedia('presentation');
 
         if (!$media) {
@@ -131,8 +127,17 @@ class MediaController extends Controller
         return response()->json([
             'id' => $media->id,
             'name' => $media->file_name,
-            'url' => $media->getPath(),
+            'url' => route('hackathons.projects.presentation.download', [$hackathon, $project, $media]),
         ]);
+    }
+
+    public function DownloadProjectsPresentation(Hackathon $hackathon, Project $project, Media $media): BinaryFileResponse
+    {
+        if (!Gate::check('view', $hackathon) || !Gate::check('view', $project)) {
+            abort(403);
+        }
+
+        return response()->download($media->getPath(), $media->file_name);
     }
 
     public function showProjectGallery(Request $request, Hackathon $hackathon, Project $project): JsonResponse

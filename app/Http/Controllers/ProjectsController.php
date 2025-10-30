@@ -172,11 +172,11 @@ class ProjectsController extends Controller
 
     public function publish(Hackathon $hackathon, Team $team, Project $project)
     {
-//        if (!Gate::check('publish', $project)) {
-//            throw ValidationException::withMessages([
-//                'project' => 'Вы не можете опубликовать проект',
-//            ]);
-//        }
+        if (!Gate::check('publish', $project)) {
+            throw ValidationException::withMessages([
+                'project' => 'Вы не можете опубликовать проект',
+            ]);
+        }
         $user_count = $team->users->count();
 
         if ($user_count > $hackathon->max_team_size || $user_count < $hackathon->min_team_size) {
