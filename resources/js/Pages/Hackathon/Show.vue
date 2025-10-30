@@ -474,6 +474,7 @@ async function finishHackathon() {
                                 :tabs="props.tabs"
                                 :tags="props.tags ?? []"
                                 :admin="adminMode"
+                                :update_published="props.can.hackathon.update_published"
                             />
                             <RejectHackathon
                                 v-model="showRejectHackathon"

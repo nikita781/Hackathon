@@ -17,8 +17,10 @@ const props = defineProps({
     tabs       : { type:Array, default:() => [] },
     tags       : { type:Array, default:() => [] },
     admin      : { type:Boolean, default:() => false },
+    update_published: { type:Boolean, default:true },
 })
 const isAdmin = computed(() => !!props.admin)
+const updatePublished = computed(() => props.update_published !== false)
 
 const langStore = useLangStore()
 
@@ -41,6 +43,13 @@ const hasUnsaved     = ref(false)
 const tabsRu = ref(['Основная информация','Обзор','Ресурсы','Правила','Контакты','Оценка','Награды']);
 
 function onDirty (flag) { hasUnsaved.value = flag }
+
+function isTabLocked(i) {
+    if (!isEdit.value && !created.value && i > 0) return true
+    const lastLockedStart = tabsRu.value.length - 2
+    if (!updatePublished.value && i >= lastLockedStart) return true
+    return false
+}
 
 const isEdit = computed(() => {
     const hasHackathon = !!(props.hackathon && Object.keys(props.hackathon).length)
@@ -71,7 +80,7 @@ function initMode () {
 }
 
 function toTab (i) {
-    if (!isEdit.value && !created.value && i > 0) return
+    if (isTabLocked(i)) return
     if (i === active.value)    return
 
     if (hasUnsaved.value) {
@@ -113,8 +122,22 @@ function onTabSaved({ slug }){
 
         tabs[0] = defineAsyncComponent(() => import('./Tab/MainInfoEdit.vue'))
     }
-    if (active.value < tabsRu.value.length-1) active.value++
+    let next = active.value + 1
+    const lastLockedStart = tabsRu.value.length - 2
+    if (!updatePublished.value && next >= lastLockedStart) {
+        next = lastLockedStart - 1
+    }
+    if (next > active.value && next < tabsRu.value.length) active.value = next
 }
+
+watch(updatePublished, (canUpdate) => {
+    if (!canUpdate) {
+        const lastLockedStart = tabsRu.value.length - 2
+        if (active.value >= lastLockedStart) {
+            active.value = lastLockedStart - 1
+        }
+    }
+})
 
 function capitalizeFirstLetter(str) {
     if (!str) return str;
@@ -183,7 +206,7 @@ onMounted(async () => {
                                   'dialog__tabs_item',
                                   {
                                       active:active===i,
-                                      locked: !isEdit && !created && i>0,
+                                      locked: isTabLocked(i),
                                       done: created || isEdit
                                   }
                              ]"
