@@ -16,6 +16,8 @@ const emit = defineEmits(['saved', 'cancel', 'dirty', 'saving'])
 
 const isAdmin = computed(() => !!props.admin)
 
+const resourcesKey = ref(0)
+
 const description = ref(null)
 const resourcesFiles = ref([])
 const deletedMediaIds  = ref([])
@@ -41,6 +43,7 @@ async function fetchResources() {
 
             description.value = form.sections[0].content
             resourcesFiles.value = form.files
+            resourcesKey.value++
         }
         await nextTick()
         loaded.value = true
@@ -134,6 +137,10 @@ async function save () {
             fd,
             { headers:{ 'Content-Type':'multipart/form-data' } }
         )
+        await fetchResources()
+        deletedMediaIds.value = []
+        form.files = []
+
         dirty.value = false
         emit('dirty', false)
         emit('saved', { slug : props?.hackathonSlug })
@@ -156,6 +163,7 @@ const resetState = () => {
     form.sections[0].content = ''
     form.files               = []
     form.delete_media_ids    = []
+    resourcesKey.value++
 }
 
 function cancel () {
@@ -174,12 +182,26 @@ function clearFilesErrors() {
     })
 }
 
+function dedupMixed(mixed) {
+    if (!Array.isArray(mixed)) return []
+    const seen = new Set()
+    return mixed.filter(x => {
+            if (x instanceof File) {
+                const key = `${x.name}|${x.size}|${x.lastModified ?? 0}`
+                if (seen.has(key)) return false
+                seen.add(key)
+                return true
+            }
+            return true
+        })
+}
 const handleFilesUpdate = (mixed) => {
-    resourcesFiles.value = mixed
-    // если где-то используете form.files — оставьте только новые файлы:
-    form.files = mixed.filter(x => x instanceof File)
+    const deduped = dedupMixed(mixed)
+    resourcesFiles.value = deduped
+    form.files = deduped.filter(x => x instanceof File)
     clearFilesErrors()
 }
+
 const handleDeletingIds = (ids) => { deletedMediaIds.value = ids; clearFilesErrors() }
 
 onMounted(async () => {
@@ -224,6 +246,7 @@ onMounted(async () => {
             </div>
         </div>
         <DropPDFs
+            :key="resourcesKey"
             :files="resourcesFiles"
             @update:files="handleFilesUpdate"
             @deleting-ids="handleDeletingIds"

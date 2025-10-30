@@ -66,6 +66,9 @@ const newPartnerFiles = ref([])   // File[]
 const deletedMediaIds = ref([])   // number[]
 
 const nominations = ref(null)
+const overviewTabId = ref(null)
+
+const partnerKey = ref(0)
 
 async function fetchHackathon ({
    refreshEditors = true,
@@ -81,6 +84,7 @@ async function fetchHackathon ({
         if (props.isEdit) {
             const overviewTab = data.tabs.original[0]
             const h = data.hackathon.original
+            overviewTabId.value = overviewTab?.id ?? null
 
             if (refreshEditors) {
                 const desc = overviewTab.sections.find(s => s.title === 'Описание')?.content || ''
@@ -93,7 +97,7 @@ async function fetchHackathon ({
             }
 
             if (refreshPartners) {
-                await getPartner(overviewTab.id)
+                await getPartner(overviewTabId.value)
             }
         }
 
@@ -121,6 +125,7 @@ async function getPartner(tabId) {
         partnerLogos.value = response.data.partners || []
         newPartnerFiles.value = []
         deletedMediaIds.value = []
+        partnerKey.value++
     } catch (e) {
         console.error('hackathon-load', e?.response ?? e);
     }
@@ -252,8 +257,13 @@ async function save () {
                 }
             }
         )
-        newPartnerFiles.value = [];
-        deletedMediaIds.value = [];
+        newPartnerFiles.value = []
+        deletedMediaIds.value = []
+        if (overviewTabId.value != null) {
+            await getPartner(overviewTabId.value)
+        } else {
+            await fetchHackathon({ refreshEditors:false, refreshPartners:true, refreshNominations:false })
+        }
     } catch (e) {
         if (e?.response?.status === 422) {
             applyBackendErrors(e.response.data?.errors || {});
@@ -431,6 +441,7 @@ onMounted(async () => {
             </div>
         </div>
         <DropFiles
+            :key="partnerKey"
             :files="partnerLogos"
             @update:files="handleFilesUpdate"
             @deleting-ids="handleDeletingIds"

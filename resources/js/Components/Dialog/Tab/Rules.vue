@@ -21,6 +21,7 @@ const rulesFiles = ref([])
 const deletedMediaIds  = ref([])
 
 const loaded = ref(false)
+const rulesKey = ref(0)
 
 async function fetchResources() {
     try {
@@ -38,6 +39,7 @@ async function fetchResources() {
 
             rulesText.value = hackathon.sections.find(s => s.title === 'Правила')?.content || '';
             rulesFiles.value = hackathon.files
+            rulesKey.value++
         }
         await nextTick()
         loaded.value = true
@@ -45,10 +47,6 @@ async function fetchResources() {
         console.error('fetch-resources-error', err?.response ?? err);
     }
 }
-
-watch(rulesFiles.value, arr => {
-    form.files = arr; // Обновляем файлы в форме
-}, { deep: true });
 
 onMounted(() => {
     if (props.isEdit) {
@@ -132,6 +130,11 @@ async function save () {
             fd,
             { headers:{ 'Content-Type':'multipart/form-data' } }
         )
+
+        await fetchResources()
+        deletedMediaIds.value = []
+        form.files = []
+
         dirty.value = false
         emit('dirty', false)
         emit('saved', { slug : props?.hackathonSlug })
@@ -160,6 +163,7 @@ const resetState = () => {
     form.sections[0].content = ''
     form.files               = []
     form.delete_media_ids    = []
+    rulesKey.value++
 }
 
 function cancel () {
@@ -172,12 +176,26 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+function dedupMixed(mixed) {
+    if (!Array.isArray(mixed)) return []
+    const seen = new Set()
+    return mixed.filter(x => {
+            if (x instanceof File) {
+                const key = `${x.name}|${x.size}|${x.lastModified ?? 0}`
+                if (seen.has(key)) return false
+                seen.add(key)
+                return true
+            }
+            return true
+        })
+}
 const handleFilesUpdate = (mixed) => {
-    rulesFiles.value = mixed
-    // если где-то используете form.files — оставьте только новые файлы:
-    form.files = mixed.filter(x => x instanceof File)
+    const deduped = dedupMixed(mixed)
+    rulesFiles.value = deduped
+    form.files = deduped.filter(x => x instanceof File)
     clearFilesErrors()
 }
+
 const handleDeletingIds = (ids) => { deletedMediaIds.value = ids; clearFilesErrors() }
 
 watch(
@@ -235,6 +253,7 @@ onMounted(async () => {
             </div>
         </div>
         <DropPDFs
+            :key="rulesKey"
             :files="rulesFiles"
             @update:files="handleFilesUpdate"
             @deleting-ids="handleDeletingIds"

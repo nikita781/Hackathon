@@ -22,7 +22,11 @@ watch(() => props.oneProject, () => {
     }
 
     fetchPresentation(props.oneProject.slug)
+    getGallery(props.oneProject.slug)
 })
+
+const galleryKey = ref(0)
+const pptxKey    = ref(0)
 
 const presentationUrl = ref(null)
 const canDownloadServer = computed(
@@ -97,9 +101,20 @@ const pending = ref(false)
 const errors = ref({})
 
 
+function uniqFiles(files) {
+    if (!Array.isArray(files)) return []
+              const seen = new Set()
+              return files.filter(f => {
+                        if (!(f instanceof File)) return false
+                        const key = `${f.name}|${f.size}|${f.lastModified ?? 0}`
+                        if (seen.has(key)) return false
+                        seen.add(key)
+                        return true
+                      })
+}
 const handleFilesUpdate = (newFiles) => {
-    newGalleryFiles.value = Array.isArray(newFiles) ? newFiles : []
-};
+    newGalleryFiles.value = uniqFiles(newFiles)
+}
 
 const handleDeletingIds = (deletedIds) => {
     deletedMediaIds.value = Array.isArray(deletedIds) ? deletedIds : []
@@ -134,6 +149,7 @@ onMounted(() => {
 function clearLocalPptx() {
     pptx.value = hasServerPresentation.value ? serverPresentationFilename.value : null
     if (errors.value.presentation) delete errors.value.presentation
+    pptxKey.value++
 }
 
 async function deleteServerPresentation() {
@@ -154,6 +170,7 @@ async function deleteServerPresentation() {
             pptx.value = null
         }
         if (errors.value.presentation) delete errors.value.presentation
+        pptxKey.value++
     } catch (e) {
         console.error('delete-presentation', e?.response ?? e)
     } finally {
@@ -194,6 +211,15 @@ async function submit() {
             fd,
             { headers: { 'Content-Type': 'multipart/form-data' } }
         )
+        if (pptx.value instanceof File) {
+            await fetchPresentation(props.oneProject.slug)
+            pptxKey.value++
+        }
+        await getGallery(props.oneProject.slug)
+        galleryKey.value++
+        newGalleryFiles.value  = []
+        deletedMediaIds.value  = []
+
         emit('success')
     } catch (e) {
         console.error(e)
@@ -236,7 +262,7 @@ onMounted(async () => {
             >
                 Скачать
             </a>
-            <DropPPTX v-model:file="pptx" />
+            <DropPPTX :key="pptxKey" v-model:file="pptx" />
             <span v-if="errors.presentation" class="error__text">{{ errors.presentation[0] }}</span>
             <button
                 v-if="canClearLocal"
@@ -261,6 +287,7 @@ onMounted(async () => {
         <div class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.project_gallery) }}</p>
             <DropFiles
+                :key="galleryKey"
                 :files="existingGallery"
                 @update:files="handleFilesUpdate"
                 @deleting-ids="handleDeletingIds"
