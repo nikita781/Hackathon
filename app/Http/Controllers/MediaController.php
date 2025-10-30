@@ -137,6 +137,14 @@ class MediaController extends Controller
             abort(403);
         }
 
+        if (!file_exists($media->getPath())) {
+            abort(404, 'Файл не найден: '.$media->getPath());
+        }
+
+        if (!is_readable($media->getPath())) {
+            abort(403, 'Нет доступа к файлу: '.$media->getPath());
+        }
+
         return response()->download($media->getPath(), $media->file_name);
     }
 
