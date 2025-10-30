@@ -63,6 +63,23 @@ class HackathonPolicy
         return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
     }
 
+    public function updatePublished(User $user, Hackathon $hackathon): bool
+    {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($hackathon->status === Hackathon::STATUS_PUBLISHED || $hackathon->status === Hackathon::STATUS_MODERATION) {
+            return false;
+        }
+
+        return $user->hackathonsAsOrganizer()->where('id', $hackathon->id)->exists();
+    }
+
     public function publish(User $user, Hackathon $hackathon): bool
     {
         if (!($hackathon->status === Hackathon::STATUS_DRAFT) && !($hackathon->status === Hackathon::STATUS_BLOCKED)) {

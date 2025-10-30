@@ -24,6 +24,10 @@ class HackathonStaffController extends Controller
 {
     public function createInvite(Hackathon $hackathon): JsonResponse
     {
+        if (!Gate::check('update', $hackathon)) {
+            abort(403);
+        }
+
         do {
             $token = Str::random(32);
         } while (HackathonInvite::where('token', $token)->exists());

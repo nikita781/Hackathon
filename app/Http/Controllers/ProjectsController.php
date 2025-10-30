@@ -56,6 +56,14 @@ class ProjectsController extends Controller
             abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для создания проекта');
         }
 
+        if ($team->projects->count() >= 4) {
+            return response()->json([
+                'status' => 'error',
+                'project' => [],
+                'message' => "Вы не можете создать больше 4 проектов",
+            ]);
+        }
+
         $data = Arr::except($request->validated(), ['preview']);
         $data['hackathon_id'] = $hackathon->id;
         $data['slug'] = Project::generateUniqueSlug($data['title']);
@@ -127,7 +135,7 @@ class ProjectsController extends Controller
             if ($project->hasMedia('presentation')) {
                 $project->clearMediaCollection('presentation');
             }
-            $project->addMediaFromRequest('presentation')->toMediaCollection('presentation');
+            $project->addMediaFromRequest('presentation')->toMediaCollection('presentation', 'private');
         }
 
         if (!empty($gallery)) {

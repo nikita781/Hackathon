@@ -58,7 +58,7 @@ class AdminController extends Controller
         $perPage = min($request->get('per_page', 12), 12);
 
         $hackathons = Hackathon::adminFilter($request)
-            ->where('status', '!=', Hackathon::STATUS_DRAFT)
+            ->whereNotIn('status', [Hackathon::STATUS_DRAFT, Hackathon::STATUS_BLOCKED])
             ->with(['owner', 'tags'])
             ->withProjectCounts()
             ->withUserCounts()
@@ -82,7 +82,7 @@ class AdminController extends Controller
 
         $projects = $hackathon
             ->allProjects()
-            ->where('status', '!=', Project::DRAFT)
+            ->whereNotIn('status', [Project::DRAFT, Project::BLOCKED])
             ->with(['team.teamUsers.user', 'team.teamUsers.position'])
             ->adminFilter($request)
             ->orderBy('moderated_time')
@@ -100,11 +100,8 @@ class AdminController extends Controller
     {
         Gate::authorize('moderate', Hackathon::class);
 
-        switch ($hackathon->status) {
-            case Hackathon::STATUS_PUBLISHED:
-                return back()->with('error', 'Хакатон уже опубликован');
-            case Hackathon::STATUS_BLOCKED:
-                return back()->with('error', 'Хакатон уже отклонен');
+        if ($hackathon->status === Hackathon::STATUS_PUBLISHED) {
+            return back()->with('status', 'Хакатон уже опубликован');
         }
 
         $comment = $request->validate([
@@ -121,7 +118,7 @@ class AdminController extends Controller
 
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'accept',
-            'comment' => $comment,
+            'description' => $comment,
             'title' => $message,
             'send_at' => now()->toDateString(),
             'hackathon' => $hackathon,
@@ -135,11 +132,8 @@ class AdminController extends Controller
     {
         Gate::authorize('moderate', Hackathon::class);
 
-        switch ($hackathon->status) {
-            case Hackathon::STATUS_PUBLISHED:
-                return back()->with('error', 'Хакатон уже опубликован');
-            case Hackathon::STATUS_BLOCKED:
-                return back()->with('error', 'Хакатон уже отклонен');
+        if ($hackathon->status === Hackathon::STATUS_BLOCKED) {
+            return back()->with('status', 'Хакатон уже отклонен');
         }
 
         $comment = $request->validate([
@@ -148,7 +142,7 @@ class AdminController extends Controller
 
         $hackathon->update([
             'status' => Hackathon::STATUS_BLOCKED,
-            'published_time' => Carbon::now(),
+            'blocked_time' => Carbon::now(),
             'comment' => $comment
         ]);
 
@@ -156,7 +150,7 @@ class AdminController extends Controller
 
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'rejected',
-            'comment' => $comment,
+            'description' => $comment,
             'title' => $message,
             'send_at' => now()->toDateString(),
             'hackathon' => $hackathon,
@@ -170,11 +164,8 @@ class AdminController extends Controller
     {
         Gate::authorize('moderate', Project::class);
 
-        switch ($project->status) {
-            case Project::PUBLISHED:
-                return back()->with('error', 'Проект уже опубликован');
-            case Project::BLOCKED:
-                return back()->with('error', 'Проект уже отклонен');
+        if ($project->status === Project::PUBLISHED) {
+            return back()->with('status', 'Проект уже опубликован');
         }
 
         $comment = $request->validate([
@@ -194,7 +185,7 @@ class AdminController extends Controller
         if ($captain = $project->team->captain()) {
             $captain->notify(new ModerateNotification([
                 'status' => 'accept',
-                'comment' => $comment,
+                'description' => $comment,
                 'title' => $message,
                 'send_at' => now()->toDateString(),
                 'hackathon' => null,
@@ -209,11 +200,8 @@ class AdminController extends Controller
     {
         Gate::authorize('moderate', Project::class);
 
-        switch ($project->status) {
-            case Project::PUBLISHED:
-                return back()->with('error', 'Проект уже опубликован');
-            case Project::BLOCKED:
-                return back()->with('error', 'Проект уже отклонен');
+        if ($project->status === Project::BLOCKED) {
+            return back()->with('status', 'Проект уже отклонен');
         }
 
         $comment = $request->validate([
@@ -222,7 +210,7 @@ class AdminController extends Controller
 
         $project->update([
             'status' => Project::BLOCKED,
-            'published_time' => Carbon::now(),
+            'blocked_time' => Carbon::now(),
             'comment' => $comment
         ]);
 
@@ -233,7 +221,7 @@ class AdminController extends Controller
         if ($captain = $project->team->captain()) {
             $captain->notify(new ModerateNotification([
                 'status' => 'rejected',
-                'comment' => $comment,
+                'description' => $comment,
                 'title' => $message,
                 'send_at' => now()->toDateString(),
                 'hackathon' => null,

@@ -33,7 +33,22 @@ class HackathonRequest extends FormRequest
             'evaluation_start' => ['required', 'date', 'after_or_equal:work_time_end', 'before_or_equal:evaluation_end'],
             'evaluation_end' => ['required', 'date', 'after_or_equal:evaluation_start', 'before_or_equal:event_end'],
             'prize_type' => ['required', 'in:cash,non-cash'],
-            'prize_pool' => ['required', 'min:0', 'max:10000000'],
+            'prize_pool' => [
+                'nullable',
+                function ($attribute, $value, $fail) {
+                    $prizeType = $this->input('prize_type');
+
+                    if ($prizeType === 'cash') {
+                        if (!is_numeric($value) || $value > 10000000) {
+                            $fail('Для денежного приза нужно число до 10 000 000.');
+                        }
+                    } elseif ($prizeType === 'non-cash') {
+                        if (!is_string($value) || strlen($value) > 255) {
+                            $fail('Для неденежного приза можно до 255 символов текста.');
+                        }
+                    }
+                }
+            ],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
         ];

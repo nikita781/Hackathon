@@ -137,15 +137,9 @@ class MediaController extends Controller
             abort(403);
         }
 
-        if (!file_exists($media->getPath())) {
-            abort(404, 'Файл не найден: '.$media->getPath());
-        }
+        $path = $media->getPath();
 
-        if (!is_readable($media->getPath())) {
-            abort(403, 'Нет доступа к файлу: '.$media->getPath());
-        }
-
-        return response()->download($media->getPath(), $media->file_name);
+        return response()->download($path, $media->file_name);
     }
 
     public function showProjectGallery(Request $request, Hackathon $hackathon, Project $project): JsonResponse

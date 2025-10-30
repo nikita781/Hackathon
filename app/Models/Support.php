@@ -56,8 +56,11 @@ class Support extends Model
     public function scopeFilter(Builder $query, $request): Builder
     {
         $query->when($request->q, function ($q, $search) {
-            $q->whereHas('messages', function ($q2) use ($search) {
-                $q2->where('message', 'ILIKE', "%{$search}%");
+            $q->whereHas('creator', function ($q2) use ($search) {
+                $q2->where('nickname', 'ILIKE', "%{$search}%");
+            })
+                ->orWhereHas('messages', function ($q3) use ($search) {
+                $q3->where('message', 'ILIKE', "%{$search}%");
             });
         });
 

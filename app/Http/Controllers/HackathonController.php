@@ -252,6 +252,7 @@ class HackathonController extends Controller
                 'hackathon' => [
                     'join' => Gate::check('join', $hackathon),
                     'update' => Gate::check('update', $hackathon),
+                    'update_published' => Gate::check('updatePublished', $hackathon),
                     'delete' => Gate::check('delete', $hackathon),
                     'finish' => Gate::check('finish', $hackathon),
                     'viewTask' => Gate::check('viewTask', $hackathon),
@@ -261,6 +262,7 @@ class HackathonController extends Controller
                     'moderate' => Gate::check('moderate', Hackathon::class),
                     'viewSupport' => Gate::check('viewAny', [Support::class, $hackathon]),
                     'is_staff' => $isStaffHackathon,
+                    'leave' => Gate::check('leave', $hackathon),
                 ],
                 'team' => [
                     'view' => Gate::check('view', $ownTeam),
