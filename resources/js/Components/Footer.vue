@@ -52,7 +52,9 @@ function capitalizeFirstLetter(str) {
                             </defs>
                         </svg></a>
                     </div>
-                    <img src="/logo.png" alt="Logo" class="footer__logo" />
+                    <a href="https://foncode.ru/" target="_blank">
+                        <img src="/logo.png" alt="Logo" class="footer__logo" />
+                    </a>
                 </div>
             </div>
             <p class="footer__header_text">{{langStore.translations.copyright_notice}}</p>

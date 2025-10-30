@@ -13,10 +13,10 @@ const emit = defineEmits([
 
 const textComment = ref('')
 const pending = ref(false)
-const errorMsg = ref(false)
+const fieldError = ref('')
 
 watch(textComment, (v) => {
-    if ((v ?? '').trim().length >= 3 && errorMsg.value) errorMsg.value = false
+    if (fieldError.value) fieldError.value = ''
 })
 
 const toast = useToast();
@@ -30,7 +30,7 @@ const rejectUrl = computed(() => {
 async function submitReject() {
     if (pending.value) return
     const t = (textComment.value ?? '').trim()
-    if (t.length < 3) { errorMsg.value = true; return }
+    // if (t.length < 3) { errorMsg.value = true; return }
     pending.value = true
     try {
         const payload = {}
@@ -41,6 +41,17 @@ async function submitReject() {
         close()
     } catch (e) {
         console.error('reject-hackathon', e?.response ?? e)
+        if (e?.response?.status === 422) {
+            const errs = e.response?.data?.errors || {}
+            const msg = Array.isArray(errs.comment) ? errs.comment.join(' ') : ''
+            if (msg) {
+                fieldError.value = msg
+            } else {
+                fieldError.value = e.response?.data?.message || 'Проверьте корректность данных'
+            }
+        } else {
+            toast.error('Не удалось отменить хакатон', { position:'top-right', timeout:5000 })
+        }
     } finally {
         pending.value = false
     }
@@ -77,9 +88,9 @@ onMounted(async () => {
                     style="min-height: 170px"
                     class="dialog__textarea"
                     placeholder="Введите комментарий"
-                    :class="{ 'error': errorMsg }"
+                    :class="{ 'error': !!fieldError }"
                 />
-                <small v-if="errorMsg" class="error__text">Минимальное количество символов 3</small>
+                <small v-if="fieldError" class="error__text">{{ fieldError }}</small>
             </div>
             <div class="dialog__btns">
                 <button type="button" class="main__btn main__btn_white dialog__btn" @click="close">

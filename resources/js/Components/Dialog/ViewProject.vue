@@ -61,6 +61,7 @@ async function fetchPresentation(projectSlug) {
             { headers: { Accept: 'application/json' } }
         )
 
+        console.log(data)
         hasServerPresentation.value     = true
         presentationUrl.value           = data?.url ?? null
         serverPresentationFilename.value= data?.name || getPresentation(data?.url) || 'presentation'
@@ -146,6 +147,7 @@ function rejectP() { emit('reject',  props.project); close() }
                             :value="title"
                             type="text"
                             class="dialog__input"
+                            readonly
                         >
                     </div>
 
@@ -161,7 +163,9 @@ function rejectP() { emit('reject',  props.project); close() }
 
                     <div class="dialog__component">
                         <p class="dialog__title">Превью проекта</p>
-                        <DropFile v-model:file="preview" />
+                        <div class="blocked" aria-disabled="true">
+                          <DropFile v-model:file="preview" />
+                        </div>
                     </div>
                 </div>
 
@@ -187,12 +191,7 @@ function rejectP() { emit('reject',  props.project); close() }
                     </div>
                     <div class="dialog__component">
                         <p class="dialog__title">Ссылка на проект</p>
-                        <input
-                            v-model="projectLink"
-                            type="text"
-                            class="dialog__input"
-                            readonly
-                        >
+                        <input :value="projectLink" type="text" class="dialog__input" readonly>
                     </div>
                 </div>
 
@@ -209,24 +208,22 @@ function rejectP() { emit('reject',  props.project); close() }
                             >
                                 Скачать презентацию
                             </a>
-                            <span class="file-hint">{{ serverPresentationFilename }}</span>
                         </div>
-                        <DropPPTX v-model:file="pptx" />
+                        <div class="blocked" aria-disabled="true">
+                          <DropPPTX v-model:file="pptx" />
+                        </div>
                     </div>
 
                     <div class="dialog__component">
                         <p class="dialog__title">Галерея проекта</p>
-                        <DropFiles :files="projectImages" />
+                        <div class="blocked" aria-disabled="true">
+                          <DropFiles :files="projectImages" />
+                        </div>
                     </div>
 
                     <div class="dialog__component">
                         <p class="dialog__title">Ссылка на видео</p>
-                        <input
-                            v-model="videoLink"
-                            type="text"
-                            class="dialog__input"
-                            readonly
-                        >
+                        <input :value="videoLink" type="text" class="dialog__input" readonly>
                     </div>
                 </div>
             </div>
@@ -247,9 +244,8 @@ function rejectP() { emit('reject',  props.project); close() }
     gap: 30px
 }
 
-.dialog__content.is-readonly .allow-pointer {
-    pointer-events: auto;
-}
+.dialog__content.is-readonly { pointer-events: auto !important; }
+.blocked { pointer-events: none; }
 
 .upload-row {
     display: flex;

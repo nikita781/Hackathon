@@ -55,17 +55,21 @@ function shiftLocalByMinutes(localStr, deltaMin) {
     return toLocalInput(dt)
 }
 
-watch(() => form.event_start, (v) => {
-    if (v && !taskStart.value) taskStart.value = v
-})
+const isCompleteLocal = (s) =>
+    typeof s === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(s)
 
-watch(() => form.event_end, (v) => {
-    if (v && !evaluationEnd.value) evaluationEnd.value = v
-})
-
-watch(taskEnd, (v) => {
-    if (v && !evaluationStart.value) evaluationStart.value = v
-})
+function onEventStartBlur() {
+    const v = form.event_start
+    if (isCompleteLocal(v) && !taskStart.value) taskStart.value = v
+}
+function onEventEndBlur() {
+    const v = form.event_end
+    if (isCompleteLocal(v) && !evaluationEnd.value) evaluationEnd.value = v
+}
+function onTaskEndBlur() {
+    const v = taskEnd.value
+    if (isCompleteLocal(v) && !evaluationStart.value) evaluationStart.value = v
+}
 
 const DATE_FIELDS = ['registration_end', 'event_start', 'event_end'];
 
@@ -427,6 +431,7 @@ onBeforeUnmount(() => {
                         placeholder="Кол-во"
                         :class="{ 'error': form.errors.event_start }"
                         @input="clearFieldError('event_start')"
+                        @blur="onEventStartBlur"
                     >
                 </div>
                 <div class="dialog__info">
@@ -439,6 +444,7 @@ onBeforeUnmount(() => {
                         placeholder="Кол-во"
                         :class="{ 'error': form.errors.event_end }"
                         @input="clearFieldError('event_end')"
+                        @blur="onEventEndBlur"
                     >
                 </div>
             </div>
@@ -487,6 +493,7 @@ onBeforeUnmount(() => {
                     :class="{ 'error': form.errors.work_time_end }"
                     @input="clearFieldError('work_time_end')"
                     style="width: 100%"
+                    @blur="onTaskEndBlur"
                 >
             </div>
         </div>

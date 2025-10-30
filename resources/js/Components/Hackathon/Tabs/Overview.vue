@@ -75,7 +75,9 @@ function capitalizeFirstLetter(str) {
                     </p>
                     <div class="hackathon__prizes_container" v-if="props.hackathon.nominations">
                         <div class="hackathon__prizes_item"  v-for="(n, idx) in props.hackathon.nominations" :key="n.id">
-                            <IconsCup />
+                            <div>
+                                <IconsCup />
+                            </div>
                             <div class="hackathon__prizes_content">
                                 <p class="hackathon__prizes_name">{{ n.title }}</p>
                                 <p class="hackathon__prizes_prize">

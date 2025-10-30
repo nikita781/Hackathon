@@ -42,6 +42,7 @@ $x-big: 1829.98px;
         background-color: white;
         border-radius: 10px;
         overflow-y: auto;
+        overflow-x: hidden;
         &_small {
             max-width: 675px;
         }
