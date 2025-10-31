@@ -2,10 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Events\HackathonFinished;
-use App\Models\Hackathon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Laravel\Telescope\Telescope;
 
 class FinishHackathons extends Command
@@ -21,6 +19,8 @@ class FinishHackathons extends Command
 
         $hackathonTitles = $action();
 
-        $this->info('Завершены хакатоны: "'.implode('", "', $hackathonTitles).'"');
+        if ($hackathonTitles) {
+            Log::info('Завершены хакатоны: "'.implode('", "', $hackathonTitles).'"');
+        }
     }
 }
