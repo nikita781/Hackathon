@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function () {
                     Route::post('/invite', [TeamController::class, 'createInvite'])->name('create-invite');
                     Route::get('/invite/{token}', [TeamController::class, 'acceptInvite'])->name('accept-invite');
                     Route::post('/inviteById', [TeamController::class, 'inviteUserById'])->name('invite-by-id');
+                    Route::get('/search', [TeamController::class, 'search'])->name('search');
                     Route::prefix('/projects')->name('projects.')->group(function () {
                         Route::post('/', [ProjectsController::class, 'store'])->name('store');
                         Route::get('/showTeamProjects', [ProjectsController::class, 'showTeamProjects'])->name('show-team-projects');
@@ -129,6 +130,7 @@ Route::middleware('auth')->group(function () {
                 Route::post('/invite', [HackathonStaffController::class, 'createInvite'])->name('create-invite');
                 Route::get('/invite/{token}', [HackathonStaffController::class, 'acceptInvite'])->name('accept-invite');
                 Route::post('/inviteById', [HackathonStaffController::class, 'inviteUserById'])->name('invite-by-id');
+                Route::get('/search', [HackathonStaffController::class, 'search'])->name('search');
             });
 
             Route::get('/download-users', [HackathonController::class, 'downloadUsers'])->name('download-users');

@@ -290,4 +290,64 @@ class TeamController extends Controller
 
         return response()->noContent();
     }
+
+    public function search(Request $request, Hackathon $hackathon, Team $team): JsonResponse
+    {
+        Gate::authorize('update', $team);
+
+        $user = User::query()
+            ->where('id', (int) $request->input('q'))
+            ->orWhere('nickname', $request->input('q'))
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'user' => null,
+                'canInvite' => false,
+                'errors' => ["Пользователь не найден"]
+            ]);
+        }
+
+        $errors = [];
+        $canInvite = true;
+
+        $isAlreadyInHackathon = $user->teams()
+            ->where('hackathon_id', $hackathon->id)
+            ->whereHas('projects', function ($query) {
+                $query->whereIn('status', [Project::MODERATION, Project::PUBLISHED]);
+            })
+            ->exists();
+
+        if ($isAlreadyInHackathon) {
+            $canInvite = false;
+            $errors[] = "Пользователь «{$user->nickname}» уже является участником хакатона";
+        }
+
+        if ($team->users()->where('user_id', $user->id)->exists()) {
+            $canInvite = false;
+            $errors[] = "Пользователь «{$user->nickname}» уже в команде";
+        }
+
+        if ($hackathon->getAllHackathonStaff()->contains($user->id)) {
+            $canInvite = false;
+            $errors[] = "Пользователь «{$user->nickname}» является персоналом хакатона";
+        }
+
+        $alreadyInvited = TeamInvite::where('team_id', $team->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($alreadyInvited) {
+            $canInvite = false;
+            $errors[] = "Приглашение пользователю «{$user->nickname}» уже отправлено";
+        }
+
+        return response()->json([
+            'success' => true,
+            'user' => $user,
+            'canInvite' => $canInvite,
+            'errors' => $errors,
+        ]);
+    }
 }

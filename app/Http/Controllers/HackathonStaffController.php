@@ -224,4 +224,57 @@ class HackathonStaffController extends Controller
         }
         return back()->with('status', 'Пользователь успешно исключен с хакатона');
     }
+
+    public function search(Request $request, Hackathon $hackathon): JsonResponse
+    {
+        $user = User::query()
+            ->where('id', (int) $request->input('q'))
+            ->orWhere('nickname', $request->input('q'))
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'user' => null,
+                'canInvite' => false,
+                'errors' => ["Пользователь не найден"]
+            ]);
+        }
+
+        $canInvite = true;
+        $errors = [];
+
+        if ($hackathon->getAllHackathonStaff()->contains($user->id)) {
+            $canInvite = false;
+            $errors[] = "Пользователь «{$user->nickname}» уже является участником хакатона";
+        }
+
+        $hasActiveProject = $user->teams()
+            ->where('hackathon_id', $hackathon->id)
+            ->whereHas('projects', function ($query) {
+                $query->whereIn('status', [Project::MODERATION, Project::PUBLISHED]);
+            })
+            ->exists();
+
+        if ($hasActiveProject) {
+            $canInvite = false;
+            $errors[] = "Пользователь «{$user->nickname}» уже участвует в проекте, который находится в работе";
+        }
+
+        $hasInvite = HackathonInvite::where('hackathon_id', $hackathon->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($hasInvite) {
+            $canInvite = false;
+            $errors[] = "Пользователю «{$user->nickname}» уже отправлено приглашение";
+        }
+
+        return response()->json([
+            'success' => true,
+            'user' => $user,
+            'canInvite' => $canInvite,
+            'errors' => $errors,
+        ]);
+    }
 }
