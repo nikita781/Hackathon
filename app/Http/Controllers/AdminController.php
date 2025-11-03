@@ -104,21 +104,16 @@ class AdminController extends Controller
             return back()->with('status', 'Хакатон уже опубликован');
         }
 
-        $comment = $request->validate([
-            'comment' => ['nullable', 'string', 'max:255', 'min:3']
-        ]);
-
         $hackathon->update([
             'status' => Hackathon::STATUS_PUBLISHED,
             'published_time' => Carbon::now(),
-            'comment' => $comment
         ]);
 
         $message = 'Хакатон «' . $hackathon->title . '» опубликован';
 
         $hackathon->owner->notify(new ModerateNotification([
             'status' => 'accept',
-            'description' => $comment,
+            'description' => "",
             'title' => $message,
             'send_at' => now()->toDateString(),
             'hackathon' => $hackathon,
@@ -168,14 +163,9 @@ class AdminController extends Controller
             return back()->with('status', 'Проект уже опубликован');
         }
 
-        $comment = $request->validate([
-            'comment' => ['nullable', 'string', 'max:255', 'min:3']
-        ]);
-
         $project->update([
             'status' => Project::PUBLISHED,
             'published_time' => Carbon::now(),
-            'comment' => $comment
         ]);
 
         $project->load('hackathon');
@@ -185,7 +175,7 @@ class AdminController extends Controller
         if ($captain = $project->team->captain()) {
             $captain->notify(new ModerateNotification([
                 'status' => 'accept',
-                'description' => $comment,
+                'description' => "",
                 'title' => $message,
                 'send_at' => now()->toDateString(),
                 'hackathon' => null,
