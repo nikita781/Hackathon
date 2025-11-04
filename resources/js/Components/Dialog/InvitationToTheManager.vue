@@ -1,6 +1,6 @@
 <script setup>
 import IconsCancel from "@/Components/Icons/Cancel.vue";
-import {onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import { useClipboard } from "@vueuse/core";
 import {useLangStore} from "@/store/lang.js";
 import {useToast} from "vue-toastification";
@@ -24,6 +24,50 @@ const toast = useToast();
 // поле «пригласить по ID»
 const userIds = ref([{ user_id: "", role_id: null }]);
 const rowErrors = ref({})
+const pending = ref(false)
+
+const lookups = ref([{ loading:false, touched:false, found:false, canInvite:false, user:null, errors:[] }])
+const debounceTimers = new Map()
+
+const blankLookup = () => ({ loading:false, touched:false, found:false, canInvite:false, user:null, errors:[] })
+const ensureLookupRow = (i) => { if (!lookups.value[i]) lookups.value.splice(i, 0, blankLookup()) }
+const clearTimer = (i) => { const t = debounceTimers.get(i); if (t) { clearTimeout(t); debounceTimers.delete(i) } }
+
+function onUserInput(i) {
+    rowErrors.value[i] && (rowErrors.value[i] = '')
+    ensureLookupRow(i)
+    clearTimer(i)
+
+    const q = (userIds.value[i]?.user_id ?? '').toString().trim()
+    if (!q) { Object.assign(lookups.value[i], blankLookup()); return }
+
+    lookups.value[i].loading = true
+    lookups.value[i].touched = true
+
+    debounceTimers.set(i, setTimeout(() => doLookup(i, q), 350))
+}
+
+async function doLookup(i, q) {
+    try {
+        const { data } = await axios.get(
+            route('hackathons.staff.search', { hackathon: props.hackathon.slug }),
+            { params: { q } }
+        )
+
+        ensureLookupRow(i)
+        lookups.value[i].loading   = false
+        lookups.value[i].found     = !!data?.user
+        lookups.value[i].user      = data?.user ?? null
+        lookups.value[i].canInvite = !!data?.canInvite
+        lookups.value[i].errors    = data?.errors ?? []
+    } catch (e) {
+        ensureLookupRow(i)
+        lookups.value[i].loading = false
+        lookups.value[i].found   = false
+        lookups.value[i].errors  = ['Не удалось проверить пользователя']
+        console.error('search-error', e)
+    }
+}
 
 // роли подтягиваем один раз при открытии
 async function getRoles() {
@@ -62,26 +106,46 @@ watch(
 );
 
 const addUserField = () => {
-    const firstRoleId = rolesResp.value?.roles?.[0]?.id ?? null;
-    userIds.value.push({ user_id: "", role_id: firstRoleId });
-};
+    const firstRoleId = rolesResp.value?.roles?.[0]?.id ?? null
+    userIds.value.push({ user_id: "", role_id: firstRoleId })
+    lookups.value.push(blankLookup())
+}
+
 
 const removeUserField = (index) => {
-    userIds.value.splice(index, 1);
-};
+    userIds.value.splice(index, 1)
+    lookups.value.splice(index, 1)
+}
+
+const hasForbidden = computed(() =>
+    lookups.value.some(s => s.touched && s.found && s.canInvite === false)
+)
+const inviteBtnDisabled = computed(() => pending.value || hasForbidden.value)
 
 const inviteUsers = async () => {
+    if (hasForbidden.value) {
+        toast.error('Некоторых пользователей нельзя пригласить — см. подсказки под полями.')
+        return
+    }
     try {
+        pending.value = true
         rowErrors.value = {}
         const payload = {
-            users: userIds.value.map(u => {
+            users: userIds.value.map((u, i) => {
+                const found = lookups.value[i]?.found && lookups.value[i]?.user?.id != null
+                const resolvedId = found ? Number(lookups.value[i].user.id) : null
+
+                let fallback
                 const raw = (u.user_id ?? '').toString().trim()
+                if (raw === '') fallback = null
+                else fallback = /^\d+$/.test(raw) ? Number(raw) : raw
+
                 return {
-                        user_id: raw === '' ? null : (/^\d+$/.test(raw) ? Number(raw) : raw),
-                        role_id: u.role_id ? Number(u.role_id) : null,
-                    }
+                    user_id: resolvedId ?? fallback,
+                    role_id: u.role_id ? Number(u.role_id) : null,
+                }
             }),
-        };
+        }
 
         await axios.post(
             route("hackathons.staff.invite-by-id", {
@@ -94,6 +158,7 @@ const inviteUsers = async () => {
             position: 'top-right',
             timeout: 5000,
         });
+        resetState()
         close();
     } catch (error) {
         if (error?.response?.status === 422) {
@@ -105,8 +170,24 @@ const inviteUsers = async () => {
         } else {
             console.error("invite-by-id-error", error);
         }
+    } finally {
+        pending.value = false
     }
 };
+
+const PLACEHOLDER = '/profile.jpg';
+
+function avatarSrc(photo) {
+    if (!photo) return PLACEHOLDER;
+    const url = String(photo).trim();
+    const hasFileName = /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url);
+    return hasFileName ? url : PLACEHOLDER;
+}
+
+function imgFallback(e) {
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
+}
 
 const langStore = useLangStore()
 
@@ -114,6 +195,32 @@ function capitalizeFirstLetter(str) {
     if (!str) return str;
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
+
+const defaultRoleId = () => rolesResp.value?.roles?.[0]?.id ?? null
+
+function clearAllTimers() {
+    debounceTimers.forEach(t => clearTimeout(t))
+    debounceTimers.clear()
+}
+
+function resetState() {
+    clearAllTimers()
+    userIds.value   = [{ user_id: "", role_id: defaultRoleId() }]
+    lookups.value   = [blankLookup()]
+    rowErrors.value = {}
+    pending.value   = false
+}
+
+watch(
+    () => props.modelValue,
+    async (v) => {
+        if (!v) {
+            resetState()
+            return
+        }
+        await Promise.all([getLink(), getRoles()])
+    }
+)
 
 onMounted(async () => {
     await langStore.fetchTranslations()
@@ -169,7 +276,7 @@ onMounted(async () => {
                         :placeholder="capitalizeFirstLetter(langStore.translations.enterMemberId)"
                         style="width: 100%"
                         :class="{ error: rowErrors[index] }"
-                        @input="rowErrors[index] && (rowErrors[index] = '')"
+                        @input="onUserInput(index)"
                     />
                     <div class="dialog__input_reset">
                         <select
@@ -187,6 +294,41 @@ onMounted(async () => {
                     </div>
                 </div>
                 <small v-if="rowErrors[index]" class="error__text">{{ rowErrors[index] }}</small>
+                <div v-if="lookups[index]?.touched" class="dialog__hint" style="margin-top:6px">
+                    <template v-if="lookups[index].loading">
+                        Ищем…
+                    </template>
+
+                    <template v-else-if="lookups[index].found">
+                        <div class="found-user">
+                            <img
+                                :src="avatarSrc(lookups[index].user?.photo)"
+                                @error="imgFallback"
+                                alt="Avatar"
+                                class="found-user__avatar"
+                            />
+                            <div class="found-user__meta">
+                                <div>
+                                    <b>@{{ lookups[index].user.nickname }}</b>
+                                    (ID {{ lookups[index].user.id }})
+                                    <span v-if="lookups[index].canInvite" class="found-user__ok"> — можно пригласить</span>
+                                    <span v-else class="error__text"> — нельзя пригласить</span>
+                                </div>
+                                <ul
+                                    v-if="!lookups[index].canInvite && lookups[index].errors?.length"
+                                    class="error__text"
+                                    style="margin:4px 0 0 0;padding-left:16px"
+                                >
+                                    <li v-for="(e,i2) in lookups[index].errors" :key="i2">{{ e }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else>
+                        <p class="error__text">Пользователь не найден</p>
+                    </template>
+                </div>
             </div>
 
             <div class="dialog__plus" style="margin-top: -10px" @click="addUserField">
@@ -202,8 +344,13 @@ onMounted(async () => {
                 <button class="main__btn main__btn_white dialog__btn" @click="close">
                     {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                 </button>
-                <button class="main__btn dialog__btn" @click="inviteUsers">
-                    {{ capitalizeFirstLetter(langStore.translations.invite) }}
+                <button
+                    class="main__btn dialog__btn"
+                    :class="{ blocked: inviteBtnDisabled }"
+                    :disabled="inviteBtnDisabled"
+                    @click="inviteUsers"
+                >
+                    {{ hasForbidden ? 'Нельзя пригласить' : capitalizeFirstLetter(langStore.translations.invite) }}
                 </button>
             </div>
         </div>
@@ -215,4 +362,11 @@ onMounted(async () => {
 .dialog__hint {
     font-size: 12px;
 }
+
+.found-user { display: flex; align-items: center; gap: 8px; }
+.found-user__avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    object-fit: cover; flex: 0 0 28px;
+}
+.found-user__ok { color: #1c7430; }
 </style>
