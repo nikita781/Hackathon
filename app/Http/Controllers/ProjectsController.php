@@ -187,7 +187,13 @@ class ProjectsController extends Controller
         }
         $user_count = $team->users->count();
 
-        if ($user_count > $hackathon->max_team_size || $user_count < $hackathon->min_team_size) {
+        if ($hackathon->type === "team" && ($user_count > $hackathon->max_team_size || $user_count < $hackathon->min_team_size)) {
+            throw ValidationException::withMessages([
+                'team' => 'Ваша команда не подходит под критерии хакатона',
+            ]);
+        }
+
+        if ($hackathon->type === "individual" && $user_count !== 1) {
             throw ValidationException::withMessages([
                 'team' => 'Ваша команда не подходит под критерии хакатона',
             ]);
