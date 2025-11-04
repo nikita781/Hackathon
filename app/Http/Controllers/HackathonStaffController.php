@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\KickStaffRequest;
 use App\Http\Requests\UpdateHackathonStaffRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Hackathon;
 use App\Models\HackathonInvite;
 use App\Models\Project;
@@ -272,7 +273,7 @@ class HackathonStaffController extends Controller
 
         return response()->json([
             'success' => true,
-            'user' => $user,
+            'user' => new UserResource($user),
             'canInvite' => $canInvite,
             'errors' => $errors,
         ]);

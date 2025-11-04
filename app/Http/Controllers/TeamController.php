@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\KickTeamRequest;
 use App\Http\Requests\UpdateTeamRequest;
 use App\Http\Resources\TeamResource;
+use App\Http\Resources\UserResource;
 use App\Models\Hackathon;
 use App\Models\Position;
 use App\Models\Project;
@@ -345,7 +346,7 @@ class TeamController extends Controller
 
         return response()->json([
             'success' => true,
-            'user' => $user,
+            'user' => new UserResource($user),
             'canInvite' => $canInvite,
             'errors' => $errors,
         ]);
