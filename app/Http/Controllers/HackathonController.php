@@ -516,6 +516,8 @@ class HackathonController extends Controller
 
         $request->validate([
             'template' => ['required', 'file', 'mimes:html', 'max:2048'],
+            'width' => ['nullable', 'required_with:height', 'numeric', 'min:50', 'max:1000'],
+            'height' => ['nullable', 'required_with:width', 'numeric', 'min:50', 'max:1000'],
         ]);
 
         $content = file_get_contents($request->file('template')?->getRealPath());
@@ -526,10 +528,16 @@ class HackathonController extends Controller
             $hackathon->clearMediaCollection('template');
         }
 
-        $hackathon->addMediaFromString($cleanHtml)
+        $media = $hackathon->addMediaFromString($cleanHtml)
             ->usingName('certificate_template')
             ->usingFileName('certificate_template.html')
             ->toMediaCollection('template');
+
+        if ($request->filled(['width', 'height'])) {
+            $media->setCustomProperty('width_mm', $request->width);
+            $media->setCustomProperty('height_mm', $request->height);
+            $media->save();
+        }
 
         return back()->with('success', 'Шаблон сертификата успешно загружен');
     }
@@ -554,6 +562,10 @@ class HackathonController extends Controller
                 'seal' => null,
             ]);
 
+            $width = ($templateMedia->getCustomProperty('width_mm') ?? 297) * 2.8346;
+            $height = ($templateMedia->getCustomProperty('height_mm') ?? 210) * 2.8346;
+            $customPaper = [0, 0, $width, $height];
+
             $pdf = Pdf::loadHTML($html)
                 ->setOption(['defaultFont' => 'Helvetica'])
                 ->setOption('margin-top', 0)
@@ -563,7 +575,7 @@ class HackathonController extends Controller
                 ->setPaper('a4', 'landscape')
                 ->setOption('dpi', 300)
                 ->setOption('zoom', 1.0)
-                ->setPaper('A4');
+                ->setPaper($customPaper);
 
             return $pdf->download("preview-certificate.pdf");
         }
