@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $hackathon->title }} - Сертификат</title>
+    <title>{{ $hackathonTitle }} - Сертификат</title>
     <style>
         * {
             margin: 0;
@@ -239,12 +239,12 @@
             <div class="ribbon">ХАКАТОН</div>
         </div>
         <div class="cert-type">СЕРТИФИКАТ ПОБЕДИТЕЛЯ</div>
-        <h1 class="main-title gradient_text">{{ $hackathon->title }}</h1>
+        <h1 class="main-title gradient_text">{{ $hackathonTitle }}</h1>
     </div>
 
     <div class="content" style="text-align: center; margin-bottom: 40px;">
         <div class="issued-to" style="display:block; margin-bottom:10px;">ВРУЧАЕТСЯ ПОЛЬЗОВАТЕЛЮ</div>
-        <div class="winner-name" style="margin-bottom:15px;">{{$user->name ?? $user->nickname}}</div>
+        <div class="winner-name" style="margin-bottom:15px;">{{ $userName ?? $userNickname}}</div>
         <div class="description" style="margin:0 auto; max-width:700px; line-height:1.4;">
             @if(isset($description) && $description)
                 {{ $description }}
@@ -258,14 +258,14 @@
         <tr>
             <td style="width:33%; text-align:left; vertical-align:top;">
                 <div class="signature-section">
-                    <h1 class="logo" style="margin:0; color:#E80024;">{{ $organization->nickname }}</h1>
+                    <h1 class="logo" style="margin:0; color:#E80024;">{{ $organizatorNickname }}</h1>
                     <div class="signature-text" style="font-style:italic; font-size:12px;">*Организатор хакатона*</div>
                 </div>
             </td>
             <td style="width:33%; text-align:center; vertical-align:top;">
                 <div class="center-info">
-                    <div class="organization" style="font-weight:bold; font-size:14px;">Хакатон проводился с {{ $hackathon->event_start->format('d.m.Y') }} по {{ $hackathon->event_end->format('d.m.Y') }}</div>
-                    <div class="date-id" style="font-size:12px; color:#7f8c8d;">Выдан: {{ now()->format('d.m.Y') }}</div>
+                    <div class="organization" style="font-weight:bold; font-size:14px;">Хакатон проводился с {{ $startTime }} по {{ $endTime }}</div>
+                    <div class="date-id" style="font-size:12px; color:#7f8c8d;">Выдан: {{ $endTime }}</div>
                 </div>
             </td>
             <td style="width:33%; text-align:right; vertical-align:top;">

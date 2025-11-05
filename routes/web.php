@@ -67,6 +67,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [HackathonController::class, 'store'])->name('store');
         Route::prefix('/{hackathon}')->group(function () {
             Route::patch('/', [HackathonController::class, 'update'])->name('update');
+            Route::patch('/upload-template', [HackathonController::class, 'uploadTemplate'])->name('upload-template');
+            Route::get('/previewSertificate', [HackathonController::class, 'downloadPreviewCertificate'])->name('previewSertificate');
             Route::post('/publish', [HackathonController::class, 'publish'])->name('publish');
             Route::post('/finish', [HackathonController::class, 'finishHackathon'])->name('finish');
             Route::post('/join', [HackathonController::class, 'joinHackathon'])->name('join');

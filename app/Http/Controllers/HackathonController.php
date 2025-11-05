@@ -22,17 +22,22 @@ use App\Models\Role;
 use App\Models\Support;
 use App\Models\Tab;
 use App\Models\Tag;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
+use Mews\Purifier\Facades\Purifier;
+use Mustache\Engine;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class HackathonController extends Controller
@@ -91,7 +96,7 @@ class HackathonController extends Controller
         $upcoming = Hackathon::query()
             ->whereIn('id', $hackathonIds)
             ->filter($request)
-           ->where('event_start', '>', now())
+            ->where('event_start', '>', now())
             ->with('tags')
             ->orderBy('event_start')
             ->paginate($perPage)
@@ -134,9 +139,9 @@ class HackathonController extends Controller
     }
 
     /**
-     * @throws FileDoesNotExist
+     * @param  \Illuminate\Http\Request|\App\Http\Requests\HackathonRequest  $request
      * @throws FileIsTooBig
-     * @param \Illuminate\Http\Request|\App\Http\Requests\HackathonRequest $request
+     * @throws FileDoesNotExist
      */
     public function store(HackathonRequest $request): JsonResponse
     {
@@ -172,7 +177,7 @@ class HackathonController extends Controller
                 'title' => $hackathon->title,
                 'slug' => $hackathon->slug,
             ],
-            'message' => "Хакатон '" . $hackathon->title . "' успешно создан",
+            'message' => "Хакатон '".$hackathon->title."' успешно создан",
         ]);
     }
 
@@ -205,14 +210,16 @@ class HackathonController extends Controller
 
         if (!isset($user)) {
             $teams = collect();
-        } else if ($isStaffHackathon) {
-            $teams = $hackathon
-                ->teams()
-                ->with(['projects', 'teamUsers.user', 'teamUsers.position'])
-                ->filter($request)
-                ->paginate($perPageTeam);
         } else {
-            $ownTeam = $hackathon->ownTeam($user);
+            if ($isStaffHackathon) {
+                $teams = $hackathon
+                    ->teams()
+                    ->with(['projects', 'teamUsers.user', 'teamUsers.position'])
+                    ->filter($request)
+                    ->paginate($perPageTeam);
+            } else {
+                $ownTeam = $hackathon->ownTeam($user);
+            }
         }
 
         $tabs = $hackathon->tabs()->with(['sections.items', 'media', 'hackathon'])->get();
@@ -225,7 +232,8 @@ class HackathonController extends Controller
         $allProjects = $teams->isNotEmpty() ? ProjectResource::collection($hackathon->allProjects()->paginate($perPageProject)) : null;
         $positionsResource = PositionResource::collection($positions);
         $hackathonStaff = UserResource::collection($hackathon->getAllHackathonStaff());
-        $supports = SupportResource::collection($hackathon->support()->where('type', Support::QUESTION)->orWhere('type', Support::SUGGESTION)->orderBy('created_at')->with('messages.user')->get());
+        $supports = SupportResource::collection($hackathon->support()->where('type', Support::QUESTION)->orWhere('type',
+            Support::SUGGESTION)->orderBy('created_at')->with('messages.user')->get());
         $tags = TagResource::collection(Tag::all());
 
         if ($request->wantsJson()) {
@@ -286,10 +294,10 @@ class HackathonController extends Controller
     }
 
     /**
-     * @throws FileDoesNotExist
+     * @param  \Illuminate\Http\Request|\App\Http\Requests\HackathonUpdateRequest  $request
      * @throws FileIsTooBig
-     * @param \Illuminate\Http\Request|\App\Http\Requests\HackathonUpdateRequest $request
-    */
+     * @throws FileDoesNotExist
+     */
     public function update(HackathonUpdateRequest $request, Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('update', $hackathon)) {
@@ -351,7 +359,9 @@ class HackathonController extends Controller
         return back()->with('status', 'Хакатон отправлен на модерацию');
     }
 
-    public function destroy(Hackathon $hackathon): void {}
+    public function destroy(Hackathon $hackathon): void
+    {
+    }
 
     public function joinHackathon(Hackathon $hackathon): RedirectResponse
     {
@@ -364,7 +374,7 @@ class HackathonController extends Controller
         $user->hackathons()->attach($hackathon->id, ['role_id' => Role::MEMBER]);
 
         $team = $hackathon->teams()->create([
-            'title' => "Команда " . $user->nickname
+            'title' => "Команда ".$user->nickname
         ]);
 
         $user->teams()->syncWithoutDetaching([
@@ -480,11 +490,11 @@ class HackathonController extends Controller
         ]);
     }
 
-    public function finishHackathon(Hackathon $hackathon)
+    public function finishHackathon(Hackathon $hackathon): RedirectResponse
     {
         Gate::authorize('finish', $hackathon);
 
-        $action = New FinishOneHackathon();
+        $action = new FinishOneHackathon();
         $ok = $action($hackathon->slug);
 
         if (!$ok) {
@@ -492,5 +502,81 @@ class HackathonController extends Controller
         }
 
         return back()->with('status', "Хакатон \"{$hackathon->slug}\" завершен");
+    }
+
+    /**
+     * @throws FileDoesNotExist
+     * @throws FileIsTooBig
+     */
+    public function uploadTemplate(Request $request, Hackathon $hackathon): RedirectResponse
+    {
+        Gate::authorize('updatePublished', $hackathon);
+
+        $request->validate([
+            'template' => ['required', 'file', 'mimes:html', 'max:2048'],
+        ]);
+
+        $content = file_get_contents($request->file('template')?->getRealPath());
+
+        $cleanHtml = Purifier::clean($content, [
+            'HTML.Allowed' => 'div,p,span,h1,h2,h3,h4,h5,h6,b,strong,i,em,u,br,hr,table,thead,tbody,tr,td,th,ul,ol,li,style,img',
+        ]);
+
+        if ($hackathon->hasMedia('template')) {
+            $hackathon->clearMediaCollection('template');
+        }
+
+        $hackathon->addMediaFromString($cleanHtml)
+            ->usingName('certificate_template')
+            ->usingFileName('certificate_template.html')
+            ->toMediaCollection('template');
+
+        return back()->with('success', 'Шаблон сертификата успешно загружен');
+    }
+
+    public function downloadPreviewCertificate(Hackathon $hackathon): \Illuminate\Http\Response
+    {
+        Gate::authorize('update', $hackathon);
+
+        $templateMedia = $hackathon->getMedia('template')->first();
+        if ($templateMedia) {
+            $template = file_get_contents($templateMedia->getPath());
+
+            $m = new Engine();
+            $html = $m->render($template, [
+                'hackathonTitle' => $hackathon->title,
+                'userName' => 'Тестовый пользователь',
+                'userNickname' => 'testuser',
+                'place' => 1,
+                'organizatorNickname' => $hackathon->owner->nickname,
+                'startTime' => $hackathon->event_start->format('d.m.Y'),
+                'endTime' => $hackathon->event_end->format('d.m.Y'),
+                'seal' => null,
+            ]);
+
+            $pdf = Pdf::loadHTML($html)
+                ->setOption(['defaultFont' => 'Helvetica'])
+                ->setPaper('A4');
+
+            return $pdf->download("preview-certificate.pdf");
+        }
+
+        $customPaper = [0, 0, 1032, 732];
+
+        $pdf = Pdf::loadView('certificate', [
+            'hackathonTitle' => $hackathon->title,
+            'userName' => 'Тестовый пользователь',
+            'userNickname' => 'testuser',
+            'place' => 1,
+            'organizatorNickname' => $hackathon->owner->nickname,
+            'startTime' => $hackathon->event_start->format('d.m.Y'),
+            'endTime' => $hackathon->event_end->format('d.m.Y'),
+            'seal' => null,
+        ])
+            ->setOption(['defaultFont' => 'Helvetica'])
+            ->setPaper($customPaper);
+
+        return $pdf->download("preview-certificate.pdf");
+
     }
 }
