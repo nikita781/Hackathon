@@ -18,7 +18,9 @@
         "mustache/mustache": "^3.0",
         "spatie/eloquent-sortable": "^4.5",
         "spatie/laravel-medialibrary": "^10.0.0",
-        "tightenco/ziggy": "^2.0"
+        "tightenco/ziggy": "^2.0",
+        "ext-dom": "*",
+        "ext-libxml": "*"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",

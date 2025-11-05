@@ -24,6 +24,8 @@ use App\Models\Tab;
 use App\Models\Tag;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -518,9 +520,7 @@ class HackathonController extends Controller
 
         $content = file_get_contents($request->file('template')?->getRealPath());
 
-        $cleanHtml = Purifier::clean($content, [
-            'HTML.Allowed' => 'div,p,span,h1,h2,h3,h4,h5,h6,b,strong,i,em,u,br,hr,table,thead,tbody,tr,td,th,ul,ol,li,style,img',
-        ]);
+        $cleanHtml = $this->safeHtmlClean($content);
 
         if ($hackathon->hasMedia('template')) {
             $hackathon->clearMediaCollection('template');
@@ -556,6 +556,13 @@ class HackathonController extends Controller
 
             $pdf = Pdf::loadHTML($html)
                 ->setOption(['defaultFont' => 'Helvetica'])
+                ->setOption('margin-top', 0)
+                ->setOption('margin-bottom', 0)
+                ->setOption('margin-left', 0)
+                ->setOption('margin-right', 0)
+                ->setPaper('a4', 'landscape')
+                ->setOption('dpi', 300)
+                ->setOption('zoom', 1.0)
                 ->setPaper('A4');
 
             return $pdf->download("preview-certificate.pdf");
@@ -577,6 +584,70 @@ class HackathonController extends Controller
             ->setPaper($customPaper);
 
         return $pdf->download("preview-certificate.pdf");
+    }
 
+    private function safeHtmlClean($content)
+    {
+        $patterns = [
+            '/<script\b[^>]*>.*?<\/script>/is',
+            '/<iframe\b[^>]*>.*?<\/iframe>/is',
+            '/<object\b[^>]*>.*?<\/object>/is',
+            '/<embed\b[^>]*>.*?<\/embed>/is',
+            '/<applet\b[^>]*>.*?<\/applet>/is',
+            '/<form\b[^>]*>.*?<\/form>/is',
+            '/<input\b[^>]*>/is',
+            '/<textarea\b[^>]*>.*?<\/textarea>/is',
+            '/<select\b[^>]*>.*?<\/select>/is',
+            '/<button\b[^>]*>.*?<\/button>/is',
+
+            '/\son(load|error|click|mouse|key)\s*=\s*["\'][^"\']*["\']/i',
+            '/\son\w+\s*=\s*["\'][^"\']*["\']/i',
+
+            '/javascript:\s*[^"\']*/i',
+            '/vbscript:\s*[^"\']*/i',
+            '/data:\s*text\/html/i',
+            '/data:\s*application\/x-javascript/i',
+
+            '/<meta[^>]*http-equiv\s*=\s*["\']refresh["\'][^>]*>/i',
+        ];
+
+        $cleaned = preg_replace($patterns, '', $content);
+
+        return $this->validateHtmlStructure($cleaned);
+    }
+
+    private function validateHtmlStructure($html)
+    {
+        libxml_use_internal_errors(true);
+
+        $dom = new DOMDocument();
+        $dom->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+        $scripts = $dom->getElementsByTagName('script');
+        foreach (iterator_to_array($scripts) as $script) {
+            $script->parentNode->removeChild($script);
+        }
+
+        $iframes = $dom->getElementsByTagName('iframe');
+        foreach (iterator_to_array($iframes) as $iframe) {
+            $iframe->parentNode->removeChild($iframe);
+        }
+
+        $forms = $dom->getElementsByTagName('form');
+        foreach (iterator_to_array($forms) as $form) {
+            $form->parentNode->removeChild($form);
+        }
+
+        $xpath = new DOMXPath($dom);
+        $nodes = $xpath->query('//*[@onload or @onerror or @onclick or @onmouseover or @onkeypress]');
+        foreach ($nodes as $node) {
+            $node->removeAttribute('onload');
+            $node->removeAttribute('onerror');
+            $node->removeAttribute('onclick');
+            $node->removeAttribute('onmouseover');
+            $node->removeAttribute('onkeypress');
+        }
+
+        return $dom->saveHTML();
     }
 }
