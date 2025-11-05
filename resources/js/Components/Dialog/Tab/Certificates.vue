@@ -4,6 +4,7 @@ import DropFileHtml from '@/Components/DropFileHtml.vue'
 import {router} from '@inertiajs/vue3'
 import { useForm } from '@inertiajs/vue3'
 import {useLangStore} from '@/store/lang.js'
+import InfoCertificates from "@/Components/Dialog/InfoCertificates.vue";
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
@@ -68,6 +69,8 @@ function downloadPreview() {
 
 function cancel() { emit('cancel') }
 
+const showInfo = ref(false)
+
 onMounted(async () => { await langStore.fetchTranslations() })
 </script>
 
@@ -78,6 +81,20 @@ onMounted(async () => { await langStore.fetchTranslations() })
                 <p class="dialog__title">
                     {{ capitalizeFirstLetter(langStore.translations.certificates || 'Сертификаты') }}
                 </p>
+                <div class="help-tt" aria-label="help" @click="showInfo = true">
+                    <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#000" />
+                        <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                        <circle cx="12" cy="8" r="1" fill="#000"/>
+                    </svg>
+<!--                    <div class="tooltipSquare"></div>-->
+<!--                    <div class="tooltip">-->
+<!--                        <p>Это название мероприятия, отображаемое на карточке и странице хакатона</p>-->
+<!--                    </div>-->
+                </div>
+                <InfoCertificates
+                    v-model="showInfo"
+                />
             </div>
             <div class="dialog__actions">
                 <button class="main__btn main__btn_white" @click="downloadPreview">

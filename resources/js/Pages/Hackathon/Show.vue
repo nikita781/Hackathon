@@ -541,7 +541,7 @@ async function finishHackathon() {
     </AuthenticatedLayout>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 $x-small: 575.98px;
 $small: 767.98px;
 $medium: 991.98px;
