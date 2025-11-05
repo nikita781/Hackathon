@@ -95,8 +95,18 @@ onMounted(async () => {
 });
 
 const activeTab = ref(availableTabs.value[0]?.key ?? null)
-function openTab(tab) { if (!tab.blocked) {activeTab.value = tab?.key}
-    if (menuVisible) {
+function openTab(tab) {
+    if (tab.blocked) return
+
+    if (activeTab.value === tab.key) {
+        if (tab.key === 'rate') {
+            rateTabRef.value?.closeProject?.()
+        }
+    } else {
+        activeTab.value = tab.key
+    }
+
+    if (menuVisible.value) {
         closeMenu()
     }
 }
@@ -190,6 +200,8 @@ function saveBlob(blob, filename) {
     a.remove()
     URL.revokeObjectURL(url)
 }
+
+const rateTabRef = ref(null)
 
 function getFilenameFromDisposition(disposition, fallback) {
     if (!disposition) return fallback
@@ -527,6 +539,7 @@ async function finishHackathon() {
         <div class="hackathon__panel">
             <component
                 :is="CurrentTab"
+                ref="rateTabRef"
                 v-if="CurrentTab"
                 :positions="props.positions"
                 :ownTeam="props.ownTeam"

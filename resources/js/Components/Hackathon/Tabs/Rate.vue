@@ -133,6 +133,25 @@ const go = (url) => {
     if (p) fetchGallery(p)
 }
 
+const evalCache = ref(Object.create(null))
+
+function flattenEvalsFromGroups(groups) {
+    const out = []
+    for (const g of groups ?? []) {
+        for (const c of g?.criteria ?? []) {
+            for (const e of c?.evaluations ?? []) {
+                out.push({
+                    criterion_id: c.id,
+                    score: Number(e?.score ?? 0),
+                    criterion: { id: c.id },
+                })
+            }
+        }
+    }
+    return out
+}
+
+
 function makeLinksFromMeta(current, last) {
     const base = window.location.pathname
     const qs = (p) => {
@@ -258,6 +277,13 @@ const getPreviewSrc = (p) => {
 }
 
 function openProject(p) {
+    const key = p?.slug ?? p?.id
+    if (Array.isArray(p?.evaluations)) {
+        evalCache.value[key] = p.evaluations
+    }
+
+    oneProject.value = p
+
     fetchOneProject(p?.slug ?? p?.id)
     loadProjectGallery(p)
     fetchPresentation(p?.slug ?? p?.id)
@@ -276,8 +302,26 @@ async function fetchOneProject (slugOrId) {
             route('hackathons.projects.show', { hackathon: props.hackathon.slug, project: slugOrId }),
             { headers: { Accept: 'application/json' } }
         )
-        if (data?.project) oneProject.value = data.project
+
         groupCriteries.value = Array.isArray(data?.groupCriteries) ? data.groupCriteries : []
+
+        if (data?.project) {
+            const proj = data.project
+            const key = proj.slug ?? proj.id
+
+            let evals = Array.isArray(proj.evaluations) ? proj.evaluations : []
+
+            if (!evals.length && Array.isArray(evalCache.value[key])) {
+                evals = evalCache.value[key]
+            }
+
+            if (!evals.length && groupCriteries.value.length) {
+                evals = flattenEvalsFromGroups(groupCriteries.value)
+            }
+
+            proj.evaluations = evals
+            oneProject.value = proj
+        }
     } catch (e) {
         console.error('project-show', e?.response ?? e)
     }
@@ -325,10 +369,22 @@ const idProject = ref(null)
 const selectedEvaluations = ref([])
 function setIdProject (project) {
     const id = project?.slug ?? project?.id ?? null
-    console.log('Selected project:', id)
+    if (!id) return
     idProject.value = id
-    // передаём уже имеющиеся оценки проекта (или пусто)
-    selectedEvaluations.value = Array.isArray(project?.evaluations) ? project.evaluations : []
+
+    let evals = Array.isArray(project?.evaluations) && project.evaluations.length
+        ? project.evaluations
+        : []
+
+    if (!evals.length && evalCache.value[id]) {
+        evals = evalCache.value[id]
+    }
+
+    if (!evals.length && groupCriteries.value?.length) {
+        evals = flattenEvalsFromGroups(groupCriteries.value)
+    }
+
+    selectedEvaluations.value = evals
     showRate.value = true
 }
 
@@ -402,6 +458,10 @@ function onPagerClick(e) {
     fetchGallery(p)
     window.history.replaceState({}, '', href)
 }
+
+defineExpose({
+    closeProject,
+})
 </script>
 
 <template>
@@ -500,13 +560,6 @@ function onPagerClick(e) {
                     </template>
 
 <!--                    <pre>{{items}}</pre>-->
-
-                    <RateProject
-                        v-model="showRate"
-                        :hackathon="props.hackathon"
-                        :project-id="idProject"
-                        :existing-evaluations="selectedEvaluations"
-                    />
                 </div>
                 <div ref="pagerWrap" @click.capture="onPagerClick" style="margin-top:24px">
                     <Pagination :links="pageLinks" @navigate="go" />
@@ -518,9 +571,14 @@ function onPagerClick(e) {
             <div class="hackathon__tab_container">
                 <div style="display:flex; gap:12px; justify-content: space-between; flex-wrap: wrap; align-items:center; margin-bottom:12px;">
                     <p class="hackathon__my-project__title" style="margin:0">{{ oneTitle }}</p>
-                    <button type="button" class="main__btn_main hackathon__tab_back" @click="closeProject">← {{
-                            capitalizeFirstLetter(langStore.translations.back_to_projects)
-                        }}</button>
+                    <button
+                        v-if="!oneProject?.can?.rate"
+                        type="button"
+                        class="main__btn_main"
+                        @click="setIdProject(oneProject)"
+                    >
+                        {{ activeTab===0 ? capitalizeFirstLetter(langStore.translations.rate) : 'Редактировать' }}
+                    </button>
                 </div>
 
                 <div class="hackathon__oneProject_image">
@@ -529,6 +587,8 @@ function onPagerClick(e) {
 
                 <p class="">{{ oneShortDesc }}</p>
             </div>
+
+<!--            <pre>{{oneProject}}</pre>-->
 
             <div class="hackathon__tab_container" v-if="oneDesc">
                 <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.description) }}</p>
@@ -608,6 +668,13 @@ function onPagerClick(e) {
                 </div>
             </div>
         </div>
+
+        <RateProject
+            v-model="showRate"
+            :hackathon="props.hackathon"
+            :project-id="idProject"
+            :existing-evaluations="selectedEvaluations"
+        />
     </div>
 </template>
 

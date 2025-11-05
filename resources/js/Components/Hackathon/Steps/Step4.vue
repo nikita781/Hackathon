@@ -85,7 +85,7 @@ async function publishProject() {
             project  : props.project.slug,
         });
         await axios.post(url, {});
-        // emit('cancel');
+        emit('cancel');
         const toast = useToast(); toast.success(capitalizeFirstLetter(langStore.translations.project_sent_for_moderation));
     } catch (e) {
         console.error('publish-project', e?.response ?? e);

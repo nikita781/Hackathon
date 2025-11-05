@@ -48,6 +48,8 @@ const handleSuccess = (data) => {
         onStep2Success();
     } else if (step.value === 3) {
         onStep2Success();
+    } else if (step.value === 4) {
+        close();
     }
 };
 
