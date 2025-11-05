@@ -9,6 +9,7 @@ import RulesTab         from './Tab/Rules.vue'
 import ContactsTab      from './Tab/Contacts.vue'
 import EvaluationTab    from './Tab/Evaluation.vue'
 import AwardTab         from './Tab/Award.vue'
+import CertificatesTab  from './Tab/Certificates.vue'
 import {useLangStore} from "@/store/lang.js";
 
 const props = defineProps({
@@ -33,20 +34,21 @@ function onSaving(flag) { saving.value = !!flag }
 const tabs = [
     defineAsyncComponent(() => import('./Tab/MainInfo.vue')),
     OverviewTab, ResourcesTab, RulesTab,
-    ContactsTab, EvaluationTab, AwardTab,
+    ContactsTab, EvaluationTab, CertificatesTab, AwardTab,
 ]
 
 const active = ref(0)
 const pendingTab     = ref(null)
 const showLeaveDlg   = ref(false)
 const hasUnsaved     = ref(false)
-const tabsRu = ref(['Основная информация','Обзор','Ресурсы','Правила','Контакты','Оценка','Награды']);
+const tabsRu = ref(['Основная информация','Обзор','Ресурсы','Правила','Контакты','Оценка','Сертификаты','Награды']);
+const tCert = (t) => capitalizeFirstLetter(t?.certificates || 'Сертификаты')
 
 function onDirty (flag) { hasUnsaved.value = flag }
 
 function isTabLocked(i) {
     if (!isEdit.value && !created.value && i > 0) return true
-    const lastLockedStart = tabsRu.value.length - 2
+    const lastLockedStart = tabsRu.value.length - 3
     if (!updatePublished.value && i >= lastLockedStart) return true
     return false
 }
@@ -123,7 +125,7 @@ function onTabSaved({ slug }){
         tabs[0] = defineAsyncComponent(() => import('./Tab/MainInfoEdit.vue'))
     }
     let next = active.value + 1
-    const lastLockedStart = tabsRu.value.length - 2
+    const lastLockedStart = tabsRu.value.length - 3
     if (!updatePublished.value && next >= lastLockedStart) {
         next = lastLockedStart - 1
     }
@@ -132,7 +134,7 @@ function onTabSaved({ slug }){
 
 watch(updatePublished, (canUpdate) => {
     if (!canUpdate) {
-        const lastLockedStart = tabsRu.value.length - 2
+        const lastLockedStart = tabsRu.value.length - 3
         if (active.value >= lastLockedStart) {
             active.value = lastLockedStart - 1
         }
@@ -153,7 +155,8 @@ watch(() => langStore.translations,
             capitalizeFirstLetter(langStore.translations.rules),
             capitalizeFirstLetter(langStore.translations.contacts),
             capitalizeFirstLetter(langStore.translations.evaluation),
-            'Достижения'
+            tCert(langStore.translations),
+            'Достижения',
         ];
     }
 )
@@ -174,7 +177,8 @@ onMounted(async () => {
         capitalizeFirstLetter(langStore.translations.rules),
         capitalizeFirstLetter(langStore.translations.contacts),
         capitalizeFirstLetter(langStore.translations.evaluation),
-        'Достижения'
+        tCert(langStore.translations),
+        'Достижения',
     ];
     initMode()
 });
