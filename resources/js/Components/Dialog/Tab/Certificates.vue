@@ -15,7 +15,12 @@ const emit = defineEmits(['saved','cancel','dirty','saving'])
 const isAdmin = computed(() => !!props.admin)
 const langStore = useLangStore()
 
-const form = useForm({ template: null })
+const form = useForm({
+    template: null,
+    width: '',
+    height: '',
+})
+
 const file = ref(null)
 const pending = ref(false)
 
@@ -31,18 +36,33 @@ function onFileUpdate(f) {
     emit('dirty', !!f)
 }
 
+function clearFieldError(field) {
+    form.clearErrors(field)
+}
+
 async function uploadTemplate() {
-    if (!file.value) return
+    form.clearErrors()
+    if (!file.value) {
+        form.setError('template', 'Загрузите файл шаблона (.html)')
+        return
+    }
     pending.value = true
     emit('saving', true)
     try {
-        const form = new FormData()
-        form.append('template', file.value)
-        form.append('_method', 'patch')
+        const fd = new FormData()
+        fd.append('template', file.value)
+        fd.append('_method', 'patch')
+
+        if (form.width !== '' && form.width !== null && form.width !== undefined) {
+            fd.append('width', form.width)
+        }
+        if (form.height !== '' && form.height !== null && form.height !== undefined) {
+            fd.append('height', form.height)
+        }
 
         await axios.post(
             route('hackathons.upload-template', { hackathon: props.hackathonSlug }),
-            form,
+            fd,
             { headers: { 'Content-Type': 'multipart/form-data' } }
         )
 
@@ -87,23 +107,71 @@ onMounted(async () => { await langStore.fetchTranslations() })
                         <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
                         <circle cx="12" cy="8" r="1" fill="#000"/>
                     </svg>
-<!--                    <div class="tooltipSquare"></div>-->
-<!--                    <div class="tooltip">-->
-<!--                        <p>Это название мероприятия, отображаемое на карточке и странице хакатона</p>-->
-<!--                    </div>-->
                 </div>
-                <InfoCertificates
-                    v-model="showInfo"
-                />
+                <InfoCertificates v-model="showInfo" />
             </div>
+
             <div class="dialog__actions">
                 <button class="main__btn main__btn_white" @click="downloadPreview">
                     {{ capitalizeFirstLetter(langStore.translations.downloadPreview || 'Скачать превью') }}
                 </button>
             </div>
         </div>
+
         <DropFileHtml :file="file" @update:file="onFileUpdate" />
         <small v-if="form.errors.template" class="error__text">{{ form.errors.template }}</small>
+
+        <div class="dialog__component" style="width: 100%">
+            <div class="dialog__title_container">
+                <p class="dialog__title">Высота и ширина</p>
+                <div class="help-tt" aria-label="help">
+                    <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#000" />
+                        <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>
+                        <circle cx="12" cy="8" r="1" fill="#000"/>
+                    </svg>
+                    <div class="tooltipSquare"></div>
+                    <div class="tooltip">
+                        <p>Укажите размеры сертификата в миллиметрах (50–1000 мм). Поля необязательны, но при заполнении одного — второе обязательно.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dialog__horizontal">
+                <input
+                    v-model="form.height"
+                    type="number"
+                    class="dialog__input"
+                    style="width: 100%"
+                    placeholder="Высота (мм)"
+                    min="50"
+                    max="1000"
+                    step="1"
+                    :class="{ 'error': form.errors.height }"
+                    @input="clearFieldError('height')"
+                >
+                <input
+                    v-model="form.width"
+                    type="number"
+                    class="dialog__input"
+                    style="width: 100%"
+                    placeholder="Ширина (мм)"
+                    min="50"
+                    max="1000"
+                    step="1"
+                    :class="{ 'error': form.errors.width }"
+                    @input="clearFieldError('width')"
+                >
+            </div>
+
+            <small
+                v-if="form.errors.height || form.errors.width"
+                class="error__text"
+            >
+                {{ form.errors.height }}<br v-if="form.errors.height && form.errors.width">
+                {{ form.errors.width }}
+            </small>
+        </div>
     </div>
 
     <div class="dialog__btns" v-if="!isAdmin">
