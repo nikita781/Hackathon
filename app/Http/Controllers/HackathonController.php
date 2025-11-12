@@ -564,7 +564,12 @@ class HackathonController extends Controller
 
             $width = ($templateMedia->getCustomProperty('width_mm') ?? 297) * 2.8346;
             $height = ($templateMedia->getCustomProperty('height_mm') ?? 210) * 2.8346;
+
             $customPaper = [0, 0, $width, $height];
+
+            if ($width === 0.0 || $height === 0.0) {
+                $customPaper = "A4";
+            }
 
             $pdf = Pdf::loadHTML($html)
                 ->setOption(['defaultFont' => 'Helvetica'])
@@ -577,7 +582,7 @@ class HackathonController extends Controller
                 ->setOption('zoom', 1.0)
                 ->setPaper($customPaper);
 
-            return $pdf->download("preview-certificate.pdf");
+            return $pdf->stream("preview-certificate.pdf");
         }
 
         $customPaper = [0, 0, 1032, 732];

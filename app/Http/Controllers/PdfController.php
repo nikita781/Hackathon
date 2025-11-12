@@ -39,9 +39,24 @@ class PdfController extends Controller
                 'seal' => null,
             ]);
 
+            $width = ($templatePath->getCustomProperty('width_mm') ?? 297) * 2.8346;
+            $height = ($templatePath->getCustomProperty('height_mm') ?? 210) * 2.8346;
+            $customPaper = [0, 0, $width, $height];
+
+            if ($width === 0.0 || $height === 0.0) {
+                $customPaper = "A4";
+            }
+
             $pdf = Pdf::loadHTML($html)
                 ->setOption(['defaultFont' => 'Helvetica'])
-                ->setPaper('A4');
+                ->setOption('margin-top', 0)
+                ->setOption('margin-bottom', 0)
+                ->setOption('margin-left', 0)
+                ->setOption('margin-right', 0)
+                ->setPaper('a4', 'landscape')
+                ->setOption('dpi', 300)
+                ->setOption('zoom', 1.0)
+                ->setPaper($customPaper);
 
             return $pdf->download("certificate-{$user->nickname}.pdf");
         }
