@@ -38,6 +38,14 @@ class TeamPolicy
             return false;
         }
 
+        if ($team->hackathon->type === "individual") {
+            return false;
+        }
+
+        if ($team->hackathon->type === "team" && $team->hackathon->max_team_size === 1) {
+            return false;
+        }
+
         return $user->teams()
             ->wherePivot('position_id', Position::CAPITAN_POSITION)
             ->where('teams.id', $team->id)

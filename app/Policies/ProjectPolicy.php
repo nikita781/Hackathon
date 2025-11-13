@@ -57,11 +57,22 @@ class ProjectPolicy
             return false;
         }
 
-        if ($hackathon->work_time_start > now() || now() > $hackathon->work_time_end) {
+        if ($hackathon->work_time_start > now() || $hackathon->work_time_end < now()) {
             return false;
         }
 
-        return $user->isCapitanOfHackathon($hackathon);
+        $team = $user->teams()->where('hackathon_id', $hackathon->id)->first();
+
+        if ($team->projects->count() >= 4) {
+            return false;
+        }
+
+        $publishedProjects = Project::query()
+            ->where('team_id', $team->id)
+            ->whereIn('status', [Project::PUBLISHED, Project::MODERATION])
+            ->exists();
+
+        return $user->isCapitanOfHackathon($hackathon) && !$publishedProjects;
     }
 
     public function update(User $user, Project $project): bool

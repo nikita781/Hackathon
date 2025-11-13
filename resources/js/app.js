@@ -10,10 +10,10 @@ import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 import { useLangStore } from '@/store/lang'
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+// const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: title => `${title}`,
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
         const pinia = createPinia()
