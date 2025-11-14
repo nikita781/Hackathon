@@ -63,12 +63,16 @@ class ProjectPolicy
 
         $team = $user->teams()->where('hackathon_id', $hackathon->id)->first();
 
-        if ($team->projects->count() >= 4) {
+        if (!$team) {
+            return false;
+        }
+
+        if ($team?->projects?->count() >= 4) {
             return false;
         }
 
         $publishedProjects = Project::query()
-            ->where('team_id', $team->id)
+            ->where('team_id', $team?->id)
             ->whereIn('status', [Project::PUBLISHED, Project::MODERATION])
             ->exists();
 
