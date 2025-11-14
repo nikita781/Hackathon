@@ -194,7 +194,7 @@ async function finishHackathon() {
             <button
                 type="button"
                 class="main__btn_main"
-                style="margin-bottom: 30px"
+                style="margin-bottom: 30px; display: none"
                 @click="finishHackathon"
                 :disabled="syncing"
             >
