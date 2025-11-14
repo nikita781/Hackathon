@@ -224,7 +224,7 @@ function previewSrc(project) {
                                 </div>
 
                                 <ul class="hackathon__my-project__item_avatar" v-if="project?.team?.users">
-                                    <li v-for="user in project.team.users"><img :src="avatarSrc(user.photo)" @error="imgFallback" alt="Avatar"></li>
+                                    <li v-for="user in project.team.users"><img :src="avatarSrc(user.user.photo)" @error="imgFallback" alt="Avatar"></li>
                                 </ul>
 
                                 <a :href="project.certificate_url" class="main__btn_main" style="width: fit-content; margin-top: -10px">{{ capitalizeFirstLetter(langStore.translations.certificate) }}</a>
