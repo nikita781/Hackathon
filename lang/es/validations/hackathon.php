@@ -30,10 +30,12 @@ return [
 
     'registration_start.date' => 'La fecha de inicio de registro debe ser una fecha válida.',
     'registration_start.before' => 'La fecha de inicio de registro debe ser anterior a la fecha de finalización del registro.',
+    'registration_start.after' => 'La fecha de inicio de la inscripción no puede ser anterior a hoy.',
 
     'registration_end.required' => 'La fecha de finalización del registro es obligatoria.',
     'registration_end.date' => 'La fecha de finalización del registro debe ser una fecha válida.',
     'registration_end.before_or_equal' => 'La fecha de finalización del registro debe ser anterior o igual al inicio del evento.',
+    'registration_end.after' => 'La fecha de finalización del registro no puede estar en el pasado.',
 
     'event_start.required' => 'La fecha de inicio del evento es obligatoria.',
     'event_start.date' => 'La fecha de inicio del evento debe ser una fecha válida.',

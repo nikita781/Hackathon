@@ -31,10 +31,12 @@ return [
 
     'registration_start.date' => '注册开始日期必须是有效日期。',
     'registration_start.before' => '注册开始日期必须早于注册结束日期。',
+    'registration_start.after' => '报名开始日期不能早于今天。',
 
     'registration_end.required' => '注册结束日期是必填项。',
     'registration_end.date' => '注册结束日期必须是有效日期。',
     'registration_end.before_or_equal' => '注册结束日期必须早于或等于活动开始日期。',
+    'registration_end.after' => '报名截止日期不能是过去的时间。',
 
     'event_start.required' => '活动开始日期是必填项。',
     'event_start.date' => '活动开始日期必须是有效日期。',

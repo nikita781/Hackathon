@@ -30,10 +30,12 @@ return [
 
     'registration_start.date' => 'La date de début d’enregistrement doit être une date valide.',
     'registration_start.before' => 'La date de début d’enregistrement doit être avant la date de fin d’enregistrement.',
+    'registration_start.after' => 'La date de début d’inscription ne peut pas être antérieure à aujourd’hui.',
 
     'registration_end.required' => 'La date de fin d’enregistrement est obligatoire.',
     'registration_end.date' => 'La date de fin d’enregistrement doit être une date valide.',
     'registration_end.before_or_equal' => 'La date de fin d’enregistrement doit être antérieure ou égale à la date de début de l’événement.',
+    'registration_end.after' => 'La date de fin d’inscription ne peut pas être dans le passé.',
 
     'event_start.required' => 'La date de début de l’événement est obligatoire.',
     'event_start.date' => 'La date de début de l’événement doit être une date valide.',

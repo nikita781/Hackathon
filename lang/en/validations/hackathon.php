@@ -30,10 +30,12 @@ return [
 
     'registration_start.date' => 'The registration start date must be a valid date.',
     'registration_start.before' => 'The registration start date must be before the registration end date.',
+    'registration_start.after' => 'The registration start date cannot be earlier than today.',
 
     'registration_end.required' => 'The registration end date is required.',
     'registration_end.date' => 'The registration end date must be a valid date.',
     'registration_end.before_or_equal' => 'The registration end date must be before or equal to the event start date.',
+    'registration_end.after' => 'The registration end date cannot be in the past.',
 
     'event_start.required' => 'The event start date is required.',
     'event_start.date' => 'The event start date must be a valid date.',

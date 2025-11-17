@@ -30,10 +30,12 @@ return [
 
     'registration_start.date' => 'Das Startdatum der Registrierung muss ein gültiges Datum sein.',
     'registration_start.before' => 'Das Startdatum der Registrierung muss vor dem Enddatum der Registrierung liegen.',
+    'registration_start.after' => 'Das Startdatum der Registrierung darf nicht vor dem heutigen Tag liegen.',
 
     'registration_end.required' => 'Das Enddatum der Registrierung ist erforderlich.',
     'registration_end.date' => 'Das Enddatum der Registrierung muss ein gültiges Datum sein.',
     'registration_end.before_or_equal' => 'Das Enddatum der Registrierung muss vor oder gleich dem Veranstaltungsbeginn liegen.',
+    'registration_end.after' => 'Das Registrierungsende darf nicht in der Vergangenheit liegen.',
 
     'event_start.required' => 'Das Startdatum der Veranstaltung ist erforderlich.',
     'event_start.date' => 'Das Startdatum der Veranstaltung muss ein gültiges Datum sein.',
