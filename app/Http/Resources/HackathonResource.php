@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 /** @mixin \App\Models\Hackathon */
-class HackathonResource extends JsonResource
+class HackathonResource extends TranslatableResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
+            'title' => $this->trans("title"),
             'image_path' => route('hackathons.image', $this->resource),
             'format' => $this->format,
             'type' => $this->type,
@@ -31,13 +31,13 @@ class HackathonResource extends JsonResource
             'evaluation_end' => $this->evaluation_end,
             'is_finished' => $this->is_finished,
             'prize_type' => $this->prize_type,
-            'prize_pool' => $this->prize_pool,
+            'prize_pool' => $this->trans("prize_pool"),
             'slug' => $this->slug,
             'status' => $this->status,
             'published_time' => $this->published_time,
             'moderated_time' => $this->moderated_time,
             'blocked_time' => $this->blocked_time,
-            'comment' => $this->comment,
+            'comment' => $this->trans("comment"),
 
             'can' => [
                 'publish' => Gate::check('publish', $this->resource),

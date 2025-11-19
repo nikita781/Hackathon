@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Translatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,16 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class TabSection extends Model
 {
-    protected $fillable = ['tab_id', 'title', 'content'];
+    use Translatable;
+
+    protected $fillable = ['tab_id', 'title', 'content', 'translations', 'locale'];
+
+    public $translatable = ['title', 'content'];
+
+    protected $casts = [
+        'translations' => 'array',
+        'content' => 'string'
+    ];
 
     public function tab(): BelongsTo
     {

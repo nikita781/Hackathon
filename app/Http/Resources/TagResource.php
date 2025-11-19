@@ -6,15 +6,15 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\Tag */
-class TagResource extends JsonResource
+class TagResource extends TranslatableResource
 {
-    public function toArray(Request $request): array
+    public function toArray($request)
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'order' => $this->order,
+            'title' => $this->trans('title'),
             'slug' => $this->slug,
+            'order' => $this->order,
         ];
     }
 }

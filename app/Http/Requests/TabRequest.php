@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Hackathon;
 use App\Models\Tab;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

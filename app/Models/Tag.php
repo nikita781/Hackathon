@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Translatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,9 +12,16 @@ use Illuminate\Support\Str;
 
 class Tag extends Model
 {
-    protected $fillable = [
-        'title', 'order', 'slug',
+    use Translatable;
+
+    protected $fillable = ['title', 'slug', 'order', 'translations', 'locale'];
+
+    protected $casts = [
+        'translations' => 'array',
+        'order' => 'integer',
     ];
+
+    protected array $translatable = ['title'];
 
     public function getRouteKeyName()
     {

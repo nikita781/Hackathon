@@ -66,7 +66,7 @@ class HackathonController extends Controller
         return Inertia::render('Hackathon/Index', [
             'banners' => $banners,
             'hackathons' => HackathonResource::collection($hackathons),
-            'tags' => TagResource::collection(Tag::orderBy('title')->get()),
+            'tags' => TagResource::collection(Tag::orderBy('order')->get()),
             'can' => [
                 'create' => Gate::check('create', Hackathon::class),
             ],
@@ -154,6 +154,7 @@ class HackathonController extends Controller
         $data = Arr::except($request->validated(), ['tags', 'image_path']);
         $data['slug'] = Hackathon::generateUniqueSlug($data['title']);
         $data['registration_start'] = Carbon::now()->toDateTimeString();
+        $data['locale'] = app()->getLocale();
         $user = auth()->user();
         $hackathon = $user->hackathonsAsOrganizer()->create($data);
         if ($request->hasFile('image_path')) {
@@ -165,10 +166,25 @@ class HackathonController extends Controller
         $hackathon->tags()->sync($request->input('tags'));
 
         foreach (Tab::defaultStructure() as $tabTitle => $sections) {
-            $tab = $hackathon->tabs()->create(['title' => $tabTitle]);
+            $tabTranslations = Tab::DEFAULT_TRANSLATIONS[$tabTitle] ?? [];
+
+            $tab = $hackathon->tabs()->create([
+                'title' => $tabTitle
+            ]);
 
             foreach ($sections as $sectionTitle) {
-                $tab->sections()->create(['title' => $sectionTitle]);
+                $sectionTranslations = $tabTranslations['sections'][$sectionTitle]['title'] ?? [];
+
+                $nestedTranslations = [];
+                foreach ($sectionTranslations as $lang => $translation) {
+                    $nestedTranslations[$lang] = ['title' => $translation];
+                }
+
+                $tab->sections()->createQuietly([
+                    'title' => $sectionTitle,
+                    'translations' => $nestedTranslations,
+                    'locale' => 'ru'
+                ]);
             }
         }
 
@@ -316,6 +332,8 @@ class HackathonController extends Controller
             $data['min_team_size'] = 1;
             $data['max_team_size'] = 1;
         }
+
+        $data['locale'] = app()->getLocale();
 
         $hackathon->update($data);
         $hackathon->refresh();

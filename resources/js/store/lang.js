@@ -2,47 +2,51 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import axios from 'axios'
 
-// Глобальная переменная для базового URL
-const BASE_URL = import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000'; // Замените на конфигурацию вашего приложения
+const BASE_URL = import.meta.env.VITE_APP_URL || 'http://127.0.0.1:8000';
 
-const localeMap = {
-    ru: 'ru_RU',
-    en: 'en_US',
-    es: 'es',
-    zh: 'zh_CN',
-    fr: 'fr_FR',
-    de: 'de_DE',
-    pt: 'pt_PT'
-}
+const supportedLanguages = ['ru', 'en', 'es', 'zh', 'fr', 'de', 'pt'];
 
 export const useLangStore = defineStore('lang', () => {
     const translations = ref({})
     const currentLanguage = ref(localStorage.getItem('language') || 'ru');
 
-    async function fetchTranslations (lang = currentLanguage.value) {
-        const { data } = await axios.get(`${BASE_URL}/lang/${lang}.json`)
-        translations.value     = data
-        currentLanguage.value  = lang
-        localStorage.setItem('language', lang)
-    }
-    async function switchLanguage(langShort = 'en') {
+    async function fetchTranslations(lang = currentLanguage.value) {
         try {
-            const locale = localeMap[langShort] ?? langShort
-            if (langShort !== 'zh') {
-                await axios.get(`${BASE_URL}/lang/switch/${locale}`)
-                await fetchTranslations(langShort)
-            } else if (langShort === 'zh') {
-                await fetchTranslations('zh_CN')
-            }
-        } catch (e) {
-            console.error('Ошибка смены языка:', e)
+            const fileLang = lang === 'zh' ? 'zh_CN' : lang;
+            const { data } = await axios.get(`${BASE_URL}/lang/${fileLang}.json`)
+            translations.value = data
+            currentLanguage.value = lang
+            localStorage.setItem('language', lang)
+        } catch (error) {
+            console.error('Error fetching translations:', error)
         }
+    }
+
+    async function switchLanguage(lang = 'en') {
+        try {
+            if (!supportedLanguages.includes(lang)) {
+                console.error('Unsupported language:', lang)
+                return
+            }
+
+            await axios.get(`${BASE_URL}/lang/switch/${lang}`)
+            await fetchTranslations(lang)
+
+            window.location.reload()
+        } catch (error) {
+            console.error('Error switching language:', error)
+        }
+    }
+
+    async function init() {
+        await fetchTranslations(currentLanguage.value)
     }
 
     return {
         translations,
         currentLanguage,
         fetchTranslations,
-        switchLanguage
+        switchLanguage,
+        init
     }
 })

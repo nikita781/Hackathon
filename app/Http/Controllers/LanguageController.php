@@ -9,18 +9,33 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LanguageController extends Controller
 {
+
     public function switchLang($locale): RedirectResponse
     {
-        if (!in_array($locale, ['en_US', 'ru_RU', 'es', 'zh_CN', 'fr_FR', 'de_DE', 'pt_PT'])) {
-            abort(400);
+        $localeMap = [
+            'ru' => 'ru',
+            'en' => 'en',
+            'de' => 'de',
+            'fr' => 'fr',
+            'es' => 'es',
+            'zh' => 'zh_CN',
+            'zh_CN' => 'zh_CN',
+            'pt' => 'pt_PT',
+            'pt_PT' => 'pt_PT'
+        ];
+
+        if (!array_key_exists($locale, $localeMap)) {
+            abort(400, "язык не поддерживается: $locale");
         }
 
-        session(['locale' => $locale]);
+        $normalizedLocale = $localeMap[$locale];
 
-        App::setLocale($locale);
+        session(['locale' => $normalizedLocale]);
+        app()->setLocale($normalizedLocale);
 
-        return redirect()->route('home');
+        return redirect()->back();
     }
+
 
     public function json(string $locale): BinaryFileResponse
     {
