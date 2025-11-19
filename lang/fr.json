@@ -275,5 +275,7 @@
     "hackathon_sent_for_moderation": "Hackathon envoyé en modération",
     "resubmit": "Renvoyer",
     "rejection_reason": "Raison du refus",
-    "go_to_hackathon": "Aller au hackathon"
+    "go_to_hackathon": "Aller au hackathon",
+    "validation_prize_pool_cash": "Pour un prix en argent, le nombre doit être inférieur ou égal à 10 000 000",
+    "validation_prize_pool_non_cash": "Pour un prix non monétaire, jusqu’à 255 caractères de texte sont autorisés"
 }

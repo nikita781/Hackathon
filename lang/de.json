@@ -275,5 +275,7 @@
     "hackathon_sent_for_moderation": "Hackathon zur Moderation gesendet",
     "resubmit": "Erneut einreichen",
     "rejection_reason": "Ablehnungsgrund",
-    "go_to_hackathon": "Zum Hackathon"
+    "go_to_hackathon": "Zum Hackathon",
+    "validation_prize_pool_cash": "Für einen Geldpreis muss eine Zahl bis zu 10.000.000 angegeben werden",
+    "validation_prize_pool_non_cash": "Für einen Sachpreis sind bis zu 255 Textzeichen erlaubt"
 }

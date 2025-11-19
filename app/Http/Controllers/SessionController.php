@@ -22,8 +22,8 @@ class SessionController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('nickname', $credentials['login'])
-            ->orWhere('email', $credentials['login'])
+        $user = User::whereRaw('LOWER(nickname) = ?', strtolower($credentials['login']))
+            ->orWhereRaw('LOWER(email) = ?', strtolower($credentials['login']))
             ->first();
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
@@ -54,8 +54,8 @@ class SessionController extends Controller
     {
         $externalUser = DB::connection('main_site')
             ->table('users')
-            ->where('name', $login)
-            ->orWhere('email', $login)
+            ->whereRaw('LOWER(name) = ?', strtolower($login))
+            ->orWhereRaw('LOWER(email) = ?', strtolower($login))
             ->first();
 
         if (!$externalUser) {
