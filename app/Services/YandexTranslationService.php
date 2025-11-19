@@ -212,7 +212,7 @@ class YandexTranslationService
         return true;
     }
 
-    private function isEditorJsContent(?array $data): bool
+    private function isEditorJsContent($data): bool
     {
         if (!is_array($data)) {
             return false;

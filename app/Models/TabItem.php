@@ -20,7 +20,8 @@ class TabItem extends Model implements HasMedia
     public $translatable = ['title', 'content'];
 
     protected $casts = [
-        'translations' => 'array'
+        'translations' => 'array',
+        'content' => 'string',
     ];
 
     public function tabSection(): BelongsTo

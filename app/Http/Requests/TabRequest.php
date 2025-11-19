@@ -21,12 +21,12 @@ class TabRequest extends FormRequest
             'sections' => ['nullable', 'array'],
             'sections.*.id' => ['nullable', 'integer', 'exists:tab_sections,id'],
             'sections.*.title' => ['required_with:sections', 'string', 'max:255'],
-            'sections.*.content' => ['nullable', 'json'],
+            'sections.*.content' => ['nullable', 'json', 'max:10000'],
 
             'sections.*.items' => ['nullable', 'array'],
             'sections.*.items.*.id' => ['nullable', 'integer', 'exists:tab_items,id'],
             'sections.*.items.*.title' => ['required_with:sections.*.items', 'string', 'max:255'],
-            'sections.*.items.*.content' => ['nullable', 'string'],
+            'sections.*.items.*.content' => ['nullable', 'string', 'max:10000'],
             'sections.*.items.*.image_path' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5048'],
 
             'partners' => ['nullable', 'array'],

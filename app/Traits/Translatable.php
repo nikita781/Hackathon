@@ -53,11 +53,36 @@ trait Translatable
         $translatableFields = $this->getTranslatableFields();
         $changedFields = [];
 
+        \Log::debug('Checking translatable fields for changes', [
+            'model' => get_class($this),
+            'id' => $this->id,
+            'translatable_fields' => $translatableFields
+        ]);
+
         foreach ($translatableFields as $field) {
-            if (isset($original[$field]) && $original[$field] !== $this->$field && !empty($this->$field)) {
+            $oldValue = $original[$field] ?? null;
+            $newValue = $this->$field;
+
+            $hasOldValue = array_key_exists($field, $original);
+            $valuesDiffer = $oldValue !== $newValue;
+            $newValueNotEmpty = !empty($newValue);
+
+            \Log::debug('Field comparison', [
+                'field' => $field,
+                'old_value' => $oldValue ? substr($oldValue, 0, 50) : 'NULL',
+                'new_value' => $newValue ? substr($newValue, 0, 50) : 'NULL',
+                'are_equal' => $oldValue === $newValue ? 'YES' : 'NO',
+                'is_new_empty' => empty($newValue) ? 'YES' : 'NO'
+            ]);
+
+            if (($hasOldValue && $valuesDiffer && $newValueNotEmpty) ||
+                (!$hasOldValue && $newValueNotEmpty)) {
                 $changedFields[] = $field;
+                \Log::debug('Field changed, will translate', ['field' => $field]);
             }
         }
+
+        \Log::debug('Changed fields result', ['changed_fields' => $changedFields]);
 
         return $changedFields;
     }
