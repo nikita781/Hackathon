@@ -285,6 +285,11 @@ $x-big: 1829.98px;
                 color: #121212;
                 font-family: "Cera";
                 font-weight: 600;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 3;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             &_text {
                 color: #999;

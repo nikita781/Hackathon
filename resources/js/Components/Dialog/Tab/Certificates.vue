@@ -42,6 +42,17 @@ function clearFieldError(field) {
 
 async function uploadTemplate() {
     form.clearErrors()
+
+    const widthEmpty  = form.width === ''  || form.width === null  || typeof form.width === 'undefined'
+    const heightEmpty = form.height === '' || form.height === null || typeof form.height === 'undefined'
+    console.log(widthEmpty)
+    console.log(heightEmpty)
+    console.log(file.value)
+    if (!file.value && widthEmpty && heightEmpty) {
+        emit('saved', { slug: props.hackathonSlug })
+        return
+    }
+
     if (!file.value) {
         form.setError('template', 'Загрузите файл шаблона (.html)')
         return
@@ -181,7 +192,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
         <button class="main__btn main__btn_white" @click="cancel">
             {{ capitalizeFirstLetter(langStore.translations.cansel || 'Отмена') }}
         </button>
-        <button class="main__btn" :disabled="!file || pending" @click="uploadTemplate">
+        <button class="main__btn" @click="uploadTemplate">
             {{ pending ? (langStore.translations.saving || 'Сохранение...') : (langStore.translations.save || 'Сохранить') }}
         </button>
     </div>

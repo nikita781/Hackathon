@@ -145,7 +145,7 @@ function previewSrc(project) {
                         </div>
                         <div class="dialog__component">
                             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.birthDate) }}</p>
-                            <input type="date" readonly :value="props.user.date_of_birth || new Date().toISOString().slice(0, 10)" class="dialog__input">
+                            <input type="date" readonly :value="props.user.birthday" class="dialog__input">
                         </div>
                     </div>
                     <div class="profile__content_row">
@@ -219,8 +219,18 @@ function previewSrc(project) {
 
                             <div class="hackathon__my-project__item_content">
                                 <div>
-                                    <p class="hackathon__my-project__item_title">{{ project.title }}</p>
-                                    <p class="hackathon__my-project__item_text">{{ project.description }}</p>
+                                    <p
+                                        class="hackathon__my-project__item_title"
+                                        :title="project.title"
+                                    >
+                                        {{ project.title }}
+                                    </p>
+                                    <p
+                                        class="hackathon__my-project__item_text"
+                                        :title="project.description"
+                                    >
+                                        {{ project.description }}
+                                    </p>
                                 </div>
 
                                 <ul class="hackathon__my-project__item_avatar" v-if="project?.team?.users">
