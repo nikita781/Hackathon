@@ -3,12 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CriteriaRequest;
-use App\Models\Criterion;
 use App\Models\CriterionGroup;
 use App\Models\Hackathon;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class CriteriaController extends Controller
@@ -52,12 +49,16 @@ class CriteriaController extends Controller
     {
         $data = $request->validated();
 
+        $locale = app()->getLocale();
+
         $criteriaGroup = $hackathon->criteriaGroups()->create([
             'title' => $data['title'],
+            'locale' => $locale,
         ]);
 
         foreach ($data['criteria'] as $criterion) {
             $criterion['max_score'] = $criterion['max_score'] ?? 10;
+            $criterion['locale'] = $locale;
             $criteriaGroup->criteria()->create($criterion);
         }
     }

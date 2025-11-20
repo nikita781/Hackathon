@@ -21,12 +21,18 @@ class NominationController extends Controller
 
         $data = $request->validated();
 
+        $locale = app()->getLocale();
+
         $nomination = $hackathon->nominations()->create($request->only(['title', 'prize']));
+
+        $nomination->locale = $locale;
+        $nomination->save();
 
         foreach ($data['places'] as $place) {
             $nomination->distribution()->create([
                 'place' => $place['place'],
                 'prize' => $place['prize'],
+                'locale' => $locale,
             ]);
         }
 

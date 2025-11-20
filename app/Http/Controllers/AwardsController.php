@@ -29,6 +29,8 @@ class AwardsController extends Controller
         }
 
         $data = Arr::except($request->validated(), ['image']);
+        $locale = app()->getLocale();
+        $data['locale'] = $locale;
 
         if (!auth()->user()->hasAnyRole([Role::SUPER_ADMIN, Role::ADMIN])) {
             $data['system'] = false;
@@ -54,6 +56,8 @@ class AwardsController extends Controller
         }
 
         $data = Arr::except($request->validated(), 'image');
+        $locale = app()->getLocale();
+        $data['locale'] = $locale;
 
         if (!auth()->user()->hasAnyRole([Role::SUPER_ADMIN, Role::ADMIN])) {
             $data['system'] = false;
