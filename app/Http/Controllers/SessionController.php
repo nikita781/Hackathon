@@ -22,12 +22,13 @@ class SessionController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::whereRaw('LOWER(nickname) = ?', strtolower($credentials['login']))
-            ->orWhereRaw('LOWER(email) = ?', strtolower($credentials['login']))
+        $login = $credentials['login'];
+        $user = User::whereRaw('LOWER(nickname) = ?', mb_strtolower($login))
+            ->orWhereRaw('LOWER(email) = ?', mb_strtolower($login))
             ->first();
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            $user = $this->syncUserFromMainSite($credentials['login']);
+            $user = $this->syncUserFromMainSite($login);
 
             if (!$user || !Hash::check($credentials['password'], $user->password)) {
                 return back()->withErrors([
@@ -54,9 +55,10 @@ class SessionController extends Controller
     {
         $externalUser = DB::connection('main_site')
             ->table('users')
-            ->whereRaw('LOWER(name) = ?', strtolower($login))
-            ->orWhereRaw('LOWER(email) = ?', strtolower($login))
-            ->first();
+            ->where(function($query) use ($login) {
+                $query->whereRaw('LOWER(name) = ?', [mb_strtolower($login)])
+                    ->orWhereRaw('LOWER(email) = ?', [mb_strtolower($login)]);
+            })            ->first();
 
         if (!$externalUser) {
             return null;
