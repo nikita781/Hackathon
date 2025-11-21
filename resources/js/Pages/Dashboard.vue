@@ -108,6 +108,8 @@ function previewSrc(project) {
     }
     return "/project.jpg"
 }
+
+const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
 </script>
 
 <template>
@@ -132,7 +134,7 @@ function previewSrc(project) {
                 </a>
             </div>
             <div class="profile__role">
-<!--                <pre>{{props.user}}</pre>-->
+<!--                <pre>{{props.user.birthday}}</pre>-->
                 <p v-for="role in props.user?.roles">{{role?.title}}</p>
                 <p>ID{{props.user?.id}}</p>
             </div>
@@ -145,7 +147,7 @@ function previewSrc(project) {
                         </div>
                         <div class="dialog__component">
                             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.birthDate) }}</p>
-                            <input type="date" readonly :value="props.user.birthday" class="dialog__input">
+                            <input type="date" readonly :value="dateOnly(props.user.birthday)"class="dialog__input">
                         </div>
                     </div>
                     <div class="profile__content_row">
