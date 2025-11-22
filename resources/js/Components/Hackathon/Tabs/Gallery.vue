@@ -75,6 +75,8 @@ const mapSortToBackend = (v) => {
         case 'dateD':  return 'dateD'
         case 'titleA': return 'titleA'
         case 'titleD': return 'titleD'
+        case 'scoreA': return 'scoreA'
+        case 'scoreD': return 'scoreD'
         default:       return undefined
     }
 }
@@ -396,8 +398,8 @@ async function fetchPresentation(slug) {
                     <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select">
                         <option value="dateA">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↑</option>
                         <option value="dateD">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↓</option>
-                        <option value="scoreAA">{{ capitalizeFirstLetter(langStore.translations.by_rating) }} ↑</option>
-                        <option value="scoreAD">{{ capitalizeFirstLetter(langStore.translations.by_rating) }} ↓</option>
+                        <option value="scoreA">{{ capitalizeFirstLetter(langStore.translations.by_rating) }} ↑</option>
+                        <option value="scoreD">{{ capitalizeFirstLetter(langStore.translations.by_rating) }} ↓</option>
                         <option value="titleA">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↑</option>
                         <option value="titleD">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↓</option>
                     </select>

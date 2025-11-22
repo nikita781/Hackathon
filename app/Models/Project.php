@@ -60,8 +60,8 @@ class Project extends Model implements HasMedia
 
     public function updateAvgScore(): void
     {
-        $avg = $this->evaluations()->avg('score');
-        $this->avg_score = $avg;
+        $sum = $this->evaluations()->sum('score');
+        $this->avg_score = $sum;
         $this->saveQuietly();
     }
 
