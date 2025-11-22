@@ -104,6 +104,10 @@ class AdminController extends Controller
             return back()->with('status', 'Хакатон уже опубликован');
         }
 
+        if ($hackathon->is_finished === true) {
+            return back()->with('status', 'Хакатон уже завершен');
+        }
+
         $hackathon->update([
             'status' => Hackathon::STATUS_PUBLISHED,
             'published_time' => Carbon::now(),
@@ -129,6 +133,10 @@ class AdminController extends Controller
 
         if ($hackathon->status === Hackathon::STATUS_BLOCKED) {
             return back()->with('status', 'Хакатон уже отклонен');
+        }
+
+        if ($hackathon->is_finished === true) {
+            return back()->with('status', 'Хакатон уже завершен');
         }
 
         $comment = $request->validate([
@@ -163,6 +171,12 @@ class AdminController extends Controller
             return back()->with('status', 'Проект уже опубликован');
         }
 
+        $project->load('hackathon');
+
+        if ($project->hackathon->is_finished === true) {
+            return back()->with('status', 'Хакатон уже завершен');
+        }
+
         $project->update([
             'status' => Project::PUBLISHED,
             'published_time' => Carbon::now(),
@@ -192,6 +206,12 @@ class AdminController extends Controller
 
         if ($project->status === Project::BLOCKED) {
             return back()->with('status', 'Проект уже отклонен');
+        }
+
+        $project->load('hackathon');
+
+        if ($project->hackathon->is_finished === true) {
+            return back()->with('status', 'Хакатон уже завершен');
         }
 
         $comment = $request->validate([
