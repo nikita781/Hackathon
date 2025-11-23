@@ -110,6 +110,8 @@ async function fetchHackathon ({
                 }))
         }
 
+        console.log(description.value)
+
         await nextTick()
         loaded.value = true
     } catch (err) {
@@ -358,6 +360,7 @@ onMounted(async () => {
         <small v-if="form.errors['sections.0.content']" class="error__text">{{ form.errors['sections.0.content'] }}
         </small>
     </div>
+    <pre>{{description}}</pre>
     <div class="dialog__component" v-if="!isEdit || loaded">
         <div class="dialog__title_container">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.plan) }}</p>
