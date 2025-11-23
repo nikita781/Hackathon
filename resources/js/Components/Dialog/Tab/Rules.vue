@@ -29,15 +29,27 @@ async function fetchResources() {
             route('hackathons.show', { hackathon: props.hackathonSlug }),
             { headers: { Accept: 'application/json' } }
         );
-        // resourcesFiles.value = data.files || [];
-
-        // form.sections[0].content = description.value;
-        // form.files = resourcesFiles.value;
-
         if (props.isEdit) {
             const hackathon = data.tabs.original[2];
 
-            rulesText.value = hackathon.sections.find(s => s.title === 'Правила')?.content || '';
+            const lang = langStore.currentLanguage
+            const titlesByLang = {
+                ru: 'Правила',
+                en: 'Rules',
+                es: 'Reglas',
+                zh: '规则',
+                fr: 'Règles',
+                de: 'Regeln',
+                pt: 'Regras',
+            }
+            const targetTitle = titlesByLang[lang] || titlesByLang.ru
+
+            const section =
+                hackathon.sections.find(s => s.title === targetTitle)
+                || hackathon.sections.find(s => s.title === 'Правила')
+                || hackathon.sections.find(s => s.title === 'Rules')
+
+            rulesText.value  = section?.content || ''
             rulesFiles.value = hackathon.files
             rulesKey.value++
         }
