@@ -80,7 +80,7 @@ onMounted(async () => {
 
         <template v-if="!fileName">
             <p class="hint">
-                {{ capitalizeFirstLetter(langStore.translations.uploadFile) }}
+                {{ capitalizeFirstLetter(langStore.translations.uploadFile) }} (pdf, ppt или pptx 8 mb максимальный размер файла)
             </p>
         </template>
 

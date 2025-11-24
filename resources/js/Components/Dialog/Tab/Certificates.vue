@@ -9,10 +9,12 @@ import InfoCertificates from "@/Components/Dialog/InfoCertificates.vue";
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
     admin:        { type: Boolean, default: () => false },
+    readonly:     { type: Boolean, default: () => false },
 })
 const emit = defineEmits(['saved','cancel','dirty','saving'])
 
 const isAdmin = computed(() => !!props.admin)
+const isReadOnly = computed(() => !!props.readonly)
 const langStore = useLangStore()
 
 const form = useForm({
@@ -132,7 +134,11 @@ onMounted(async () => { await langStore.fetchTranslations() })
             </div>
         </div>
 
-        <DropFileHtml :file="file" @update:file="onFileUpdate" />
+        <DropFileHtml
+            v-if="!isReadOnly"
+            :file="file"
+            @update:file="onFileUpdate"
+        />
         <small v-if="form.errors.template" class="error__text">{{ form.errors.template }}</small>
 
         <div class="dialog__component" style="width: 100%">
@@ -161,6 +167,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
                     min="50"
                     max="1000"
                     step="1"
+                    :disabled="isReadOnly"
                     :class="{ 'error': form.errors.height }"
                     @input="clearFieldError('height')"
                 >
@@ -173,6 +180,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
                     min="50"
                     max="1000"
                     step="1"
+                    :disabled="isReadOnly"
                     :class="{ 'error': form.errors.width }"
                     @input="clearFieldError('width')"
                 >
@@ -188,7 +196,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
         </div>
     </div>
 
-    <div class="dialog__btns" v-if="!isAdmin">
+    <div class="dialog__btns" v-if="!isAdmin && !isReadOnly">
         <button class="main__btn main__btn_white" @click="cancel">
             {{ capitalizeFirstLetter(langStore.translations.cansel || 'Отмена') }}
         </button>

@@ -48,10 +48,14 @@ function onDirty (flag) { hasUnsaved.value = flag }
 
 function isTabLocked(i) {
     if (!isEdit.value && !created.value && i > 0) return true
-    const lastLockedStart = tabsRu.value.length - 3
-    if (!updatePublished.value && i >= lastLockedStart) return true
     return false
 }
+
+const lastReadonlyStart = computed(() => tabsRu.value.length - 3)
+
+const isReadonlyActive = computed(() =>
+    !updatePublished.value && active.value >= lastReadonlyStart.value
+)
 
 const isEdit = computed(() => {
     const hasHackathon = !!(props.hackathon && Object.keys(props.hackathon).length)
@@ -125,21 +129,10 @@ function onTabSaved({ slug }){
         tabs[0] = defineAsyncComponent(() => import('./Tab/MainInfoEdit.vue'))
     }
     let next = active.value + 1
-    const lastLockedStart = tabsRu.value.length - 3
-    if (!updatePublished.value && next >= lastLockedStart) {
-        next = lastLockedStart - 1
+    if (next > active.value && next < tabsRu.value.length) {
+        active.value = next
     }
-    if (next > active.value && next < tabsRu.value.length) active.value = next
 }
-
-watch(updatePublished, (canUpdate) => {
-    if (!canUpdate) {
-        const lastLockedStart = tabsRu.value.length - 3
-        if (active.value >= lastLockedStart) {
-            active.value = lastLockedStart - 1
-        }
-    }
-})
 
 function capitalizeFirstLetter(str) {
     if (!str) return str;
@@ -227,6 +220,7 @@ onMounted(async () => {
                             v-bind="(created || isEdit) ? { hackathonSlug:draft.slug } : {}"
                             :all-tags="props.tags"
                             :isEdit="isEdit"
+                            :readonly="isReadonlyActive"
                             @saved="onTabSaved"
                             @cancel="close"
                             @dirty="onDirty"

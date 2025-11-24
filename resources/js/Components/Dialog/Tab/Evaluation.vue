@@ -11,10 +11,12 @@ const props = defineProps({
     draft         : Object,
     allTags       : { type:Array, default:() => [] },
     admin      : { type:Boolean, default:() => false },
+    readonly      : { type:Boolean, default:() => false },
 })
 const emit = defineEmits(['saved', 'cancel', 'dirty', 'saving'])
 
 const isAdmin = computed(() => !!props.admin)
+const isReadOnly = computed(() => !!props.readonly)
 
 const langStore = useLangStore()
 
@@ -125,7 +127,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
                     </div>
                 </div>
             </div>
-            <div class="dialog__plus" @click="openAdd">
+            <div class="dialog__plus" @click="openAdd" v-if="!isReadOnly">
                 <svg width="17" height="16" viewBox="0 0 17 16"><path d="M13.17 7.33H9.17V3.33a.67.67 0 0 0-1.34 0v4H3.83a.67.67 0 0 0 0 1.34h4v4a.67.67 0 0 0 1.34 0v-4h4a.67.67 0 0 0 0-1.34Z" fill="#E80024"/></svg>
                 <p>{{ capitalizeFirstLetter(langStore.translations.addMore) }}</p>
             </div>
@@ -136,7 +138,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
         <div class="dialog__prize" v-for="grp in groups" :key="grp.id">
             <div class="dialog__eva_container">
                 <p class="dialog__eva">{{ grp.title }}</p>
-                <div class="dialog__prize_btns">
+                <div class="dialog__prize_btns" v-if="!isReadOnly">
                     <IconsPencil style="padding: 5px" class="clickable" @click="openEdit(grp.id)" />
                     <IconsCancel class="clickable" @click="removeGroup(grp.id)" />
                 </div>
@@ -158,7 +160,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
         @saved="onSaved"
     />
 
-    <div class="dialog__btns" v-if="!isAdmin">
+    <div class="dialog__btns" v-if="!isAdmin && !isReadOnly">
         <button class="main__btn main__btn_white" @click="cancel">{{ capitalizeFirstLetter(langStore.translations.cansel) }}</button>
         <button class="main__btn" @click="save">{{ capitalizeFirstLetter(langStore.translations.save) }}</button>
     </div>

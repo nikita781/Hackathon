@@ -34,7 +34,7 @@ const props = defineProps({
                 </main>
 
 <!--                <Footer style="z-index: 2"/>-->
-                <Footer />
+                <Footer style="z-index: 2"/>
             </div>
         </div>
     </div>
