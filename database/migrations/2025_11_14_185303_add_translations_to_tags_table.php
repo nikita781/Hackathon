@@ -25,7 +25,7 @@ return new class extends Migration
                     'fr' => 'UX/UI',
                     'es' => 'UX/UI',
                     'zh_CN' => 'UX/UI',
-                    'pt-PT' => 'UX/UI',
+                    'pt_PT' => 'UX/UI',
                 ],
                 'testers' => [
                     'en' => 'Testers',
@@ -33,7 +33,7 @@ return new class extends Migration
                     'fr' => 'Testeurs',
                     'es' => 'Probadores',
                     'zh_CN' => '测试人员',
-                    'pt-PT' => 'Testadores',
+                    'pt_PT' => 'Testadores',
                 ],
                 'web-designers' => [
                     'en' => 'Web Designers',
@@ -41,7 +41,7 @@ return new class extends Migration
                     'fr' => 'Web designers',
                     'es' => 'Diseñadores web',
                     'zh_CN' => '网页设计师',
-                    'pt-PT' => 'Designers Web',
+                    'pt_PT' => 'Designers Web',
                 ],
                 'product-managers' => [
                     'en' => 'Product Managers',
@@ -49,7 +49,7 @@ return new class extends Migration
                     'fr' => 'Chefs de produit',
                     'es' => 'Product managers',
                     'zh_CN' => '产品经理',
-                    'pt-PT' => 'Gestores de Produto',
+                    'pt_PT' => 'Gestores de Produto',
                 ],
                 'web-developers' => [
                     'en' => 'Web Developers',
@@ -57,7 +57,7 @@ return new class extends Migration
                     'fr' => 'Développeurs web',
                     'es' => 'Desarrolladores web',
                     'zh_CN' => '网页开发者',
-                    'pt-PT' => 'Programadores Web',
+                    'pt_PT' => 'Programadores Web',
                 ],
                 'android-developers' => [
                     'en' => 'Android Developers',
@@ -65,7 +65,7 @@ return new class extends Migration
                     'fr' => 'Développeurs Android',
                     'es' => 'Desarrolladores Android',
                     'zh_CN' => 'Android 开发者',
-                    'pt-PT' => 'Programadores Android',
+                    'pt_PT' => 'Programadores Android',
                 ],
                 'ios-developers' => [
                     'en' => 'iOS Developers',
@@ -73,7 +73,7 @@ return new class extends Migration
                     'fr' => 'Développeurs iOS',
                     'es' => 'Desarrolladores iOS',
                     'zh_CN' => 'iOS 开发者',
-                    'pt-PT' => 'Programadores iOS',
+                    'pt_PT' => 'Programadores iOS',
                 ],
                 'frontend-developers' => [
                     'en' => 'Frontend Developers',
@@ -81,7 +81,7 @@ return new class extends Migration
                     'fr' => 'Développeurs frontend',
                     'es' => 'Desarrolladores frontend',
                     'zh_CN' => '前端开发者',
-                    'pt-PT' => 'Programadores Frontend',
+                    'pt_PT' => 'Programadores Frontend',
                 ],
                 'backend-developers' => [
                     'en' => 'Backend Developers',
@@ -89,7 +89,7 @@ return new class extends Migration
                     'fr' => 'Développeurs backend',
                     'es' => 'Desarrolladores backend',
                     'zh_CN' => '后端开发者',
-                    'pt-PT' => 'Programadores Backend',
+                    'pt_PT' => 'Programadores Backend',
                 ],
                 'qa-engineers' => [
                     'en' => 'QA Engineers',
@@ -97,7 +97,7 @@ return new class extends Migration
                     'fr' => 'Ingénieurs QA',
                     'es' => 'Ingenieros QA',
                     'zh_CN' => 'QA 工程师',
-                    'pt-PT' => 'Engenheiros QA',
+                    'pt_PT' => 'Engenheiros QA',
                 ],
                 'devops' => [
                     'en' => 'DevOps',
@@ -105,7 +105,7 @@ return new class extends Migration
                     'fr' => 'DevOps',
                     'es' => 'DevOps',
                     'zh_CN' => 'DevOps',
-                    'pt-PT' => 'DevOps',
+                    'pt_PT' => 'DevOps',
                 ],
                 default => [],
             };
