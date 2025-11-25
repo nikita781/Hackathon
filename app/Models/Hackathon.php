@@ -50,7 +50,7 @@ class Hackathon extends Model implements HasMedia
         'locale',
     ];
 
-    protected array $translatable = ['title', 'prize_pool', 'comment'];
+    protected array $translatable = ['title', 'prize_pool'];
 
     public const STATUSES = [self::STATUS_DRAFT, self::STATUS_MODERATION, self::STATUS_PUBLISHED, self::STATUS_BLOCKED];
     public const STATUS_DRAFT = 1;
