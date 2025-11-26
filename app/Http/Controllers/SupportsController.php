@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AnswerSupportRequest;
 use App\Http\Requests\StoreSupportRequest;
+use App\Http\Resources\SupportResource;
 use App\Models\Hackathon;
 use App\Models\Role;
 use App\Models\Support;
@@ -58,10 +59,10 @@ class SupportsController extends Controller
                 ->paginate(6);
 
             return response()->json([
-                'receivedSupportGoing' => $receivedSupportGoing,
-                'receivedSupportCompleted' => $receivedSupportCompleted,
-                'going' => $going,
-                'completed' => $completed,
+                'receivedSupportGoing' => SupportResource::collection($receivedSupportGoing),
+                'receivedSupportCompleted' => SupportResource::collection($receivedSupportCompleted),
+                'going' => SupportResource::collection($going),
+                'completed' => SupportResource::collection($completed),
             ]);
         }
 
@@ -85,8 +86,8 @@ class SupportsController extends Controller
             ->paginate(6);
 
         return response()->json([
-            'going' => $going,
-            'completed' => $completed,
+            'going' => SupportResource::collection($going),
+            'completed' => SupportResource::collection($completed),
         ]);
     }
 
@@ -116,6 +117,7 @@ class SupportsController extends Controller
             'user_id' => $user->id,
             'message_type' => SupportMessage::USER,
             'message' => $message,
+            'locale' => app()->getLocale(),
         ]);
 
         $support->load(['hackathon', 'messages']);
@@ -166,6 +168,7 @@ class SupportsController extends Controller
             'user_id' => $user->id,
             'message_type' => SupportMessage::SUPPORT,
             'message' => $message,
+            'locale' => app()->getLocale(),
         ]);
 
         $support->update([

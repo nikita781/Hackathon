@@ -12,7 +12,7 @@ class StoreSupportRequest extends FormRequest
     {
         return [
             'type' => ['required', Rule::in(Support::TYPES)],
-            'message' => ['required', 'max:2000'],
+            'message' => ['required', 'max:500'],
         ];
     }
 }
