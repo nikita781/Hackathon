@@ -256,7 +256,7 @@ class HackathonController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'hackathon' => $hackathonResource->response(),
+                'hackathon' => $hackathonResource,
                 'tabs' => $tabsResource->response(),
                 'ownTeam' => optional($ownTeamResource)->response(),
                 'allProjects' => optional($allProjects)->response(),
