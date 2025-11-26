@@ -21,7 +21,11 @@ class Role extends Model
     public const STAFF = [self::JUDGE, self::MENTOR];
 
     protected $fillable = [
-        'title',
+        'title', 'translations', 'locale',
+    ];
+
+    protected $casts = [
+        'translations' => 'array'
     ];
 
     /**

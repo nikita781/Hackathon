@@ -96,7 +96,7 @@ async function fetchHackathon ({
                     zh: { desc: '描述',          plan: '活动日程' },
                     fr: { desc: 'Description',   plan: 'Calendrier de l\'événement' },
                     de: { desc: 'Beschreibung',  plan: 'Veranstaltungsplan' },
-                    pt: { desc: 'Descrição',     plan: 'Programação do Evento' },
+                    pt_PT: { desc: 'Descrição',  plan: 'Programação do Evento' },
                 }
 
                 const titles = sectionTitles[lang] || sectionTitles.ru

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\AwardResource;
 use App\Http\Resources\UserProjectsResource;
+use App\Http\Resources\UserResource;
 use App\Models\Project;
 use App\Models\User;
 use Inertia\Inertia;
@@ -24,8 +25,10 @@ class UserController extends Controller
 
         $projects = UserProjectsResource::collection($projectsQuery->paginate($perPage)->withQueryString());
 
+        $user->load('roles');
+
         return Inertia::render('Dashboard', [
-            'user' => $user->load('roles'),
+            'user' => new UserResource($user),
             'awards' => AwardResource::collection($user->awards()->withPivot('awarded_at')->get()),
             'projects' => $projects,
         ]);

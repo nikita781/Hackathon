@@ -37,7 +37,7 @@ class HackathonResource extends TranslatableResource
             'published_time' => $this->published_time,
             'moderated_time' => $this->moderated_time,
             'blocked_time' => $this->blocked_time,
-            'comment' => $this->trans("comment"),
+            'comment' => $this->comment,
 
             'can' => [
                 'publish' => Gate::check('publish', $this->resource),

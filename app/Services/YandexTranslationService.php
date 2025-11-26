@@ -13,7 +13,7 @@ class YandexTranslationService
         'de' => 'de',
         'fr' => 'fr',
         'es' => 'es',
-        'pt' => 'pt',
+        'pt_PT' => 'pt',
         'zh_CN' => 'zh'
     ];
 
