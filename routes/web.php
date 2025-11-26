@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/previewSertificate', [HackathonController::class, 'downloadPreviewCertificate'])->name('previewSertificate');
             Route::post('/publish', [HackathonController::class, 'publish'])->name('publish');
             Route::post('/finish', [HackathonController::class, 'finishHackathon'])->name('finish');
+            Route::post('/kick-user', [HackathonController::class, 'kickUser'])->name('kick-user');
             Route::post('/join', [HackathonController::class, 'joinHackathon'])->name('join');
             Route::post('/leave', [HackathonController::class, 'leaveHackathon'])->name('leave');
             Route::prefix('/tabs')->name('tabs.')->group(function () {

@@ -22,6 +22,7 @@ use App\Models\Role;
 use App\Models\Support;
 use App\Models\Tab;
 use App\Models\Tag;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use DOMDocument;
@@ -198,7 +199,11 @@ class HackathonController extends Controller
             'allProjects.team.teamUsers.position',
             'allProjects.team.teamUsers.user',
             'nominations.distribution',
-            'criteriaGroups.criteria.evaluations',
+            'criteriaGroups' => function ($q) {
+                $q->with(['criteria' => function ($q) {
+                    $q->orderBy('id')->with('evaluations');
+                }]);
+            },
             'support.messages.user',
         ]);
 
@@ -393,10 +398,38 @@ class HackathonController extends Controller
         }
 
         $user = auth()->user();
+
+        $this->detachUserFromHackathon($user, $hackathon);
+
+        return back()->with('status', 'Вы покинули хакатон');
+    }
+
+    public function kickUser(Request $request, Hackathon $hackathon): RedirectResponse
+    {
+        Gate::authorize('update', $hackathon);
+
+        $data = $request->validate([
+            'user_id' => ['required', 'exists:users,id']
+        ]);
+
+        $user = User::find($data['user_id']);
+
+        if (!$hackathon->users()->where('role_id', Role::MEMBER)->where('user_id', $user->id)->exists()) {
+            return back()->with('error', 'Пользователь не участвует в хакатоне');
+        }
+
+        $this->detachUserFromHackathon($user, $hackathon);
+
+        return back()->with('status', 'Пользователь удален с хакатона успешно');
+    }
+
+    private function detachUserFromHackathon(User $user, Hackathon $hackathon): void
+    {
         $team = $user->teams()->where('hackathon_id', $hackathon->id)->first();
 
         if (!$team) {
-            return back()->with('error', 'Вы не состоите в команде этого хакатона.');
+            back()->with('error', 'Вы не состоите в команде этого хакатона');
+            return;
         }
 
         $membersCount = $team->users()->count();
@@ -415,7 +448,8 @@ class HackathonController extends Controller
 
             $user->hackathons()->detach($hackathon->id);
 
-            return back()->with('status', 'Вы покинули хакатон, команда и проект были удалены.');
+            back()->with('status', 'Вы покинули хакатон, команда и проект были удалены.');
+            return;
         }
 
         if ($isCaptain) {
@@ -434,8 +468,6 @@ class HackathonController extends Controller
         $team->users()->detach($user->id);
 
         $user->hackathons()->detach($hackathon->id);
-
-        return back()->with('status', 'Вы покинули хакатон.');
     }
 
     public function downloadUsers(Hackathon $hackathon): BinaryFileResponse
