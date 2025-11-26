@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Translatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,11 +14,19 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Project extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, Translatable;
 
     protected $fillable = [
         'hackathon_id', 'team_id', 'title', 'description', 'about', 'stack', 'project_link', 'video_link', 'status',
-        'moderated_time', 'published_time', 'blocked_time', 'avg_score', 'comment', 'slug',
+        'moderated_time', 'published_time', 'blocked_time', 'avg_score', 'comment', 'slug', 'translations', 'locale',
+    ];
+
+    protected array $translatable = [
+        'title', 'description', 'about'
+    ];
+
+    protected $casts = [
+        'translations' => 'array'
     ];
 
     public const PROJECT_STATUS = [self::DRAFT, self::MODERATION, self::PUBLISHED, self::BLOCKED];

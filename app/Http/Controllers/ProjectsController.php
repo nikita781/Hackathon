@@ -67,6 +67,7 @@ class ProjectsController extends Controller
         $data = Arr::except($request->validated(), ['preview']);
         $data['hackathon_id'] = $hackathon->id;
         $data['slug'] = Project::generateUniqueSlug($data['title']);
+        $data['locale'] = app()->getLocale();
         $project = $team->projects()->create($data);
 
         if ($request->hasFile('preview')) {
@@ -150,6 +151,7 @@ class ProjectsController extends Controller
             }
         }
 
+        $data['locale'] = app()->getLocale();
         $project->update($data);
 
         return back()->with('status', 'Проект успешно обновлен!');
