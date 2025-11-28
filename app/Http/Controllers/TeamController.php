@@ -59,7 +59,7 @@ class TeamController extends Controller
             }
         }
 
-        return back()->with('status', 'Команда успешно обновлена');
+        return back()->with('status', __('team_updated'));
     }
 
     public function kick(KickTeamRequest $request, Hackathon $hackathon, Team $team): RedirectResponse
@@ -76,12 +76,12 @@ class TeamController extends Controller
             $team->users()->detach($user->id);
 
             if ($user->teams()->where('hackathon_id', $hackathon->id)->count() !== 0) {
-                return back()->with('error', 'Пользователь уже в другой команде');
+                return back()->with('error', __('user_already_in_team'));
             }
 
             $newTeam = Team::create([
                 'hackathon_id' => $hackathon->id,
-                'title' => 'Команда ' . $user->nickname,
+                'title' => __('team_title') . ' ' . $user->nickname,
             ]);
 
             $newTeam->users()->attach($user->id, [
@@ -89,14 +89,14 @@ class TeamController extends Controller
             ]);
 
             $user->notify(new KickNotification([
-                'title' => "Вас исключили из команды \"{$team->title}\"",
-                'description' => "Теперь у вас новая команда \"{$newTeam->title}\" посмотрите в хакатоне \"{$hackathon->title}\"",
+                'title' => __('kicked_from_team_title', ['team_title' => $team->title]),
+                'description' => __('kicked_from_team_description', ['new_team_title' => $newTeam->title, 'hackathon_title' => $hackathon->title]),
                 'send_at' => now()->toDateString(),
                 'hackathon' => $hackathon,
             ]));
         }
 
-        return back()->with('status', 'Участник команды успешно исключен');
+        return back()->with('status', __('team_member_kicked'));
     }
 
     public function createInvite(Hackathon $hackathon, Team $team): JsonResponse
@@ -125,7 +125,7 @@ class TeamController extends Controller
         $invite = TeamInvite::where('token', $token)->firstOrFail();
 
         if ($invite->isExpired()) {
-            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Срок действия приглашения истёк');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('invitation_expired'));
         }
 
         $user = auth()->user();
@@ -135,7 +135,7 @@ class TeamController extends Controller
         }
 
         if (!$hackathon->users()->where('user_id', $user->id)->exists()) {
-            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Сначала вступите в хакатон');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('join_hackathon_first'));
         }
 
         $oldTeam = $hackathon
@@ -174,14 +174,14 @@ class TeamController extends Controller
         }
 
         if ($invite->team->users()->where('user_id', $user->id)->exists()) {
-            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Вы уже в команде');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('already_in_team'));
         }
 
         $maxSize = $hackathon->max_team_size;
         $currentCount = $team->users()->count();
 
         if ($currentCount >= $maxSize) {
-            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Команда уже заполнена');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('team_full'));
         }
 
         $invite->team->users()->attach($user->id, ['position_id' => $invite->position_id]);
@@ -193,7 +193,7 @@ class TeamController extends Controller
 
         $invite->delete();
 
-        return redirect()->route('hackathons.show', $hackathon)->with('status', 'Вы вступили в команду!');
+        return redirect()->route('hackathons.show', $hackathon)->with('status', __('joined_team'));
     }
 
     public function inviteUserById(Request $request, Hackathon $hackathon, Team $team): Response
@@ -220,20 +220,20 @@ class TeamController extends Controller
                 }
 
                 if ($invitedUserId === 0 || is_string($invitedUserId)) {
-                    $errors["users.$index.user_id"] = ["Пользователь с ID «{$user['user_id']}» не найден"];
+                    $errors["users.$index.user_id"] = [__('user_not_found_by_id', ['user_id' => $user['user_id']])];
                     continue;
                 }
             }
 
             $invitedUser = User::find($invitedUserId);
             if (!$invitedUser) {
-                $errors["users.$index.user_id"] = ["Пользователь с ID «{$user['user_id']}» не найден"];
+                $errors["users.$index.user_id"] = [__('user_not_found_by_id', ['user_id' => $user['user_id']])];
                 continue;
             }
 
             $invitedUserPosition = Position::find($invitedPositionId);
             if (!$invitedUserPosition) {
-                $errors["users.$index.position"] = ["Позиция с ID «{$invitedPositionId}» не найдена"];
+                $errors["users.$index.position"] = [__('position_not_found', ['position_id' => $invitedPositionId])];
                 continue;
             }
 
@@ -245,22 +245,22 @@ class TeamController extends Controller
                     })
                     ->exists()
             ) {
-                $errors["users.$index.user_id"] = ["Пользователь «{$invitedUser->nickname}» уже является участником хакатона"];
+                $errors["users.$index.user_id"] = [__('user_already_hackathon_participant', ['user_nickname' => $invitedUser->nickname])];
                 continue;
             }
 
             if ($team->users()->where('user_id', $invitedUserId)->exists()) {
-                $errors["users.$index.user_id"] = ['Пользователь «' . $invitedUser->nickname . '» уже в команде'];
+                $errors["users.$index.user_id"] = [__('user_already_in_other_team', ['user_nickname' => $invitedUser->nickname])];
                 continue;
             }
 
             if ($hackathon->getAllHackathonStaff()->contains($invitedUser->id)) {
-                $errors["users.$index.user_id"] = ["Пользователь «{$invitedUser->nickname}» уже в является персоналом хакатона"];
+                $errors["users.$index.user_id"] = [__('user_is_staff', ['user_nickname' => $invitedUser->nickname])];
                 continue;
             }
 
             if (TeamInvite::where('team_id', $team->id)->where('user_id', $invitedUserId)->exists()) {
-                $errors["users.$index.user_id"] = ["Приглашение пользователю «". $invitedUser->nickname . "» уже отправлено"];
+                $errors["users.$index.user_id"] = [__('invitation_already_sent', ['user_nickname' => $invitedUser->nickname])];
                 continue;
             }
 
@@ -275,8 +275,8 @@ class TeamController extends Controller
             $sender = auth()->user();
 
             $invitedUser->notify(new InviteNotification([
-                'title' => 'Приглашение в команду',
-                'description' => "Пользователь {$sender->nickname} пригласил Вас в свою команду для хакатона «{$hackathon->title}» на роль «{$invitedUserPosition->title}».",
+                'title' => __('team_invitation_title'),
+                'description' => __('team_invitation_description', ['sender_nickname' => $sender->nickname, 'hackathon_title' => $hackathon->title, 'position_title' => $invitedUserPosition->title]),
                 'url' => route('hackathons.teams.accept-invite', [$hackathon, $team, $invite->token]),
                 'send_at' => now()->toDateString(),
                 'is_active' => true,
@@ -306,7 +306,7 @@ class TeamController extends Controller
                 'success' => false,
                 'user' => null,
                 'canInvite' => false,
-                'errors' => ["Пользователь не найден"]
+                'errors' => [__('user_not_found')]
             ]);
         }
 
@@ -322,17 +322,17 @@ class TeamController extends Controller
 
         if ($isAlreadyInHackathon) {
             $canInvite = false;
-            $errors[] = "Пользователь «{$user->nickname}» уже является участником хакатона";
+            $errors[] = __('user_already_in_hackathon', ['user_nickname' => $user->nickname]);
         }
 
         if ($team->users()->where('user_id', $user->id)->exists()) {
             $canInvite = false;
-            $errors[] = "Пользователь «{$user->nickname}» уже в команде";
+            $errors[] = __('user_already_in_other_team', ['user_nickname' => $user->nickname]);
         }
 
         if ($hackathon->getAllHackathonStaff()->contains($user->id)) {
             $canInvite = false;
-            $errors[] = "Пользователь «{$user->nickname}» является персоналом хакатона";
+            $errors[] = __('user_is_hackathon_staff', ['user_nickname' => $user->nickname]);
         }
 
         $alreadyInvited = TeamInvite::where('team_id', $team->id)
@@ -341,7 +341,7 @@ class TeamController extends Controller
 
         if ($alreadyInvited) {
             $canInvite = false;
-            $errors[] = "Приглашение пользователю «{$user->nickname}» уже отправлено";
+            $errors[] = __('user_already_invited', ['user_nickname' => $user->nickname]);
         }
 
         return response()->json([

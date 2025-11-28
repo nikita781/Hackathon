@@ -25,7 +25,7 @@ class LanguageController extends Controller
         ];
 
         if (!array_key_exists($locale, $localeMap)) {
-            abort(400, "язык не поддерживается: $locale");
+            abort(400, __('language_not_supported', ['locale' => $locale]));
         }
 
         $normalizedLocale = $localeMap[$locale];

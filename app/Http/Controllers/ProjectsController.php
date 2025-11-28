@@ -26,7 +26,7 @@ class ProjectsController extends Controller
     public function index(Request $request, Hackathon $hackathon): JsonResponse
     {
         if (!Gate::check('viewAll', [Project::class, $hackathon])) {
-            abort('404', 'У вас нет прав для просмотра проектов');
+            abort(ResponseAlias::HTTP_FORBIDDEN, __('no_permission_view_projects'));
         }
 
         return response()->json([
@@ -53,14 +53,14 @@ class ProjectsController extends Controller
     public function store(StoreProjectRequest $request, Hackathon $hackathon, Team $team): JsonResponse
     {
         if (!Gate::check('createProject', [Project::class, $hackathon])) {
-            abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для создания проекта');
+            abort(ResponseAlias::HTTP_FORBIDDEN, __('no_permission_create_project'));
         }
 
         if ($team->projects->count() >= 4) {
             return response()->json([
                 'status' => 'error',
                 'project' => [],
-                'message' => "Вы не можете создать больше 4 проектов",
+                'message' => __('project_limit_exceeded'),
             ]);
         }
 
@@ -82,7 +82,7 @@ class ProjectsController extends Controller
                 'description' => $project->description,
                 'slug' => $project->slug,
             ],
-            'message' => "Проект '" . $project->title . "' успешно создан",
+            'message' => __('project_created'),
         ]);
     }
 
@@ -119,7 +119,7 @@ class ProjectsController extends Controller
     public function update(UpdateProjectRequest $request, Hackathon $hackathon, Project $project): RedirectResponse
     {
         if (!Gate::check('update', $project)) {
-            abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для обновления проекта');
+            abort(ResponseAlias::HTTP_FORBIDDEN, __('no_permission_update_project'));
         }
 
         $data = Arr::except($request->validated(), ['preview', 'presentation', 'gallery', 'delete_media_ids']);
@@ -154,13 +154,13 @@ class ProjectsController extends Controller
         $data['locale'] = app()->getLocale();
         $project->update($data);
 
-        return back()->with('status', 'Проект успешно обновлен!');
+        return back()->with('status', __('project_updated'));
     }
 
     public function destroy(Hackathon $hackathon, Project $project): RedirectResponse
     {
         if (!Gate::check('delete', $project)) {
-            abort(ResponseAlias::HTTP_FORBIDDEN, 'У вас нет прав для удаления проекта');
+            abort(ResponseAlias::HTTP_FORBIDDEN, __('no_permission_delete_project'));
         }
 
         if ($project->hasMedia('preview')) {
@@ -177,27 +177,27 @@ class ProjectsController extends Controller
 
         $project->delete();
 
-        return back()->with('status', 'Проект успешно удален!');
+        return back()->with('status', __('project_deleted'));
     }
 
     public function publish(Hackathon $hackathon, Team $team, Project $project)
     {
         if (!Gate::check('publish', $project)) {
             throw ValidationException::withMessages([
-                'project' => 'Вы не можете опубликовать проект',
+                'project' => __('cannot_publish_project'),
             ]);
         }
         $user_count = $team->users->count();
 
         if ($hackathon->type === "team" && ($user_count > $hackathon->max_team_size || $user_count < $hackathon->min_team_size)) {
             throw ValidationException::withMessages([
-                'team' => 'Ваша команда не подходит под критерии хакатона',
+                'team' => __('team_not_meet_criteria'),
             ]);
         }
 
         if ($hackathon->type === "individual" && $user_count !== 1) {
             throw ValidationException::withMessages([
-                'team' => 'Ваша команда не подходит под критерии хакатона',
+                'team' => __('team_not_meet_criteria'),
             ]);
         }
 
@@ -206,7 +206,7 @@ class ProjectsController extends Controller
             'moderated_time' => Carbon::now()
         ]);
 
-        return back()->with('status', 'Проект отправлен на модерацию!');
+        return back()->with('status', __('project_sent_to_moderation'));
     }
 
     public function rate(Request $request, Hackathon $hackathon, Project $project): RedirectResponse
@@ -236,7 +236,7 @@ class ProjectsController extends Controller
 
         $project->updateAvgScore();
 
-        return back()->with('status', 'Оценки сохранены');
+        return back()->with('status', __('scores_saved'));
     }
 
     public function deletePresentation(Hackathon $hackathon, Project $project): RedirectResponse
@@ -249,6 +249,6 @@ class ProjectsController extends Controller
             $project->clearMediaCollection('presentation');
         }
 
-        return back()->with('status', 'Презентация успешно удалена!');
+        return back()->with('status', __('presentation_deleted'));
     }
 }

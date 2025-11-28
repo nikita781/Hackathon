@@ -142,7 +142,7 @@ class TabController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Таб успешно обновлен',
+            'message' => __('tab_updated'),
         ]);
     }
 

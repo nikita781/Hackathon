@@ -104,7 +104,7 @@ class NotificationController extends Controller
 
                 // fallback
                 return array_merge($base, [
-                    'title' => 'Неизвестное уведомление',
+                    'title' => __('unknown_notification'),
                 ]);
             });
 

@@ -36,7 +36,7 @@ class NominationController extends Controller
             ]);
         }
 
-        return back()->with(['created' => 'Номинация успешно создана!']);
+        return back()->with('status', __('nomination_created'));
     }
 
     public function update(NominationRequest $request, Hackathon $hackathon, Nomination $nomination): RedirectResponse
@@ -50,13 +50,13 @@ class NominationController extends Controller
                 $nomination->delete();
                 $this->store($request, $hackathon);
                 DB::commit();
-                return back()->with(['updated' => 'Номинация успешно обновлена!']);
+                return back()->with('status', __('nomination_updated'));
             } catch (\Exception $e) {
                 DB::rollBack();
-                return back()->with(['updated' => 'Ошибка при обновлении номинации!']);
+                return back()->with('status', __('nomination_update_error'));
             }
         });
-        return back()->with(['updated' => 'Номинация успешно обновлена!']);
+        return back()->with('status', __('nomination_updated'));
     }
 
     public function destroy(Hackathon $hackathon, Nomination $nomination): RedirectResponse
@@ -66,6 +66,6 @@ class NominationController extends Controller
         }
 
         $nomination->delete();
-        return back()->with(['deleted' => 'Номинация успешно удалена!']);
+        return back()->with('status', __('nomination_deleted'));
     }
 }

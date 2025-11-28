@@ -18,7 +18,7 @@ class CriteriaController extends Controller
 
         $this->createCriteriaGroup($request, $hackathon);
 
-        return back()->with(['created' => 'Критерии успешно созданы!']);
+        return back()->with('status', __('criteria_created_success'));
     }
 
     public function update(CriteriaRequest $request, Hackathon $hackathon, CriterionGroup $criterionGroup): RedirectResponse
@@ -30,7 +30,7 @@ class CriteriaController extends Controller
         $criterionGroup->delete();
         $this->createCriteriaGroup($request, $hackathon);
 
-        return back()->with(['updated' => 'Критерии успешно обновлены!']);
+        return back()->with('status', __('criteria_updated_success'));
 
     }
 
@@ -42,7 +42,7 @@ class CriteriaController extends Controller
 
         $criterionGroup->delete();
 
-        return back()->with(['deleted' => 'Критерии успешно удалены!']);
+        return back()->with('status', __('criteria_deleted_success'));
     }
 
     private function createCriteriaGroup(CriteriaRequest $request, Hackathon $hackathon): void

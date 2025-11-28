@@ -6,14 +6,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\Award */
-class AwardResource extends JsonResource
+class AwardResource extends TranslatableResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'description' => $this->description,
+            'title' => $this->trans('title'),
+            'description' => $this->trans('description'),
             'place' => $this->place,
             'for_all' => $this->for_all,
             'system' => $this->system,
