@@ -1,9 +1,10 @@
 <script setup>
 import ConfirmDialog from "@/Components/Dialog/ConfirmDialog.vue";
 import IconsCancel from "@/Components/Icons/Cancel.vue";
-import {computed, onMounted, ref} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import {useLangStore} from "@/store/lang.js";
 import {useToast} from "vue-toastification";
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
     modelValue : Boolean,
@@ -18,6 +19,7 @@ function close(){ emit('update:modelValue',false) }
 
 const showConfirmDialog = ref(false);
 const userToRemove = ref(null);
+const previousBodyOverflow = ref('')
 
 const filteredUsers = computed(() => {
     return props.team.users.filter(user => user.position.name !== 'Капитан');
@@ -65,6 +67,17 @@ const removeUser = async () => {
     }
 }
 
+watch(
+    () => props.modelValue,
+    (opened) => {
+        if (opened) {
+            previousBodyOverflow.value = document.body.style.overflow
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = previousBodyOverflow.value || ''
+        }
+    }
+)
 
 const saveChanges = async () => {
     try {
@@ -121,6 +134,17 @@ function capitalizeFirstLetter(str) {
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
+
+onBeforeUnmount(() => {
+    document.body.style.overflow = previousBodyOverflow.value || ''
+})
+
+const positionOptions = computed(() =>
+    (props.positions ?? []).map(p => ({
+        value: p.id,
+        label: p.name,
+    }))
+)
 </script>
 
 <template>
@@ -142,9 +166,14 @@ onMounted(async () => {
                     <p class="hackathon__my-project__list_text">{{ person.user.nickname }}</p>
                 </div>
                 <div class="dialog__input_reset">
-                    <select v-model="person.position.id" class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
-                        <option v-for="p in positions" :key="p.id" :value="p.id">{{ p.name }}</option>
-                    </select>
+                    <CustomSelect
+                        v-model="person.position.id"
+                        :options="positionOptions"
+                        placeholder="Выберите роль"
+                        min-width="230px"
+                        full-width
+                        close-by-scroll
+                    />
                     <div>
                         <IconsCancel class="clickable" style="cursor: pointer" @click="confirmRemoveUser(person.user.id)" />
                     </div>

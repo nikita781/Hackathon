@@ -12,6 +12,7 @@ import { Pagination, Autoplay } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
 import {useToast} from "vue-toastification";
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const langStore = useLangStore()
 
@@ -286,6 +287,25 @@ onMounted(async () => {
         },
     ]
 });
+
+const sortOptions = computed(() => [
+    {
+        value: 'dateD',
+        label: `${capitalizeFirstLetter(langStore.translations.by_date)} ↓`,
+    },
+    {
+        value: 'dateA',
+        label: `${capitalizeFirstLetter(langStore.translations.by_date)} ↑`,
+    },
+    {
+        value: 'titleA',
+        label: `${capitalizeFirstLetter(langStore.translations.by_name)} ↑`,
+    },
+    {
+        value: 'titleD',
+        label: `${capitalizeFirstLetter(langStore.translations.by_name)} ↓`,
+    },
+])
 </script>
 
 <template>
@@ -368,12 +388,10 @@ onMounted(async () => {
                     </div>
                     <div class="main__cards_filter">
                         <p>{{langStore.translations.sort}}:</p>
-                        <select v-model="sort" class="main__cards_select">
-                            <option value="dateA">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↑</option>
-                            <option value="dateD">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↓</option>
-                            <option value="titleA">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↑</option>
-                            <option value="titleD">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↓</option>
-                        </select>
+                        <CustomSelect
+                            v-model="sort"
+                            :options="sortOptions"
+                        />
                     </div>
                 </div>
                 <a v-for="hackathon in hackathons.data" :key="hackathon.id" class="main__card" :href="`/hackathons/${hackathon.slug}`">

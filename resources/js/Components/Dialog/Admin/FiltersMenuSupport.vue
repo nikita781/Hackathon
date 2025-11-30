@@ -1,5 +1,6 @@
 <script setup>
-import { reactive, watch } from "vue"
+import {computed, reactive, watch} from "vue"
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -33,6 +34,17 @@ function reset(){
     emit("reset")
     close()
 }
+
+const sortOptions = computed(() => [
+    {
+        value: 'dateD',
+        label: `По дате создания ↓`,
+    },
+    {
+        value: 'dateA',
+        label: `По дате создания ↑`,
+    },
+])
 </script>
 
 <template>
@@ -49,10 +61,12 @@ function reset(){
 
             <div class="dialog__component">
                 <p class="main__filter_title">Сортировка</p>
-                <select v-model="state.order" class="main__cards_select dialog__select_black dialog__select">
-                    <option value="dateD">По дате создания ↓</option>
-                    <option value="dateA">По дате создания ↑</option>
-                </select>
+                <CustomSelect
+                    v-model="state.order"
+                    :options="sortOptions"
+                    full-width
+                    close-by-scroll
+                />
             </div>
 
 <!--            <div class="dialog__component">-->

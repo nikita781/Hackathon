@@ -52,6 +52,10 @@ watch(
 )
 
 watch(winnersInput, (val) => {
+    if (val === null || val === '' || Number.isNaN(val)) {
+        return
+    }
+
     if (val < 1)   { winnersInput.value = 1;   return }
     if (val > 100) { winnersInput.value = 100; return }
 

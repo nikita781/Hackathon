@@ -1,6 +1,7 @@
 <script setup>
 import IconsCancel from "@/Components/Icons/Cancel.vue"
-import { reactive, toRefs, watch } from "vue"
+import {computed, reactive, toRefs, watch} from "vue"
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -34,6 +35,25 @@ function reset(){
     emit('reset')
     close()
 }
+
+const sortOptions = computed(() => [
+    {
+        value: 'dateD',
+        label: `По дате создания ↓`,
+    },
+    {
+        value: 'dateA',
+        label: `По дате создания ↑`,
+    },
+    {
+        value: 'titleA',
+        label: `По названию A–Z`,
+    },
+    {
+        value: 'titleD',
+        label: `По названию Z–A`,
+    },
+])
 </script>
 
 <template>
@@ -50,12 +70,12 @@ function reset(){
 
             <div class="dialog__component">
                 <p class="main__filter_title">Сортировка</p>
-                <select v-model="state.order" class="main__cards_select dialog__select_black dialog__select">
-                    <option value="dateD">По дате создания ↓</option>
-                    <option value="dateA">По дате создания ↑</option>
-                    <option value="titleA">По названию A–Z</option>
-                    <option value="titleD">По названию Z–A</option>
-                </select>
+                <CustomSelect
+                    v-model="state.order"
+                    :options="sortOptions"
+                    full-width
+                    close-by-scroll
+                />
             </div>
 
             <div class="dialog__component">

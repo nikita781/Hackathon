@@ -6,6 +6,7 @@ import Hyperlink from "@/Components/Icons/Hyperlink.vue";
 import Document from "@/Components/Icons/Document.vue";
 import axios from 'axios'
 import Pagination from '@/Components/Pagination.vue'
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const rawLinks = ref([]) // что пришло с бэка (meta.links)
 const pageLinks = computed(() =>
@@ -368,6 +369,33 @@ async function fetchPresentation(slug) {
         }
     }
 }
+
+const sortOptions = computed(() => [
+    {
+        value: 'dateA',
+        label: `${capitalizeFirstLetter(langStore.translations.by_date)} ↑`,
+    },
+    {
+        value: 'dateD',
+        label: `${capitalizeFirstLetter(langStore.translations.by_date)} ↓`,
+    },
+    {
+        value: 'scoreA',
+        label: `${capitalizeFirstLetter(langStore.translations.by_rating)} ↑`,
+    },
+    {
+        value: 'scoreD',
+        label: `${capitalizeFirstLetter(langStore.translations.by_rating)} ↓`,
+    },
+    {
+        value: 'titleA',
+        label: `${capitalizeFirstLetter(langStore.translations.by_name)} ↑`,
+    },
+    {
+        value: 'titleD',
+        label: `${capitalizeFirstLetter(langStore.translations.by_name)} ↓`,
+    },
+])
 </script>
 
 <template>
@@ -395,14 +423,11 @@ async function fetchPresentation(slug) {
 
                 <div class="main__cards_filter hackathon__gallery_sort">
                     <p>{{ langStore.translations.sort }}:</p>
-                    <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select">
-                        <option value="dateA">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↑</option>
-                        <option value="dateD">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↓</option>
-                        <option value="scoreA">{{ capitalizeFirstLetter(langStore.translations.by_rating) }} ↑</option>
-                        <option value="scoreD">{{ capitalizeFirstLetter(langStore.translations.by_rating) }} ↓</option>
-                        <option value="titleA">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↑</option>
-                        <option value="titleD">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↓</option>
-                    </select>
+                    <CustomSelect
+                        v-model="sort"
+                        :options="sortOptions"
+                        full-width
+                    />
                 </div>
             </div>
 

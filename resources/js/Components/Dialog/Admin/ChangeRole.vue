@@ -1,9 +1,10 @@
 <script setup>
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import IconsCheck from '@/Components/Icons/Check.vue'
 import {useLangStore} from "@/store/lang.js";
 import IconsPencil from "@/Components/Icons/Pencil.vue";
 import IconsCancel from "@/Components/Icons/Cancel.vue";
+import CustomSelect from '@/Components/CustomSelect.vue';
 
 const props = defineProps({
     modelValue: Boolean,
@@ -13,6 +14,23 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const langStore = useLangStore()
+const previousBodyOverflow = ref('')
+
+watch(
+    () => props.modelValue,
+    (opened) => {
+        if (opened) {
+            previousBodyOverflow.value = document.body.style.overflow
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = previousBodyOverflow.value || ''
+        }
+    }
+)
+
+onBeforeUnmount(() => {
+    document.body.style.overflow = previousBodyOverflow.value || ''
+})
 
 function close() {
     emit('update:modelValue', false)
@@ -39,6 +57,15 @@ function removePick(idx) {
 }
 
 const used = computed(() => new Set(picks.value.filter(v => v != null)))
+
+function roleOptionsForRow(currentValue) {
+    const usedSet = used.value
+    return props.options.map(r => ({
+        value: r.id,
+        label: roleLabel(r),
+        disabled: usedSet.has(r.id) && r.id !== currentValue,
+    }))
+}
 
 const pending = ref(false)
 
@@ -78,23 +105,18 @@ async function save() {
             </div>
 
             <div class="dialog__component" style="margin-top:-10px">
-                <div v-for="(v,idx) in picks" :key="idx"
-                     style="display:flex; gap:8px; align-items:center; margin-bottom:10px">
-                    <select
+                <div
+                    v-for="(v,idx) in picks"
+                    :key="idx"
+                    style="display:flex; gap:8px; align-items:center; margin-bottom:10px"
+                >
+                    <CustomSelect
                         v-model="picks[idx]"
-                        class="main__cards_select dialog__select"
-                        style="width: 100%"
-                    >
-                        <option :value="null" disabled>Выберите роль…</option>
-                        <option
-                            v-for="r in options"
-                            :key="r.id"
-                            :value="r.id"
-                            :disabled="used.has(r.id) && r.id !== v"
-                        >
-                            {{ roleLabel(r) }}
-                        </option>
-                    </select>
+                        :options="roleOptionsForRow(v)"
+                        placeholder="Выберите роль…"
+                        full-width
+                        close-by-scroll
+                    />
 
                     <div class="dialog__prize_btns">
                         <IconsCancel
@@ -112,9 +134,12 @@ async function save() {
                             d="M13.1665 7.33317H9.1665V3.33317C9.1665 3.15636 9.09627 2.98679 8.97124 2.86177C8.84622 2.73674 8.67665 2.6665 8.49984 2.6665C8.32303 2.6665 8.15346 2.73674 8.02843 2.86177C7.90341 2.98679 7.83317 3.15636 7.83317 3.33317V7.33317H3.83317C3.65636 7.33317 3.48679 7.40341 3.36177 7.52843C3.23674 7.65346 3.1665 7.82303 3.1665 7.99984C3.1665 8.17665 3.23674 8.34622 3.36177 8.47124C3.48679 8.59627 3.65636 8.6665 3.83317 8.6665H7.83317V12.6665C7.83317 12.8433 7.90341 13.0129 8.02843 13.1379C8.15346 13.2629 8.32303 13.3332 8.49984 13.3332C8.67665 13.3332 8.84622 13.2629 8.97124 13.1379C9.09627 13.0129 9.1665 12.8433 9.1665 12.6665V8.6665H13.1665C13.3433 8.6665 13.5129 8.59627 13.6379 8.47124C13.7629 8.34622 13.8332 8.17665 13.8332 7.99984C13.8332 7.82303 13.7629 7.65346 13.6379 7.52843C13.5129 7.40341 13.3433 7.33317 13.1665 7.33317Z"
                             fill="#E80024"/>
                     </svg>
-                    <p>{{
-                            (langStore.translations.addMore || 'Добавить ещё').charAt(0).toUpperCase() + (langStore.translations.addMore || 'Добавить ещё').slice(1)
-                        }}</p>
+                    <p>
+                        {{
+                            (langStore.translations.addMore || 'Добавить ещё').charAt(0).toUpperCase() +
+                            (langStore.translations.addMore || 'Добавить ещё').slice(1)
+                        }}
+                    </p>
                 </div>
             </div>
 

@@ -4,6 +4,7 @@ import {computed, onMounted, ref, watch} from "vue";
 import { useClipboard } from "@vueuse/core";
 import {useLangStore} from "@/store/lang.js";
 import {useToast} from "vue-toastification";
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 // props
 const props = defineProps({
@@ -225,6 +226,13 @@ watch(
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
+
+const roleOptions = computed(() =>
+    (rolesResp.value.roles ?? []).map(r => ({
+        value: r.id,
+        label: r.title ?? `Роль #${r.id}`,
+    }))
+)
 </script>
 
 <template>
@@ -279,15 +287,14 @@ onMounted(async () => {
                         @input="onUserInput(index)"
                     />
                     <div class="dialog__input_reset">
-                        <select
+                        <CustomSelect
                             v-model="user.role_id"
-                            class="main__cards_select dialog__select"
-                            style="width: 100%; max-width: 230px"
-                        >
-                            <option v-for="p in rolesResp.roles" :key="p.id" :value="p.id">
-                                {{ p.title }}
-                            </option>
-                        </select>
+                            :options="roleOptions"
+                            full-width
+                            min-width="200px"
+                            close-by-scroll
+                            placeholder="Выберите роль"
+                        />
                         <div>
                             <IconsCancel class="clickable" style="cursor: pointer" @click="removeUserField(index)"/>
                         </div>

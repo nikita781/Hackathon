@@ -1,10 +1,11 @@
 <script setup>
-import {ref, watch, computed, onMounted} from 'vue'
+import {ref, watch, computed, onMounted, onBeforeUnmount} from 'vue'
 import axios from 'axios'
 import ConfirmDialog from '@/Components/Dialog/ConfirmDialog.vue'
 import IconsCancel from '@/Components/Icons/Cancel.vue'
 import { useToast } from 'vue-toastification'
 import {useLangStore} from "@/store/lang.js";
+import CustomSelect from '@/Components/CustomSelect.vue'
 
 const toast = useToast()
 
@@ -19,6 +20,24 @@ const emit = defineEmits([
     'update:managers',
     'removed',
 ])
+
+const previousBodyOverflow = ref('')
+
+watch(
+    () => props.modelValue,
+    (opened) => {
+        if (opened) {
+            previousBodyOverflow.value = document.body.style.overflow
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = previousBodyOverflow.value || ''
+        }
+    }
+)
+
+onBeforeUnmount(() => {
+    document.body.style.overflow = previousBodyOverflow.value || ''
+})
 
 function close () { emit('update:modelValue', false) }
 
@@ -134,6 +153,13 @@ function imgFallback(e) {
     e.target.onerror = null;
     e.target.src = PLACEHOLDER;
 }
+
+const roleOptions = computed(() =>
+    (rolesResp.value.roles ?? []).map(r => ({
+        value: r.id,
+        label: r.title ?? `Роль #${r.id}`,
+    }))
+)
 </script>
 
 <template>
@@ -159,15 +185,12 @@ function imgFallback(e) {
                 </div>
 
                 <div class="dialog__input_reset">
-                    <select
-                        v-model.number="person.hackathon_role.id"
-                        class="main__cards_select dialog__select"
-                        style="width: 100%; max-width: 230px"
-                    >
-                        <option v-for="p in rolesResp.roles" :key="p.id" :value="p.id">
-                            {{ p.title }}
-                        </option>
-                    </select>
+                    <CustomSelect
+                        v-model="person.hackathon_role.id"
+                        :options="roleOptions"
+                        full-width
+                        close-by-scroll
+                    />
 
                     <div>
                         <IconsCancel class="clickable" style="cursor: pointer" @click="confirmRemoveUser(person.id)" />

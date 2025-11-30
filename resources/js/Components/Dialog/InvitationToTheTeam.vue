@@ -1,10 +1,11 @@
 <script setup>
 import IconsCancel from "@/Components/Icons/Cancel.vue";
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import { useClipboard } from '@vueuse/core'
 import {useForm} from "@inertiajs/vue3";
 import {useLangStore} from "@/store/lang.js";
 import {useToast} from "vue-toastification";
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
     modelValue : Boolean,
@@ -15,6 +16,24 @@ const props = defineProps({
 const emit = defineEmits([
     'update:modelValue',
 ])
+
+const previousBodyOverflow = ref('')
+
+watch(
+    () => props.modelValue,
+    (opened) => {
+        if (opened) {
+            previousBodyOverflow.value = document.body.style.overflow
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = previousBodyOverflow.value || ''
+        }
+    }
+)
+
+onBeforeUnmount(() => {
+    document.body.style.overflow = previousBodyOverflow.value || ''
+})
 
 const toast = useToast();
 
@@ -181,6 +200,13 @@ function capitalizeFirstLetter(str) {
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
+
+const positionOptions = computed(() =>
+    (props.positions ?? []).map(p => ({
+        value: p.id,
+        label: p.name,
+    }))
+)
 </script>
 
 <template>
@@ -227,9 +253,14 @@ onMounted(async () => {
                         @input="onUserInput(index)"
                     />
                     <div class="dialog__input_reset">
-                        <select v-model="user.position_id" class="main__cards_select dialog__select" style="width: 100%; max-width: 230px">
-                            <option v-for="p in positions" :key="p.id" :value="p.id">{{ p.name }}</option>
-                        </select>
+                        <CustomSelect
+                            v-model="user.position_id"
+                            :options="positionOptions"
+                            placeholder="Выберите роль"
+                            full-width
+                            min-width="200px"
+                            close-by-scroll
+                        />
                         <div>
                             <IconsCancel class="clickable" style="cursor: pointer" @click="removeUserField(index)"/>
                         </div>

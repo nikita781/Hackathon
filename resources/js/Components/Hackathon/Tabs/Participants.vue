@@ -5,6 +5,7 @@ import Pagination from '@/Components/Pagination.vue'
 import { useLangStore } from '@/store/lang.js'
 import {useToast} from "vue-toastification";
 import {router} from "@inertiajs/vue3";
+import CustomSelect from '@/Components/CustomSelect.vue'
 
 const props = defineProps({
     hackathon     : { type: Object, default: null },
@@ -344,6 +345,25 @@ function imgFallback(e) {
     e.target.onerror = null;
     e.target.src = PLACEHOLDER;
 }
+
+const sortOptions = computed(() => [
+    {
+        value: 'dateD',
+        label: `${capitalizeFirstLetter(langStore.translations.byNovelty)} ↓`,
+    },
+    {
+        value: 'dateA',
+        label: `${capitalizeFirstLetter(langStore.translations.byNovelty)} ↑`,
+    },
+    {
+        value: 'titleA',
+        label: `${capitalizeFirstLetter(langStore.translations.by_name)} ↑`,
+    },
+    {
+        value: 'titleD',
+        label: `${capitalizeFirstLetter(langStore.translations.by_name)} ↓`,
+    },
+])
 </script>
 
 <template>
@@ -352,7 +372,7 @@ function imgFallback(e) {
             <button
                 type="button"
                 class="main__btn_main"
-                style="width: fit-content"
+                style="width: fit-content; max-width: unset"
                 @click="finishHackathon"
                 :disabled="syncing"
             >
@@ -376,12 +396,11 @@ function imgFallback(e) {
 
                 <div class="main__cards_filter hackathon__gallery_sort">
                     <p>{{ langStore.translations.sort }}:</p>
-                    <select v-model="sort" class="main__cards_select hackathon__gallery_sort-select">
-                        <option value="dateD">{{ capitalizeFirstLetter(langStore.translations.byNovelty) }} ↓</option>
-                        <option value="dateA">{{ capitalizeFirstLetter(langStore.translations.byNovelty) }} ↑</option>
-                        <option value="titleA">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↑</option>
-                        <option value="titleD">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↓</option>
-                    </select>
+                    <CustomSelect
+                        v-model="sort"
+                        :options="sortOptions"
+                        full-width
+                    />
                 </div>
             </div>
 

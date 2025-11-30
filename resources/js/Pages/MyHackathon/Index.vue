@@ -10,6 +10,7 @@ import {useLangStore} from "@/store/lang.js";
 import {useNotificationsStore} from "@/store/notification.js";
 import {useToast} from "vue-toastification";
 import ResendHackathon from "@/Components/Dialog/ResendHackathon.vue";
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
     user: Object,
@@ -226,6 +227,24 @@ watch(showResend, (isOpen, wasOpen) => {
     }
 })
 
+const sortOptions = computed(() => [
+    {
+        value: 'dateA',
+        label: `${capitalizeFirstLetter(langStore.translations.by_date)} ↑`,
+    },
+    {
+        value: 'dateD',
+        label: `${capitalizeFirstLetter(langStore.translations.by_date)} ↓`,
+    },
+    {
+        value: 'titleA',
+        label: `${capitalizeFirstLetter(langStore.translations.by_name)} ↑`,
+    },
+    {
+        value: 'titleD',
+        label: `${capitalizeFirstLetter(langStore.translations.by_name)} ↓`,
+    },
+])
 </script>
 
 <template>
@@ -257,12 +276,10 @@ watch(showResend, (isOpen, wasOpen) => {
             </div>
             <div class="main__cards_filter">
                 <p>{{langStore.translations.sort}}:</p>
-                <select v-model="sort" class="main__cards_select">
-                    <option value="dateA">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↑</option>
-                    <option value="dateD">{{ capitalizeFirstLetter(langStore.translations.by_date) }} ↓</option>
-                    <option value="titleA">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↑</option>
-                    <option value="titleD">{{ capitalizeFirstLetter(langStore.translations.by_name) }} ↓</option>
-                </select>
+                <CustomSelect
+                    v-model="sort"
+                    :options="sortOptions"
+                />
             </div>
         </div>
         <div class="my-hackathon__tabs_cont">

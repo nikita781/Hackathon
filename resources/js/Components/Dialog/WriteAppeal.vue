@@ -2,6 +2,7 @@
 import {ref, computed, onMounted} from "vue";
 import {useToast} from "vue-toastification";
 import {useLangStore} from "@/store/lang.js";
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -75,6 +76,21 @@ function capitalizeFirstLetter(str) {
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
+
+const sortOptions = computed(() => [
+    {
+        value: 'question',
+        label: `${capitalizeFirstLetter(langStore.translations.question)}`,
+    },
+    {
+        value: 'suggestion',
+        label: `${capitalizeFirstLetter(langStore.translations.suggestion)}`,
+    },
+    {
+        value: 'bug',
+        label: `${capitalizeFirstLetter(langStore.translations.report_error)}`,
+    },
+])
 </script>
 
 <template>
@@ -91,15 +107,14 @@ onMounted(async () => {
             </div>
             <div class="dialog__component" v-if="!props.org">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.selectTopic) }}</p>
-                <select
+                <CustomSelect
                     v-model="type"
-                    class="main__cards_select dialog__select"
-                    style="max-width: 300px; width: 100%;"
-                >
-                    <option value="question">{{ capitalizeFirstLetter(langStore.translations.question) }}</option>
-                    <option value="suggestion">{{ capitalizeFirstLetter(langStore.translations.suggestion) }}</option>
-                    <option value="bug">{{ capitalizeFirstLetter(langStore.translations.report_error) }}</option>
-                </select>
+                    :options="sortOptions"
+                    full-width
+                    max-width="300px"
+                    close-by-scroll
+                    red
+                />
             </div>
             <div class="dialog__component">
                 <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.requestText) }}</p>

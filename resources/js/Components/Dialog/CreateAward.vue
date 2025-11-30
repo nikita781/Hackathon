@@ -1,7 +1,8 @@
 <script setup>
-import {reactive, watch, onBeforeUnmount, toRaw, onMounted, ref} from 'vue'
+import {reactive, watch, onBeforeUnmount, toRaw, onMounted, ref, computed} from 'vue'
 import DropFile from "@/Components/DropFile.vue";
 import {useLangStore} from "@/store/lang.js";
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
     modelValue : Boolean,
@@ -12,6 +13,23 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue','saved'])
 
 const langStore = useLangStore()
+const previousBodyOverflow = ref('')
+
+watch(
+    () => props.modelValue,
+    (opened) => {
+        if (opened) {
+            previousBodyOverflow.value = document.body.style.overflow
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = previousBodyOverflow.value || ''
+        }
+    }
+)
+
+onBeforeUnmount(() => {
+    document.body.style.overflow = previousBodyOverflow.value || ''
+})
 
 const blank = {
     id     : null,
@@ -112,6 +130,17 @@ function capitalizeFirstLetter(str) {
     if (!str) return str;
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
+
+const sortOptions = computed(() => [
+    {
+        value: 'forAll',
+        label: `${capitalizeFirstLetter(langStore.translations.for_all)} ↓`,
+    },
+    {
+        value: 'forPrize',
+        label: `${capitalizeFirstLetter(langStore.translations.for_prize_places)} ↑`,
+    },
+])
 </script>
 
 <template>
@@ -128,10 +157,11 @@ function capitalizeFirstLetter(str) {
 
                 <div class="dialog__component">
                     <p class="dialog__title">Тип награды</p>
-                    <select v-model="form.type" class="main__cards_select dialog__select">
-                        <option value="forAll">{{ capitalizeFirstLetter(langStore.translations.for_all) }}</option>
-                        <option value="forPrize">{{ capitalizeFirstLetter(langStore.translations.for_prize_places) }}</option>
-                    </select>
+                    <CustomSelect
+                        v-model="form.type"
+                        :options="sortOptions"
+                        close-by-scroll
+                    />
                 </div>
 
                 <div class="dialog__component" v-if="form.type === 'forPrize'">

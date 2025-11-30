@@ -1,9 +1,10 @@
 <script setup>
 import DropFile from '../../DropFile.vue';
-import {onBeforeUnmount, onMounted, ref, toRaw, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, toRaw, watch} from "vue";
 import { useForm, router } from '@inertiajs/vue3'
 import logs from "../../../../../vendor/laravel/telescope/resources/js/screens/logs/index.vue";
 import {useLangStore} from "@/store/lang.js";
+import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
     draft    : Object,
@@ -246,6 +247,41 @@ onMounted(() => {
 onBeforeUnmount(() => {
     document.removeEventListener('mousedown', onClickOutside)
 })
+
+const sortOptions = computed(() => [
+    {
+        value: 'online',
+        label: `${capitalizeFirstLetter(langStore.translations.online)}`,
+    },
+    {
+        value: 'offline',
+        label: `${capitalizeFirstLetter(langStore.translations.offline)}`,
+    },
+    {
+        value: 'hybrid',
+        label: `${capitalizeFirstLetter(langStore.translations.hybrid)}`,
+    },
+])
+const sortOptions2 = computed(() => [
+    {
+        value: 'team',
+        label: `${capitalizeFirstLetter(langStore.translations.team_type)}`,
+    },
+    {
+        value: 'individual',
+        label: `${capitalizeFirstLetter(langStore.translations.individual_type)}`,
+    },
+])
+const sortOptions3 = computed(() => [
+    {
+        value: 'cash',
+        label: `${capitalizeFirstLetter(langStore.translations.money_prize)}`,
+    },
+    {
+        value: 'non-cash',
+        label: `${capitalizeFirstLetter(langStore.translations.item_prize)}`,
+    },
+])
 </script>
 
 <template>
@@ -279,18 +315,23 @@ onBeforeUnmount(() => {
     <div class="dialog__block">
         <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_format) }}</p>
-            <select class="main__cards_select dialog__select" v-model="form.format">
-                <option value="online">{{ capitalizeFirstLetter(langStore.translations.online) }}</option>
-                <option value="offline">{{ capitalizeFirstLetter(langStore.translations.offline) }}</option>
-                <option value="hybrid">{{ capitalizeFirstLetter(langStore.translations.hybrid) }}</option>
-            </select>
+            <CustomSelect
+                v-model="form.format"
+                :options="sortOptions"
+                full-width
+                red
+                close-by-scroll
+            />
         </div>
         <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.participation_type) }}</p>
-            <select v-model="form.type" class="main__cards_select dialog__select">
-                <option value="team">{{ capitalizeFirstLetter(langStore.translations.team_type) }}</option>
-                <option value="individual">{{ capitalizeFirstLetter(langStore.translations.individual_type) }}</option>
-            </select>
+            <CustomSelect
+                v-model="form.type"
+                :options="sortOptions2"
+                full-width
+                red
+                close-by-scroll
+            />
         </div>
         <div v-if="form.type === 'team'" class="dialog__component">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.team_size) }} *</p>
@@ -546,10 +587,13 @@ onBeforeUnmount(() => {
     <div class="dialog__block">
         <div class="dialog__component medium">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.prize_format) }}</p>
-            <select v-model="form.prize_type" class="main__cards_select dialog__select">
-                <option value="cash">{{ capitalizeFirstLetter(langStore.translations.money_prize) }}</option>
-                <option value="non-cash">{{ capitalizeFirstLetter(langStore.translations.item_prize) }}</option>
-            </select>
+            <CustomSelect
+                v-model="form.prize_type"
+                :options="sortOptions3"
+                full-width
+                red
+                close-by-scroll
+            />
         </div>
         <div class="dialog__component large">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.prize_fund) }} *</p>
