@@ -136,4 +136,17 @@ class ProjectPolicy
 
         return $user->isAdmin();
     }
+
+    public function viewSourceCode(User $user, Project $project): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isMemberOfProject($project) || $user->isHackathonStaff($project->hackathon()->first())) {
+            return true;
+        }
+
+        return false;
+    }
 }

@@ -16,13 +16,16 @@ use App\Http\Resources\TeamResource;
 use App\Http\Resources\UserResource;
 use App\Models\Banner;
 use App\Models\Hackathon;
+use App\Models\HackathonInvite;
 use App\Models\Position;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Support;
 use App\Models\Tab;
 use App\Models\Tag;
+use App\Models\TeamInvite;
 use App\Models\User;
+use App\Notifications\InviteNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use DOMDocument;
@@ -33,6 +36,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -226,7 +231,7 @@ class HackathonController extends Controller
         $perPageProject = min($request->get('per_page', 6), 10);
         $perPageTeam = min($request->get('per_page', 6), 10);
         $user = auth()->user();
-        $isStaffHackathon = $user?->isHackathonStaff($hackathon);
+        $isStaffHackathon = $user?->isHackathonStaff($hackathon) || $user?->isAdmin();
 
         $teams = collect();
         $ownTeam = null;
@@ -557,6 +562,136 @@ class HackathonController extends Controller
         }
 
         return back()->with('status', __('hackathon_finished'));
+    }
+
+    public function inviteCapitan(Request $request, Hackathon $hackathon)
+    {
+        Gate::authorize('update', $hackathon);
+
+        $data = $request->validate([
+            'users' => 'array',
+            'users.*.user_id' => 'required',
+        ]);
+
+        $errors = [];
+
+        foreach ($data['users'] as $index => $user) {
+            do {
+                $token = Str::random(32);
+            } while (HackathonInvite::where('token', $token)->exists());
+
+            $invitedUserId = $user['user_id'];
+
+            if (is_string($invitedUserId)) {
+                if (str_contains($invitedUserId, "ID")) {
+                    $invitedUserId = (int) str_replace("ID", "", $invitedUserId);
+                }
+
+                if ($invitedUserId === 0 || is_string($invitedUserId)) {
+                    $errors["users.$index.user_id"] = [__('user_not_found_by_id', ['user_id' => $user['user_id']])];
+                    continue;
+                }
+            }
+
+            $invitedUser = User::find($invitedUserId);
+            if (!$invitedUser) {
+                $errors["users.$index.user_id"] = [__('user_not_found_by_id', ['user_id' => $user['user_id']])];
+                continue;
+            }
+
+            if ($hackathon->members()->where('user_id', $invitedUserId)->exists()) {
+                $errors["users.$index.user_id"] = [__('user_already_hackathon_participant', ['user_nickname' => $invitedUser->nickname])];
+                continue;
+            }
+
+            if ($hackathon->getAllHackathonStaff()->contains($invitedUser->id)) {
+                $errors["users.$index.user_id"] = [__('user_is_staff', ['user_nickname' => $invitedUser->nickname])];
+                continue;
+            }
+
+            if (HackathonInvite::where('hackathon_id', $hackathon->id)->where('user_id', $invitedUserId)->exists()) {
+                $errors["users.$index.user_id"] = [__('invitation_already_sent', ['user_nickname' => $invitedUser->nickname])];
+                continue;
+            }
+
+            $role = Role::find(Role::MEMBER);
+
+            $invite = HackathonInvite::create([
+                'hackathon_id' => $hackathon->id,
+                'user_id' => $invitedUserId,
+                'role_id' => $role->id,
+                'token' => $token,
+                'expires_at' => now()->addDay(),
+            ]);
+
+            $sender = auth()->user();
+
+            $invitedUser->notify(new InviteNotification([
+                'title' => __('invitation_title'),
+                'description' => __('invitation_description', ['hackathon_title' => $hackathon->title, 'role_title' => $role->title]),
+                'url' => route('hackathons.accept-invite-capitan', [$hackathon, $invite->token]),
+                'send_at' => now()->toDateString(),
+                'is_active' => true,
+                'hackathon' => $hackathon,
+            ]));
+        }
+
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return response()->noContent();
+    }
+
+    public function acceptInviteCapitan(Request $request, Hackathon $hackathon, $token): RedirectResponse
+    {
+        Gate::authorize('acceptInvite', $hackathon);
+
+        $invite = HackathonInvite::where('token', $token)->firstOrFail();
+
+        if ($invite->isExpired()) {
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('invitation_expired'));
+        }
+
+        $user = auth()->user();
+
+        if ($invite->hackathon->getAllHackathonStaff()->contains($user->id)) {
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('already_staff'));
+        }
+
+        if ($invite
+            ->hackathon
+            ->users()
+            ->with('roles')
+            ->withPivot('role_id')
+            ->wherePivotIn('role_id', [Role::MEMBER])
+            ->get()
+            ->contains($user->id)
+        ) {
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('already_participant'));
+        }
+
+        $invite->hackathon->users()->attach($user->id, ['role_id' => $invite->role_id]);
+
+        $team = $hackathon->teams()->create([
+            'title' => __('team_title') . " " . $user->nickname
+        ]);
+
+        $user->teams()->syncWithoutDetaching([
+            $team->id => ['position_id' => Position::CAPITAN_POSITION]
+        ]);
+
+        $user
+            ->notifications()
+            ->where('data->url', route('hackathons.accept-invite-capitan', [$hackathon, $invite->token]))
+            ->update(['data->is_active' => false]);
+
+        $user->assignedRole($invite->role_id);
+
+        $invite->delete();
+
+        return redirect()->route('hackathons.show', $hackathon)->with('status', __('joined_hackathon_success'));
     }
 
     /**

@@ -19,7 +19,7 @@ class TeamPolicy
 
     public function viewAll(User $user, Hackathon $hackathon): bool
     {
-        return $user->isHackathonStaff($hackathon);
+        return $user->isHackathonStaff($hackathon) || $user->isAdmin();
     }
 
     public function view(?User $user, Team $team): bool

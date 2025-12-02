@@ -441,7 +441,7 @@
     "user_already_participant": "Пользователь :user_nickname уже является участником хакатона",
     "invitation_already_sent": "Приглашение пользователю :user_nickname уже отправлено",
     "invitation_title": "Приглашение на хакатон от организатора",
-    "invitation_description": "Организатор :organizer_nickname пригласил Вас на хакатон :hackathon_title на роль :role_title",
+    "invitation_description": "Организатор пригласил Вас на хакатон :hackathon_title на роль :role_title",
     "staff_updated_success": "Персонал успешно обновлен",
     "kicked_from_hackathon_title": "Вас исключили из хакатона :hackathon_title",
     "kicked_from_hackathon_description": "Если произошла ошибка напишите организатору на почту: ",

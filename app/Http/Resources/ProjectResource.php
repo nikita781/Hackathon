@@ -38,6 +38,7 @@ class ProjectResource extends TranslatableResource
                 'delete' => $request->user()?->can('delete', $this->resource),
                 'publish' => $request->user()?->can('publish', $this->resource),
                 'rate' => $request->user()?->can('rate', $this->resource),
+                'view_source_code' => $request->user()?->can('viewSourceCode', $this->resource)
             ],
             'hackathon' => $this->whenLoaded('hackathon', fn () => new HackathonResource($this->hackathon)),
             'team' => $this->whenLoaded('team', fn () => new TeamResource($this->team)),
