@@ -23,8 +23,8 @@ class SupportAnsweredNotification extends Notification
     public function toArray($notifiable): array
     {
         return [
-            'title' => 'Ответ на обращение',
-            'description' => "Пользователь «{$this->support->closer->nickname}» ответил на ваше обращение на хакатоне «{$this->support->hackathon->title}».",
+            'title' => __('ticket_reply_title'),
+            'description' => __('ticket_reply_description', ['closer_nickname' => $this->support->closer->nickname, 'hackathon_title' => $this->support->hackathon->title]),
             'support_id' => $this->support->id,
             'type' => $this->support->type,
             'message' => $this->support->messages()->latest()->first()?->message,

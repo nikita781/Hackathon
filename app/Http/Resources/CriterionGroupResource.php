@@ -6,13 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\CriterionGroup */
-class CriterionGroupResource extends JsonResource
+class CriterionGroupResource extends TranslatableResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
+            'title' => $this->trans('title'),
             'criteria' => CriterionResource::collection($this->whenLoaded('criteria')),
         ];
     }

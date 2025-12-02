@@ -9,15 +9,15 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 /** @mixin \App\Models\Project */
-class ProjectResource extends JsonResource
+class ProjectResource extends TranslatableResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'description' => $this->description,
-            'about' => $this->about,
+            'title' => $this->trans('title'),
+            'description' => $this->trans('description'),
+            'about' => $this->trans('about'),
             'stack' => $this->stack,
             'project_link' => $this->project_link,
             'video_link' => $this->video_link,

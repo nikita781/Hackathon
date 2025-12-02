@@ -106,7 +106,7 @@ const langMap = {
     ru: { flag: '/language/ru.jpg', label: 'RU' },
     en: { flag: '/language/en.png', label: 'EN' },
     fr: { flag: '/language/fr.png', label: 'FR' },
-    zh_cn: { flag: '/language/zh.png', label: 'ZH' },
+    zh: { flag: '/language/zh.png', label: 'ZH' },
     de: { flag: '/language/de.jpg', label: 'DE' },
     es: { flag: '/language/es.jpg', label: 'ES' },
     pt: { flag: '/language/pt.jpg', label: 'PT' }

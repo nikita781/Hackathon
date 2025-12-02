@@ -53,13 +53,13 @@ class HackathonStaffController extends Controller
         $invite = HackathonInvite::where('token', $token)->firstOrFail();
 
         if ($invite->isExpired()) {
-            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Срок действия приглашения истёк');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('invitation_expired'));
         }
 
         $user = auth()->user();
 
         if ($invite->hackathon->getAllHackathonStaff()->contains($user->id)) {
-            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Вы уже персонал хакатона');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('already_staff'));
         }
 
         if ($invite
@@ -71,7 +71,7 @@ class HackathonStaffController extends Controller
             ->get()
             ->contains($user->id)
         ) {
-            return redirect()->route('hackathons.show', $hackathon)->with('error', 'Вы уже участник хакатона');
+            return redirect()->route('hackathons.show', $hackathon)->with('error', __('already_participant'));
         }
 
         $invite->hackathon->users()->attach($user->id, ['role_id' => $invite->role_id]);
@@ -85,7 +85,7 @@ class HackathonStaffController extends Controller
 
         $invite->delete();
 
-        return redirect()->route('hackathons.show', $hackathon)->with('status', 'Теперь вы персонал хакатона!');
+        return redirect()->route('hackathons.show', $hackathon)->with('status', __('now_staff'));
     }
 
     public function inviteUserById(Request $request, Hackathon $hackathon): Response
@@ -117,20 +117,20 @@ class HackathonStaffController extends Controller
                 }
 
                 if ($invitedUserId === 0 || is_string($invitedUserId)) {
-                    $errors["users.$index.user_id"] = ["Пользователь с ID «{$user['user_id']}» не найден"];
+                    $errors["users.$index.user_id"] = [__('user_not_found_by_id', ['user_id' => $user['user_id']])];
                     continue;
                 }
             }
 
             $invitedUser = User::find($invitedUserId);
             if (!$invitedUser) {
-                $errors["users.$index.user_id"] = ["Пользователь с ID «{$user['user_id']}» не найден"];
+                $errors["users.$index.user_id"] = [__('user_not_found_by_id', ['user_id' => $user['user_id']])];
                 continue;
             }
 
             $invitedUserRole = Role::find($invitedRoleId);
             if (!$invitedUserRole) {
-                $errors["users.$index.role_id"] = ["Роль с ID «{$invitedRoleId}» не найдена"];
+                $errors["users.$index.role_id"] = [__('role_not_found', ['role_id' => $invitedRoleId])];
                 continue;
             }
 
@@ -142,19 +142,19 @@ class HackathonStaffController extends Controller
                     })
                     ->exists()
             ) {
-                $errors["users.$index.user_id"] = ["Пользователь «{$invitedUser->nickname}» уже является участником хакатона"];
+                $errors["users.$index.user_id"] = [__('user_already_participant', ['user_nickname' => $invitedUser->nickname])];
                 continue;
             }
 
             if ($hackathon->getAllHackathonStaff()->contains($invitedUser->id)) {
-                $errors["users.$index.user_id"] = ["Пользователь «{$invitedUser->nickname}» уже является участником хакатона"];
+                $errors["users.$index.user_id"] = [__('user_already_participant', ['user_nickname' => $invitedUser->nickname])];
                 continue;
             }
 
             if (HackathonInvite::where('hackathon_id', $hackathon->id)
                 ->where('user_id', $invitedUserId)
                 ->exists()) {
-                $errors["users.$index.user_id"] = ["Приглашение пользователю «{$invitedUser->nickname}» уже отправлено"];
+                $errors["users.$index.user_id"] = [__('invitation_already_sent', ['user_nickname' => $invitedUser->nickname])];
                 continue;
             }
 
@@ -167,8 +167,12 @@ class HackathonStaffController extends Controller
             ]);
 
             $invitedUser->notify(new InviteNotification([
-                'title' => 'Приглашение на хакатон от организатора',
-                'description' => "Организатор {$org->nickname} пригласил Вас на хакатон «{$hackathon->title}» на роль «{$invitedUserRole->title}».",
+                'title' => __('invitation_title'),
+                'description' => __('invitation_description', [
+                    'organizer_nickname' => $org->nickname,
+                    'hackathon_title' => $hackathon->title,
+                    'role_title' => $invitedUserRole->title
+                ]),
                 'url' => route('hackathons.staff.accept-invite', [$hackathon, $invite->token]),
                 'send_at' => now()->toDateString(),
                 'is_active' => true,
@@ -199,7 +203,7 @@ class HackathonStaffController extends Controller
             }
         }
 
-        return back()->with('status', 'Персонал успешно обновлен');
+        return back()->with('status', __('staff_updated_success'));
     }
 
     public function kick(KickStaffRequest $request, Hackathon $hackathon): RedirectResponse
@@ -217,13 +221,13 @@ class HackathonStaffController extends Controller
             $hackathon->users()->detach($user->id);
 
             $user->notify(new KickNotification([
-                'title' => "Вас исключили из хакатона \"{$hackathon->title}\"",
-                'description' => "Если произошла ошибка напишите организатору на почту: {$hackathon->owner->email}",
+                'title' => __('kicked_from_hackathon_title', ['hackathon_title' => $hackathon->title]),
+                'description' => __('kicked_from_hackathon_description') . $hackathon->owner->email,
                 'send_at' => now()->toDateString(),
                 'hackathon' => $hackathon,
             ]));
         }
-        return back()->with('status', 'Пользователь успешно исключен с хакатона');
+        return back()->with('status', __('user_kicked_success'));
     }
 
     public function search(Request $request, Hackathon $hackathon): JsonResponse
@@ -238,7 +242,7 @@ class HackathonStaffController extends Controller
                 'success' => false,
                 'user' => null,
                 'canInvite' => false,
-                'errors' => ["Пользователь не найден"]
+                'errors' => [__('user_not_found')]
             ]);
         }
 
@@ -247,7 +251,7 @@ class HackathonStaffController extends Controller
 
         if ($hackathon->getAllHackathonStaff()->contains($user->id)) {
             $canInvite = false;
-            $errors[] = "Пользователь «{$user->nickname}» уже является участником хакатона";
+            $errors[] = __('user_already_in_hackathon', ['user_nickname' => $user->nickname]);
         }
 
         $hasActiveProject = $user->teams()
@@ -259,7 +263,7 @@ class HackathonStaffController extends Controller
 
         if ($hasActiveProject) {
             $canInvite = false;
-            $errors[] = "Пользователь «{$user->nickname}» уже участвует в проекте, который находится в работе";
+            $errors[] = __('user_already_in_project', ['user_nickname' => $user->nickname]);
         }
 
         $hasInvite = HackathonInvite::where('hackathon_id', $hackathon->id)
@@ -268,7 +272,7 @@ class HackathonStaffController extends Controller
 
         if ($hasInvite) {
             $canInvite = false;
-            $errors[] = "Пользователю «{$user->nickname}» уже отправлено приглашение";
+            $errors[] = __('user_already_invited', ['user_nickname' => $user->nickname]);
         }
 
         return response()->json([

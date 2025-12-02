@@ -32,7 +32,7 @@ class SessionController extends Controller
 
             if (!$user || !Hash::check($credentials['password'], $user->password)) {
                 return back()->withErrors([
-                    'login' => 'Неверный логин или пароль',
+                    'login' => __('invalid_credentials'),
                 ]);
             }
         }
@@ -48,7 +48,7 @@ class SessionController extends Controller
 
     public function loginGet(): RedirectResponse
     {
-        return redirect()->route('home')->with('status', "Сначала авторизуйтесь в системе");
+        return redirect()->route('home')->with('status', __('auth_required'));
     }
 
     private function syncUserFromMainSite(string $login): ?User

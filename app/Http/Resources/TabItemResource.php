@@ -6,14 +6,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\TabItem */
-class TabItemResource extends JsonResource
+class TabItemResource extends TranslatableResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'content' => $this->content,
+            'title' => $this->trans('title'),
+            'content' => $this->trans('content'),
             'image_url' => $this->getFirstMediaUrl('image'),
         ];
     }

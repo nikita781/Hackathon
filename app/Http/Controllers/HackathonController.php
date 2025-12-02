@@ -67,7 +67,7 @@ class HackathonController extends Controller
         return Inertia::render('Hackathon/Index', [
             'banners' => $banners,
             'hackathons' => HackathonResource::collection($hackathons),
-            'tags' => TagResource::collection(Tag::orderBy('title')->get()),
+            'tags' => TagResource::collection(Tag::orderBy('order')->get()),
             'can' => [
                 'create' => Gate::check('create', Hackathon::class),
             ],
@@ -155,6 +155,7 @@ class HackathonController extends Controller
         $data = Arr::except($request->validated(), ['tags', 'image_path']);
         $data['slug'] = Hackathon::generateUniqueSlug($data['title']);
         $data['registration_start'] = Carbon::now()->toDateTimeString();
+        $data['locale'] = app()->getLocale();
         $user = auth()->user();
         $hackathon = $user->hackathonsAsOrganizer()->create($data);
         if ($request->hasFile('image_path')) {
@@ -166,10 +167,25 @@ class HackathonController extends Controller
         $hackathon->tags()->sync($request->input('tags'));
 
         foreach (Tab::defaultStructure() as $tabTitle => $sections) {
-            $tab = $hackathon->tabs()->create(['title' => $tabTitle]);
+            $tabTranslations = Tab::DEFAULT_TRANSLATIONS[$tabTitle] ?? [];
+
+            $tab = $hackathon->tabs()->create([
+                'title' => $tabTitle
+            ]);
 
             foreach ($sections as $sectionTitle) {
-                $tab->sections()->create(['title' => $sectionTitle]);
+                $sectionTranslations = $tabTranslations['sections'][$sectionTitle]['title'] ?? [];
+
+                $nestedTranslations = [];
+                foreach ($sectionTranslations as $lang => $translation) {
+                    $nestedTranslations[$lang] = ['title' => $translation];
+                }
+
+                $tab->sections()->createQuietly([
+                    'title' => $sectionTitle,
+                    'translations' => $nestedTranslations,
+                    'locale' => 'ru'
+                ]);
             }
         }
 
@@ -180,7 +196,7 @@ class HackathonController extends Controller
                 'title' => $hackathon->title,
                 'slug' => $hackathon->slug,
             ],
-            'message' => "Хакатон '".$hackathon->title."' успешно создан",
+            'message' => __('hackathon_created_success'),
         ]);
     }
 
@@ -245,7 +261,7 @@ class HackathonController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'hackathon' => $hackathonResource->response(),
+                'hackathon' => $hackathonResource,
                 'tabs' => $tabsResource->response(),
                 'ownTeam' => optional($ownTeamResource)->response(),
                 'allProjects' => optional($allProjects)->response(),
@@ -322,6 +338,8 @@ class HackathonController extends Controller
             $data['max_team_size'] = 1;
         }
 
+        $data['locale'] = app()->getLocale();
+
         $hackathon->update($data);
         $hackathon->refresh();
         if ($request->hasFile('image_path')) {
@@ -333,29 +351,29 @@ class HackathonController extends Controller
         if ($request->filled('tags')) {
             $hackathon->tags()->sync($request->input('tags'));
         }
-        return back()->with('status', 'Хакатон обновлен');
+        return back()->with('status', __('hackathon_updated_success'));
     }
 
     public function publish(Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('publish', $hackathon)) {
-            return back()->with('error', 'Вы не можете опубликовать хакатон');
+            return back()->with('error', __('cannot_publish_hackathon'));
         }
 
         if ($hackathon->work_time_start === null || $hackathon->work_time_end === null || $hackathon->evaluation_start === null || $hackathon->evaluation_end === null) {
-            return back()->with('error', 'Все даты хакатона должны быть заполнены');
+            return back()->with('error', __('dates_required_for_publish'));
         }
 
         if ($hackathon->registration_end < now()) {
-            return back()->with('error', 'Дата конца регистрации уже прошла');
+            return back()->with('error', __('registration_end_date_passed'));
         }
 
         if (!$hackathon->criteriaGroups()->has('criteria')->exists()) {
-            return back()->with('error', 'Хакатон должен содержать критерии оценки');
+            return back()->with('error', __('criteria_required_for_publish'));
         }
 
         if (!$hackathon->users()->wherePivot('role_id', Role::JUDGE)->exists()) {
-            return back()->with('error', 'Перед публикацией пригласите хотя бы одного судью');
+            return back()->with('error', __('judge_required_for_publish'));
         }
 
         $hackathon->update([
@@ -363,7 +381,7 @@ class HackathonController extends Controller
             'moderated_time' => Carbon::now(),
         ]);
 
-        return back()->with('status', 'Хакатон отправлен на модерацию');
+        return back()->with('status', __('hackathon_sent_to_moderation'));
     }
 
     public function destroy(Hackathon $hackathon): void
@@ -381,14 +399,14 @@ class HackathonController extends Controller
         $user->hackathons()->attach($hackathon->id, ['role_id' => Role::MEMBER]);
 
         $team = $hackathon->teams()->create([
-            'title' => "Команда ".$user->nickname
+            'title' => __('team_title') . " " . $user->nickname
         ]);
 
         $user->teams()->syncWithoutDetaching([
             $team->id => ['position_id' => Position::CAPITAN_POSITION]
         ]);
 
-        return back()->with('status', 'Вы успешно присоединились к хакатону!');
+        return back()->with('status', __('joined_hackathon_success'));
     }
 
     public function leaveHackathon(Hackathon $hackathon): RedirectResponse
@@ -428,7 +446,7 @@ class HackathonController extends Controller
         $team = $user->teams()->where('hackathon_id', $hackathon->id)->first();
 
         if (!$team) {
-            back()->with('error', 'Вы не состоите в команде этого хакатона');
+            back()->with('error', __('not_in_team'));
             return;
         }
 
@@ -448,7 +466,7 @@ class HackathonController extends Controller
 
             $user->hackathons()->detach($hackathon->id);
 
-            back()->with('status', 'Вы покинули хакатон, команда и проект были удалены.');
+            back()->with('status', __('left_hackathon_team_deleted'));
             return;
         }
 
@@ -468,6 +486,9 @@ class HackathonController extends Controller
         $team->users()->detach($user->id);
 
         $user->hackathons()->detach($hackathon->id);
+
+        back()->with('status', __('left_hackathon'));
+        return;
     }
 
     public function downloadUsers(Hackathon $hackathon): BinaryFileResponse
@@ -532,10 +553,10 @@ class HackathonController extends Controller
         $ok = $action($hackathon->slug);
 
         if (!$ok) {
-            return back()->with('error', "Сейчас хакатон нельзя завершить");
+            return back()->with('error', __('cannot_finish_hackathon'));
         }
 
-        return back()->with('status', "Хакатон \"{$hackathon->slug}\" завершен");
+        return back()->with('status', __('hackathon_finished'));
     }
 
     /**
@@ -571,7 +592,7 @@ class HackathonController extends Controller
             $media->save();
         }
 
-        return back()->with('success', 'Шаблон сертификата успешно загружен');
+        return back()->with('status', __('certificate_template_uploaded'));
     }
 
     public function downloadPreviewCertificate(Hackathon $hackathon): \Illuminate\Http\Response
@@ -585,7 +606,7 @@ class HackathonController extends Controller
             $m = new Engine();
             $html = $m->render($template, [
                 'hackathonTitle' => $hackathon->title,
-                'userName' => 'Тестовый пользователь',
+                'userName' => 'Test User',
                 'userNickname' => 'testuser',
                 'place' => 1,
                 'organizatorNickname' => $hackathon->owner->nickname,
@@ -621,7 +642,7 @@ class HackathonController extends Controller
 
         $pdf = Pdf::loadView('certificate', [
             'hackathonTitle' => $hackathon->title,
-            'userName' => 'Тестовый пользователь',
+            'userName' => 'Test User',
             'userNickname' => 'testuser',
             'place' => 1,
             'organizatorNickname' => $hackathon->owner->nickname,

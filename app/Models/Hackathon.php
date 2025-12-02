@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Translatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,7 +20,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Hackathon extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, Translatable;
 
     protected $fillable = [
         'user_id',
@@ -45,7 +46,11 @@ class Hackathon extends Model implements HasMedia
         'blocked_time',
         'comment',
         'is_finished',
+        'translations',
+        'locale',
     ];
+
+    protected array $translatable = ['title', 'prize_pool'];
 
     public const STATUSES = [self::STATUS_DRAFT, self::STATUS_MODERATION, self::STATUS_PUBLISHED, self::STATUS_BLOCKED];
     public const STATUS_DRAFT = 1;
@@ -70,6 +75,7 @@ class Hackathon extends Model implements HasMedia
         'evaluation_end' => 'datetime',
         'work_time_start' => 'datetime',
         'work_time_end' => 'datetime',
+        'translations' => 'array',
     ];
 
     public function owner(): BelongsTo
@@ -212,8 +218,13 @@ class Hackathon extends Model implements HasMedia
      */
     public function scopeFilter(Builder $query, $request): Builder
     {
-        $query->when($request->q, function ($q, $search) {
-            $q->where('title', 'ILIKE', '%' . $search . '%');
+        $userLocale = app()->getLocale();
+
+        $query->when($request->q, function ($q, $search) use ($userLocale) {
+            $q->where(function ($subQuery) use ($search, $userLocale) {
+                $subQuery->where('title', 'ILIKE', '%' . $search . '%')
+                    ->orWhereRaw("translations->?->>'title' ILIKE ?", [$userLocale, "%{$search}%"]);
+            });
         });
 
         $query->when($request->format, function ($q, $format) {

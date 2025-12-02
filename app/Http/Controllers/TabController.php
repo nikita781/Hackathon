@@ -33,6 +33,8 @@ class TabController extends Controller
         $data = $request->validated();
         $tab = $hackathon->tabs()->with('sections.items')->where('tabs.title', $data['title'])->firstOrFail();
 
+        $locale = app()->getLocale();
+
         $existingSectionIds = [];
         $existingItemIdsBySection = [];
 
@@ -51,11 +53,13 @@ class TabController extends Controller
                     $section->update([
                         'title' => $sectionData['title'],
                         'content' => $sectionData['content'] ?? null,
+                        'locale' => $locale
                     ]);
                 } else {
                     $section = $tab->sections()->create([
                         'title' => $sectionData['title'],
                         'content' => $sectionData['content'] ?? null,
+                        'locale' => $locale
                     ]);
                 }
 
@@ -75,12 +79,14 @@ class TabController extends Controller
                                 $item->update([
                                     'title' => $itemData['title'],
                                     'content' => $itemData['content'] ?? null,
+                                    'locale' => $locale
                                 ]);
                             } else {
 //                              Создание элементов сеции, если не найден елемент по id
                                 $item = $section->items()->create([
                                     'title' => $itemData['title'],
                                     'content' => $itemData['content'] ?? null,
+                                    'locale' => $locale
                                 ]);
                             }
                         } else {
@@ -88,6 +94,7 @@ class TabController extends Controller
                             $item = $section->items()->create([
                                 'title' => $itemData['title'],
                                 'content' => $itemData['content'] ?? null,
+                                'locale' => $locale
                             ]);
                         }
 
@@ -135,7 +142,7 @@ class TabController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Таб успешно обновлен',
+            'message' => __('tab_updated'),
         ]);
     }
 

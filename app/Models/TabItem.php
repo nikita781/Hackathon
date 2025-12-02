@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Translatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,9 +11,18 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class TabItem extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use InteractsWithMedia, Translatable;
 
-    protected $fillable = ['tab_section_id', 'title', 'content'];
+    protected $fillable = [
+        'tab_section_id', 'title', 'content', 'translations', 'locale'
+    ];
+
+    public $translatable = ['title', 'content'];
+
+    protected $casts = [
+        'translations' => 'array',
+        'content' => 'string',
+    ];
 
     public function tabSection(): BelongsTo
     {

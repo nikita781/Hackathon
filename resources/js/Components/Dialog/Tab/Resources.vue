@@ -38,7 +38,25 @@ async function fetchResources() {
         if (props.isEdit) {
             const hackathon = data.tabs.original[1];
 
-            form.sections[0].content = hackathon.sections.find(s => s.title === 'Ресурсы')?.content || '';
+            const lang = langStore.currentLanguage
+            const titlesByLang = {
+                ru: 'Ресурсы',
+                en: 'Resources',
+                es: 'Recursos',
+                zh: '资源',
+                fr: 'Ressources',
+                de: 'Ressourcen',
+                pt: 'Recursos',
+            }
+
+            const targetTitle = titlesByLang[lang] || titlesByLang.ru
+
+            const section =
+                hackathon.sections.find(s => s.title === targetTitle)
+                || hackathon.sections.find(s => s.title === 'Ресурсы')
+                || hackathon.sections.find(s => s.title === 'Resources')
+
+            form.sections[0].content = section?.content || ''
             form.files = hackathon.files
 
             description.value = form.sections[0].content

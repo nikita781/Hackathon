@@ -29,6 +29,8 @@ class AwardsController extends Controller
         }
 
         $data = Arr::except($request->validated(), ['image']);
+        $locale = app()->getLocale();
+        $data['locale'] = $locale;
 
         if (!auth()->user()->hasAnyRole([Role::SUPER_ADMIN, Role::ADMIN])) {
             $data['system'] = false;
@@ -40,7 +42,7 @@ class AwardsController extends Controller
             $award->addMediaFromRequest('image')->toMediaCollection('image');
         }
 
-        return back()->with('award', 'Награда успешно создана');
+        return back()->with('status', __('award_created_success'));
     }
 
     /**
@@ -54,6 +56,8 @@ class AwardsController extends Controller
         }
 
         $data = Arr::except($request->validated(), 'image');
+        $locale = app()->getLocale();
+        $data['locale'] = $locale;
 
         if (!auth()->user()->hasAnyRole([Role::SUPER_ADMIN, Role::ADMIN])) {
             $data['system'] = false;
@@ -68,7 +72,7 @@ class AwardsController extends Controller
             $award->touch();
         }
 
-        return back()->with('award', 'Награда успешно создана');
+        return back()->with('status', __('award_updated_success'));
     }
 
     public function destroy(Hackathon $hackathon, Award $award): RedirectResponse
@@ -78,6 +82,6 @@ class AwardsController extends Controller
         }
         $award->clearMediaCollection('main_image');
         $award->delete();
-        return back()->with('award', 'Награда успешно удалена');
+        return back()->with('status', __('award_deleted_success'));
     }
 }

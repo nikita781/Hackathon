@@ -107,7 +107,7 @@ onMounted(async () => {
             route('hackathons.image', { hackathon: props.hackathonSlug }),
             { responseType: 'blob' }
         )
-        const h = data.hackathon.original
+        const h = data.hackathon
         previewUrl.value = URL.createObjectURL(blob)
 
         form.title             = h.title

@@ -2,15 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CriterionGroup extends Model
 {
+    use Translatable;
+
     protected $fillable = [
-        'hackathon_id', 'title',
+        'hackathon_id', 'title', 'translations', 'locale',
+    ];
+
+    protected array $translatable = ['title'];
+
+    protected $casts = [
+        'translations' => 'array',
     ];
 
     public function hackathon(): BelongsTo

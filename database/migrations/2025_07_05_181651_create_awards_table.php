@@ -32,13 +32,13 @@ return new class extends Migration
             $table->timestamp('awarded_at')->nullable();
         });
 
-        Award::create([
+        Award::forceCreateQuietly([
             'title' => 'Первый хакатон',
             'description' => 'Первый хакатон, в котором вы участвовали',
             'system' => true,
         ]);
 
-        Award::create([
+        Award::forceCreateQuietly([
             'title' => '10-й хакатон',
             'description' => '10-й хакатон, в котором вы участвовали',
             'system' => true,

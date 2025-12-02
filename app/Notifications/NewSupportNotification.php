@@ -28,7 +28,7 @@ class NewSupportNotification extends Notification
         return [
             'support_id' => $this->support->id,
             'type' => $this->support->type,
-            'title' => "Новое обращение",
+            'title' => __('new_ticket_title'),
             'description' => $this->support->messages()->first()?->message,
             'hackathon' => new HackathonResource($this->support->hackathon),
             'send_at' => now()->toDateString(),

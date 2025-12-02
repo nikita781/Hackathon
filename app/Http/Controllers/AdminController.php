@@ -364,6 +364,7 @@ class AdminController extends Controller
 
         $lastTagOrder = Tag::max('order') ?? 0;
         $data['order'] = $lastTagOrder + 1;
+        $data['locale'] = app()->getLocale() ?? 'ru';
 
         Tag::create($data);
 
@@ -379,6 +380,7 @@ class AdminController extends Controller
         ]);
 
         $data['slug'] = Tag::generateUniqueSlug($data['title']);
+        $data['locale'] = app()->getLocale() ?? 'ru';
 
         $tag->update($data);
 

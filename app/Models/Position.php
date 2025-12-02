@@ -9,7 +9,11 @@ class Position extends Model
 {
     public $timestamps = false;
     protected $fillable = [
-        'title',
+        'title', 'translations', 'locale',
+    ];
+
+    protected $casts = [
+        'translations' => 'array',
     ];
 
     public const CAPITAN_POSITION = 1;

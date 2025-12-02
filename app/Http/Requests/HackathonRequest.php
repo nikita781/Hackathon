@@ -40,11 +40,11 @@ class HackathonRequest extends FormRequest
 
                     if ($prizeType === 'cash') {
                         if (!is_numeric($value) || $value > 10000000) {
-                            $fail('Для денежного приза нужно число до 10 000 000.');
+                            $fail(__('validation_prize_pool_cash'));
                         }
                     } elseif ($prizeType === 'non-cash') {
                         if (!is_string($value) || strlen($value) > 255) {
-                            $fail('Для неденежного приза можно до 255 символов текста.');
+                            $fail(__('validation_prize_pool_non_cash'));
                         }
                     }
                 }

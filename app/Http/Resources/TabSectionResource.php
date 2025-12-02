@@ -7,14 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin TabSection */
-class TabSectionResource extends JsonResource
+class TabSectionResource extends TranslatableResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'content' => $this->content,
+            'title' => $this->trans('title'),
+            'content' => $this->trans('content'),
             'items' => TabItemResource::collection($this->whenLoaded('items')),
         ];
     }

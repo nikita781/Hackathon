@@ -129,29 +129,34 @@ const isOrganizer = computed(() => !!props?.can?.support?.answer);
 
 const activePageBlock = computed(() => {
     if (!isOrganizer.value) {
-        // Пользователь без права отвечать: обычные going/completed
         return activeTab.value === 0
             ? supports.value?.going
             : supports.value?.completed;
     }
 
-    // Организатор: две вкладки
     const isOpen = statusFilter.value === 'open';
 
     if (activeTab.value === 0) {
-        // Вкладка «Для меня»
         return isOpen
             ? supports.value?.receivedSupportGoing
             : supports.value?.receivedSupportCompleted;
     } else {
-        // Вкладка «От меня»
         return isOpen
             ? supports.value?.going
             : supports.value?.completed;
     }
 });
 
-const currentList = computed(() => activePageBlock.value?.data ?? []);
+const currentList = computed(() => {
+    const block = activePageBlock.value;
+    if (!block) return [];
+
+    if (Array.isArray(block)) {
+        return block;
+    }
+
+    return block.data ?? [];
+});
 
 function setActiveTab(idx) {
     if (activeTab.value === idx) return;
@@ -167,12 +172,18 @@ const sliderStyle = computed(() => {
     return {left: `${left}px`, width: `${width}px`};
 });
 
-const pageLinks = computed(() =>
-    (activePageBlock.value?.links ?? []).map(l => ({
+const pageLinks = computed(() => {
+    const block = activePageBlock.value;
+
+    if (!block || Array.isArray(block)) {
+        return [];
+    }
+
+    return (block.links ?? []).map(l => ({
         ...l,
-        url: l.url, // или withQ(l.url) если хочешь сохранять таб/фильтр в query
-    }))
-);
+        url: l.url,
+    }));
+});
 
 onMounted(async () => {
     await fetchSupport(Number(new URLSearchParams(location.search).get('page') || '1'))

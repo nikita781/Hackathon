@@ -23,6 +23,8 @@ const isAdmin = computed(() => !!props.admin)
 
 const langStore = useLangStore()
 
+const lang = langStore.currentLanguage;
+
 const form = useForm({
     sections: [
         { title: 'Описание', content: '', items: [] },
@@ -87,8 +89,20 @@ async function fetchHackathon ({
             overviewTabId.value = overviewTab?.id ?? null
 
             if (refreshEditors) {
-                const desc = overviewTab.sections.find(s => s.title === 'Описание')?.content || ''
-                const pln  = overviewTab.sections.find(s => s.title === 'План проведения')?.content || ''
+                const sectionTitles = {
+                    ru: { desc: 'Описание',      plan: 'План проведения' },
+                    en: { desc: 'Description',   plan: 'Event Schedule' },
+                    es: { desc: 'Descripción',   plan: 'Calendario del evento' },
+                    zh: { desc: '描述',          plan: '活动日程' },
+                    fr: { desc: 'Description',   plan: 'Calendrier de l\'événement' },
+                    de: { desc: 'Beschreibung',  plan: 'Veranstaltungsplan' },
+                    pt_PT: { desc: 'Descrição',  plan: 'Programação do Evento' },
+                }
+
+                const titles = sectionTitles[lang] || sectionTitles.ru
+
+                const desc = overviewTab.sections.find(s => s.title === titles.desc)?.content || ''
+                const pln  = overviewTab.sections.find(s => s.title === titles.plan)?.content || ''
 
                 form.sections[0].content = desc
                 form.sections[1].content = pln

@@ -21,8 +21,9 @@ class HackathonFinishedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Хакатон завершён',
-            'description' => "Хакатон «{$this->hackathon->title}» завершился. Вы заняли {$this->place}-е место.",
+            'title' => __('hackathon_finished_title'),
+//            'description' => "Хакатон «{$this->hackathon->title}» завершился. Вы заняли {$this->place}-е место.",
+            'description' => __('hackathon_finished_description',['hackathon_title' => $this->hackathon->title, 'place' => $this->place]),
             'hackathon' => new HackathonResource($this->hackathon),
             'url' => route('hackathons.show', $this->hackathon),
             'send_at' => now()->toDateString(),

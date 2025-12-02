@@ -6,13 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\Role */
-class RoleResource extends JsonResource
+class RoleResource extends TranslatableResource
 {
-    public function toArray(Request $request): array
+    public function toArray(Request $request)
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
+            'title' => $this->trans('title'),
         ];
     }
 }

@@ -31,4 +31,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'yandex' => [
+        'service_account_api' => env('YANDEX_SERVICE_ACCOUNT_API'),
+        'folder_id' => env('YANDEX_FOLDER_ID'),
+
+        'auto_translate' => env('YANDEX_AUTO_TRANSLATE', true),
+        'target_languages' => explode(',', env('YANDEX_TARGET_LANGUAGES', 'ru,en,de,fr,es,zh_CN,pt_PT')),
+        'update_delay' => env('YANDEX_TRANSLATE_UPDATE_DELAY', 300),
+    ],
 ];
