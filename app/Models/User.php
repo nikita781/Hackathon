@@ -85,6 +85,11 @@ class User extends Authenticatable
             ->withPivot('role_id');
     }
 
+    public function requests(): HasMany
+    {
+        return $this->hasMany(HackathonUserRequest::class);
+    }
+
     /**
      * @param  int  $role_id
      * @return bool

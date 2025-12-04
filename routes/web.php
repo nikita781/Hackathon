@@ -142,6 +142,9 @@ Route::middleware('auth')->group(function () {
 
             Route::post('/invite-capitan', [HackathonController::class, 'inviteCapitan'])->name('invite-capitan');
             Route::get('/invite-capitan/{token}', [HackathonController::class, 'acceptInviteCapitan'])->name('accept-invite-capitan');
+
+            Route::post('/accept-user/{hackathonUserRequest}', [HackathonController::class, 'acceptUser'])->name('accept-user');
+            Route::post('/reject-user/{hackathonUserRequest}', [HackathonController::class, 'rejectUser'])->name('reject-user');
         });
     });
 });

@@ -10,14 +10,6 @@ use Illuminate\Validation\Validator;
 
 class HackathonUpdateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     protected function prepareForValidation(): void
     {
         $routeParam = $this->route('hackathon') ?? $this->route('id');
@@ -67,6 +59,7 @@ class HackathonUpdateRequest extends FormRequest
             'image_path' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
             'format' => ['nullable', 'in:online,offline,hybrid'],
             'type' => ['nullable', 'in:individual,team'],
+            'accessibility' => ['nullable', Rule::in(Hackathon::ACCESSES)],
             'min_team_size' => ['exclude_if:type,individual', 'nullable', 'integer', 'min:1', 'lte:max_team_size'],
             'max_team_size' => ['exclude_if:type,individual', 'nullable', 'integer', 'min:1', 'gte:min_team_size'],
             'registration_start' => ['nullable', 'date'],

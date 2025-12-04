@@ -120,6 +120,10 @@ class HackathonPolicy
             return false;
         }
 
+        if ($hackathon->isPrivate()) {
+            return false;
+        }
+
         if ($user->isHackathonStaff($hackathon)) {
             return false;
         }
@@ -222,6 +226,19 @@ class HackathonPolicy
         }
 
         return $user->isAdmin();
+    }
+
+    public function approve(User $user, Hackathon $hackathon): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($hackathon->owner->id === $user->id) {
+            return true;
+        }
+
+        return false;
     }
 
     public function admin(User $user): bool

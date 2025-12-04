@@ -17,6 +17,7 @@ use App\Http\Resources\UserResource;
 use App\Models\Banner;
 use App\Models\Hackathon;
 use App\Models\HackathonInvite;
+use App\Models\HackathonUserRequest;
 use App\Models\Position;
 use App\Models\Project;
 use App\Models\Role;
@@ -26,6 +27,7 @@ use App\Models\Tag;
 use App\Models\TeamInvite;
 use App\Models\User;
 use App\Notifications\InviteNotification;
+use App\Notifications\ModerateNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use DOMDocument;
@@ -226,6 +228,11 @@ class HackathonController extends Controller
                 }]);
             },
             'support.messages.user',
+            'requests' => function ($q) {
+                $q->with(['user' => function ($q) {
+                    $q->orderBy('id');
+                }])->orderBy('id');
+            },
         ]);
 
         $perPageProject = min($request->get('per_page', 6), 10);
@@ -299,6 +306,7 @@ class HackathonController extends Controller
                     'viewSupport' => Gate::check('viewAny', [Support::class, $hackathon]),
                     'is_staff' => $isStaffHackathon,
                     'leave' => Gate::check('leave', $hackathon),
+                    'approve' => Gate::check('approve', $hackathon),
                 ],
                 'team' => [
                     'view' => Gate::check('view', $ownTeam),
@@ -401,6 +409,26 @@ class HackathonController extends Controller
 
         $user = auth()->user();
 
+        if ($hackathon->isModeration()) {
+
+            $reqExist = HackathonUserRequest::query()
+                ->where('hackathon_id', $hackathon->id)
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if ($reqExist) {
+                return back()->with('error', 'Вы уже отправили запрос на вступление, ожидайте'); //TODO: Вынести в перевод
+            }
+
+            HackathonUserRequest::create([
+                'hackathon_id' => $hackathon->id,
+                'user_id' => $user->id,
+                'status' => HackathonUserRequest::STATUS_PENDING,
+            ]);
+
+            return back()->with('status', 'Запрос на вступление отправлен на модерацию'); //TODO: Вынести в перевод
+        }
+
         $user->hackathons()->attach($hackathon->id, ['role_id' => Role::MEMBER]);
 
         $team = $hackathon->teams()->create([
@@ -414,6 +442,71 @@ class HackathonController extends Controller
         return back()->with('status', __('joined_hackathon_success'));
     }
 
+    public function acceptUser(Hackathon $hackathon, int $userRequest): RedirectResponse
+    {
+        Gate::authorize('approve', $hackathon);
+
+        $hackathonUserRequest = HackathonUserRequest::findOrFail($userRequest);
+        $user = $hackathonUserRequest->user;
+
+        if ($hackathonUserRequest->status === HackathonUserRequest::STATUS_REJECT) {
+            return back()->with('error', __("user_already_in_hackathon", ['user_nickname' => $user->nickname]));
+        }
+
+        $user->hackathons()->attach($hackathon->id, ['role_id' => Role::MEMBER]);
+
+        $team = $hackathon->teams()->create([
+            'title' => __('team_title') . " " . $user->nickname
+        ]);
+
+        $user->teams()->syncWithoutDetaching([
+            $team->id => ['position_id' => Position::CAPITAN_POSITION]
+        ]);
+
+        $hackathonUserRequest->update([
+            'status' => HackathonUserRequest::STATUS_ACCEPT,
+        ]);
+
+        $user->notify(new ModerateNotification([
+            'status' => 'accept',
+            'description' => "",
+            'title' => __('joined_hackathon_success'),
+            'send_at' => now()->toDateString(),
+            'hackathon' => $hackathon,
+            'project' => null,
+        ]));
+
+        return back()->with('status', 'Пользователь успешно принят на хакатон');
+    }
+
+    public function rejectUser(Hackathon $hackathon, int $userRequest): RedirectResponse
+    {
+        Gate::authorize('approve', $hackathon);
+
+        $hackathonUserRequest = HackathonUserRequest::findOrFail($userRequest);
+
+        if ($hackathonUserRequest->status === HackathonUserRequest::STATUS_REJECT) {
+            return back()->with('error', "Пользователь уже получил отказ"); //TODO: добавить в перевод
+        }
+
+        $user = $hackathonUserRequest->user;
+
+        $hackathonUserRequest->update([
+            'status' => HackathonUserRequest::STATUS_REJECT,
+        ]);
+
+        $user->notify(new ModerateNotification([
+            'status' => 'rejected',
+            'description' => "",
+            'title' => "Вам отказали во вступлении в хакатон", //TODO: добавить в перевод
+            'send_at' => now()->toDateString(),
+            'hackathon' => $hackathon,
+            'project' => null,
+        ]));
+
+        return back()->with('status', 'Пользователю успешно отказано в приеме на хакатон'); //TODO: добавить в перевод
+    }
+
     public function leaveHackathon(Hackathon $hackathon): RedirectResponse
     {
         if (!Gate::check('leave', $hackathon)) {
@@ -424,7 +517,7 @@ class HackathonController extends Controller
 
         $this->detachUserFromHackathon($user, $hackathon);
 
-        return back()->with('status', 'Вы покинули хакатон');
+        return back()->with('status', 'Вы покинули хакатон'); //TODO: добавить в перевод
     }
 
     public function kickUser(Request $request, Hackathon $hackathon): RedirectResponse
@@ -438,12 +531,12 @@ class HackathonController extends Controller
         $user = User::find($data['user_id']);
 
         if (!$hackathon->users()->where('role_id', Role::MEMBER)->where('user_id', $user->id)->exists()) {
-            return back()->with('error', 'Пользователь не участвует в хакатоне');
+            return back()->with('error', 'Пользователь не участвует в хакатоне'); //TODO: добавить в перевод
         }
 
         $this->detachUserFromHackathon($user, $hackathon);
 
-        return back()->with('status', 'Пользователь удален с хакатона успешно');
+        return back()->with('status', __('user_kicked_success'));
     }
 
     private function detachUserFromHackathon(User $user, Hackathon $hackathon): void
@@ -564,7 +657,7 @@ class HackathonController extends Controller
         return back()->with('status', __('hackathon_finished'));
     }
 
-    public function inviteCapitan(Request $request, Hackathon $hackathon)
+    public function inviteCapitan(Request $request, Hackathon $hackathon): \Illuminate\Http\Response
     {
         Gate::authorize('update', $hackathon);
 

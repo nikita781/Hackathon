@@ -48,6 +48,7 @@ class Hackathon extends Model implements HasMedia
         'is_finished',
         'translations',
         'locale',
+        'accessibility',
     ];
 
     protected array $translatable = ['title', 'prize_pool'];
@@ -57,6 +58,11 @@ class Hackathon extends Model implements HasMedia
     public const STATUS_MODERATION = 2;
     public const STATUS_PUBLISHED = 3;
     public const STATUS_BLOCKED = 4;
+
+    public const ACCESSES = [self::ACCESS_PUBLIC, self::ACCESS_MODERATION, self::ACCESS_PRIVATE];
+    public const ACCESS_PUBLIC = 1;
+    public const ACCESS_MODERATION = 2;
+    public const ACCESS_PRIVATE = 3;
 
     /**
      * @return string
@@ -94,6 +100,11 @@ class Hackathon extends Model implements HasMedia
             ->whereHas('hackathon', fn($q) => $q->where('id', $this->id))
             ->with(['projects', 'teamUsers.user', 'teamUsers.position'])
             ->first();
+    }
+
+    public function requests(): HasMany
+    {
+        return $this->hasMany(HackathonUserRequest::class);
     }
 
     public function allProjects(): HasManyThrough
@@ -211,6 +222,21 @@ class Hackathon extends Model implements HasMedia
         return $team?->place;
     }
 
+    public function isPublic(): bool
+    {
+        return $this->accessibility === self::ACCESS_PUBLIC;
+    }
+
+    public function isModeration(): bool
+    {
+        return $this->accessibility === self::ACCESS_MODERATION;
+    }
+
+    public function isPrivate(): bool
+    {
+        return $this->accessibility === self::ACCESS_PRIVATE;
+    }
+
     /**
      * @param  Builder  $query
      * @param $request
@@ -235,6 +261,11 @@ class Hackathon extends Model implements HasMedia
         $query->when($request->type, function ($q, $type) {
             $types = is_array($type) ? $type : explode(',', $type);
             $q->whereIn('type', $types);
+        });
+
+        $query->when($request->accessibility, function ($q, $accessibility) {
+            $accessibilities = is_array($accessibility) ? $accessibility : explode(',', $accessibility);
+            $q->whereIn('accessibility', $accessibilities);
         });
 
         $query->when($request->status, function ($q, $status) {
@@ -288,6 +319,11 @@ class Hackathon extends Model implements HasMedia
         $query->when($request->status, function ($q, $status) {
             $status = is_array($status) ? $status : explode(',', $status);
             $q->whereIn('status', $status);
+        });
+
+        $query->when($request->accessibility, function ($q, $accessibility) {
+            $accessibilities = is_array($accessibility) ? $accessibility : explode(',', $accessibility);
+            $q->whereIn('accessibility', $accessibilities);
         });
 
         $query->when($request->order, function ($q, $order) {
