@@ -37,7 +37,7 @@ async function submitAppeal() {
     errorMsg.value = '';
     backendErrors.value = {};
     if (!textAppeal.value.trim()) {
-        errorMsg.value = 'Введите текст обращения';
+        errorMsg.value = capitalizeFirstLetter((langStore.translations.enterRequestText));
         return;
     }
 
@@ -136,7 +136,7 @@ const sortOptions = computed(() => [
                     @click="submitAppeal"
                     :disabled="isDisabled"
                 >
-                    {{ pending ? 'Отправка…' : capitalizeFirstLetter(langStore.translations.send) }}
+                    {{ pending ? `${capitalizeFirstLetter(langStore.translations.submission)}…` : capitalizeFirstLetter(langStore.translations.send) }}
                 </button>
             </div>
         </div>

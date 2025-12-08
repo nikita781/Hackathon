@@ -28,7 +28,10 @@ async function fetchHackathon () {
             route('hackathons.show', { hackathon: props.hackathonSlug }),
             { headers: { Accept: 'application/json' } }
         )
-        awards.value = data.hackathon.original.awards
+        const hackathonPayload = data.hackathon?.original ?? data.hackathon ?? {}
+
+        const rawAwards = hackathonPayload.awards ?? []
+        awards.value = Array.isArray(rawAwards) ? rawAwards : []
         // console.log(awards.value)
         // await nextTick()
         // loaded.value = true
@@ -121,7 +124,7 @@ function capitalizeFirstLetter(str) {
                     </svg>
                     <div class="tooltipSquare"></div>
                     <div class="tooltip">
-                        <p>Это блок достижений, получаемых после завершения хакатона</p>
+                        <p>{{ capitalizeFirstLetter(langStore.translations.achievements_block_desc) }}</p>
                     </div>
                 </div>
             </div>
@@ -158,7 +161,7 @@ function capitalizeFirstLetter(str) {
                     </svg>
                     <div class="tooltipSquare"></div>
                     <div class="tooltip">
-                        <p>Это блок достижений, получаемых после завершения хакатона</p>
+                        <p>{{ capitalizeFirstLetter(langStore.translations.achievements_block_desc) }}</p>
                     </div>
                 </div>
             </div>
@@ -198,7 +201,7 @@ function capitalizeFirstLetter(str) {
 
     <ConfirmDialog
         v-model="showDoneDlg"
-        text="Вы закончили?"
+        :text="capitalizeFirstLetter(langStore.translations.are_you_done)"
         @confirm="confirmDone"
         @cancel="showDoneDlg = false"
     />

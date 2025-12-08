@@ -56,7 +56,6 @@ const list = ref([])
 watch(
     () => props.managers,
     v => {
-        // локальная копия менеджеров (без мутации props)
         list.value = Array.isArray(v) ? v.map(x => ({ ...x })) : []
     },
     { immediate: true, deep: true }
@@ -90,7 +89,6 @@ async function removeUser () {
 
 watch(() => props.modelValue, async (v) => { if (v) await getRoles() })
 
-/* ---------- Сохранение ролей (POST + _method: 'patch') ---------- */
 const pendingSave = ref(false)
 const disabledSave = computed(() =>
     pendingSave.value ||
@@ -102,7 +100,6 @@ async function save () {
     if (disabledSave.value) return
     pendingSave.value = true
 
-    // backend ждёт: { staff: [ { user_id, role_id }, ... ] }
     const payload = {
         _method: 'patch',
         staff: list.value.map(u => ({
@@ -221,5 +218,5 @@ const roleOptions = computed(() =>
 </template>
 
 <style scoped>
-/* при необходимости */
+
 </style>

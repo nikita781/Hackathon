@@ -149,7 +149,7 @@ watch(() => langStore.translations,
             capitalizeFirstLetter(langStore.translations.contacts),
             capitalizeFirstLetter(langStore.translations.evaluation),
             tCert(langStore.translations),
-            'Достижения',
+            capitalizeFirstLetter(langStore.translations.achievements),
         ];
     }
 )
@@ -171,7 +171,7 @@ onMounted(async () => {
         capitalizeFirstLetter(langStore.translations.contacts),
         capitalizeFirstLetter(langStore.translations.evaluation),
         tCert(langStore.translations),
-        'Достижения',
+        capitalizeFirstLetter(langStore.translations.achievements),
     ];
     initMode()
 });
@@ -234,7 +234,7 @@ onMounted(async () => {
     </div>
     <ConfirmDialog
         v-model="showLeaveDlg"
-        text="Внесённые изменения не сохранены. Всё-таки перейти на другую вкладку?"
+        :text="capitalizeFirstLetter(langStore.translations.unsaved_changes_warning)"
         @confirm="confirmLeave"
         @cancel="cancelLeave"
     />
@@ -246,30 +246,27 @@ onMounted(async () => {
     inset: 0;
 }
 
-/* контейнер модалки теперь референсная область для абсолютного оверлея */
 .dialog__container {
     position: relative;
 }
 
-/* Блюрим и блокируем ТОЛЬКО контент модалки */
 .dialog__inner.is-saving {
     filter: blur(3px);
     user-select: none;
     pointer-events: none;
 }
 
-/* Оверлей в рамках модалки */
 .dialog__saving-overlay {
-    position: absolute;   /* <— не fixed */
+    position: absolute;
     inset: 0;
-    z-index: 10;          /* достаточно больше, чем содержимое */
+    z-index: 10;
     display: grid;
     place-items: center;
     height: 100%;
     background: rgba(255, 255, 255, 0.55);
     backdrop-filter: blur(2px);
-    border-radius: inherit;  /* повторяет скругление модалки */
-    pointer-events: all;     /* гасим клики */
+    border-radius: inherit;
+    pointer-events: all;
 }
 
 .dialog__saving-spinner {

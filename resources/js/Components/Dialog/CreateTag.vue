@@ -2,13 +2,13 @@
 import { computed, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { useToast } from 'vue-toastification'
-import IconsCheck from '@/Components/Icons/Check.vue' // если не нужен — можно удалить импорт
+import IconsCheck from '@/Components/Icons/Check.vue'
 
 const toast = useToast()
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
-    tag: { type: Object, default: null }, // null => создание; объект => редактирование
+    tag: { type: Object, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'saved'])
 
@@ -34,7 +34,6 @@ watch(
     () => props.modelValue,
     (open) => {
         if (!open) return
-        // при открытии — заполнить/очистить форму
         nameTag.value = props.tag?.title ?? ''
         errors.value = {}
     }
@@ -51,7 +50,7 @@ function submit () {
             position: 'top-right',
             timeout: 4000,
         })
-        emit('saved')        // родитель может отреагировать
+        emit('saved')
         emit('update:modelValue', false)
     }
     const onError = (err) => {

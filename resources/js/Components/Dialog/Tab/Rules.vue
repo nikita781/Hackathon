@@ -240,7 +240,7 @@ onMounted(async () => {
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это блок правил мероприятия</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.rules_block) }}</p>
                 </div>
             </div>
         </div>
@@ -260,7 +260,7 @@ onMounted(async () => {
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это блок для добавления файлов и дальнейшего скачивания на вкладке Правила</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.rules_files_block) }}</p>
                 </div>
             </div>
         </div>

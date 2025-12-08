@@ -75,20 +75,15 @@ function onTaskEndBlur() {
 const DATE_FIELDS = ['registration_end', 'event_start', 'event_end'];
 
 function localDateTimeToUtcISO(localStr) {
-    // Ожидаем строку формата "YYYY-MM-DDTHH:mm" (datetime-local)
     if (!localStr) return '';
-    // Надёжно парсим как ЛОКАЛЬНОЕ время, без двусмысленностей разных браузеров:
     const [datePart, timePart] = localStr.split('T');
     if (!datePart || !timePart) return '';
 
     const [y, m, d] = datePart.split('-').map(Number);
     const [hh, mm]  = timePart.split(':').map(Number);
 
-    // Создаём Date в ЛОКАЛЬНОЙ зоне пользователя:
     const local = new Date(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0);
 
-    // Возвращаем UTC ISO 8601 (с Z). Например, "2025-09-22T10:00" (Берлин, UTC+2)
-    // превратится в "2025-09-22T08:00:00.000Z".
     return isNaN(local.getTime()) ? '' : local.toISOString();
 }
 
@@ -165,14 +160,13 @@ async function save () {
 
 const participationType = ref('Командный');
 const presentType = ref('Денежный приз');
-const selectedDirections = ref([]); // Массив для хранения выбранных направлений
+const selectedDirections = ref([]);
 const toggleDropdown = ref(false);
 
 const directions = props.allTags
 
 const toggleDropdownVisibility = () => { toggleDropdown.value = !toggleDropdown.value }
 
-// Функция для выбора направления
 const selectDirection = (tag) => {
     const idx = selectedDirections.value.findIndex(t => t.id === tag.id)
     idx === -1
@@ -297,7 +291,7 @@ const sortOptions3 = computed(() => [
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это название мероприятия, отображаемое на карточке и странице хакатона</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.event_title_hint) }}</p>
                 </div>
             </div>
         </div>
@@ -378,14 +372,14 @@ const sortOptions3 = computed(() => [
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это теги мероприятия, помогающие его поиску</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.event_tags_hint) }}</p>
                 </div>
             </div>
         </div>
         <div class="custom-container" ref="rootRef">
             <div class="custom-select" @click="toggleDropdownVisibility">
                 <div class="selected-option">
-                    <span class="dialog__tag_placeholder" v-if="!selectedDirections.length">{{ selectedDirections.length > 0 ? '' : 'Выберите направления' }}</span>
+                    <span class="dialog__tag_placeholder" v-if="!selectedDirections.length">{{ selectedDirections.length > 0 ? '' : capitalizeFirstLetter(langStore.translations.select_directions) }}</span>
                     <div class="dialog__tags" v-if="selectedDirections.length > 0">
                         <div v-for="(direction, index) in selectedDirections" :key="index" class="dialog__tag" @click="removeDirection(direction, $event)">
                             <span>{{ direction.title }}</span>
@@ -414,7 +408,7 @@ const sortOptions3 = computed(() => [
                     <span v-if="selectedDirections.includes(option)" class="selected-mark">✔</span>
                 </div>
                 <div v-if="selectedDirections.length > 0" class="clear-selection" @click="clearSelection">
-                    <span>Очистить</span>
+                    <span>{{ capitalizeFirstLetter(langStore.translations.clear) }}</span>
                 </div>
             </div>
         </div>
@@ -430,8 +424,8 @@ const sortOptions3 = computed(() => [
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это дата, по истечению которой, прекратиться прием участников на мероприятие</p>
-                    <p>Стартовая дата наступит в момент публикации мероприятия</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.registration_until_hint) }}</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.start_date_note) }}</p>
                 </div>
             </div>
         </div>
@@ -457,7 +451,7 @@ const sortOptions3 = computed(() => [
                     </svg>
                     <div class="tooltipSquare"></div>
                     <div class="tooltip">
-                        <p>Это интервал дат мероприятия, включающий в себя решение задания и оценку проектов</p>
+                        <p>{{ capitalizeFirstLetter(langStore.translations.event_date_range_hint) }}</p>
                     </div>
                 </div>
             </div>
@@ -469,7 +463,7 @@ const sortOptions3 = computed(() => [
                         type="datetime-local"
                         class="dialog__input"
                         style="width: 100%"
-                        placeholder="Кол-во"
+                        :placeholder="capitalizeFirstLetter(langStore.translations.count_short)"
                         :class="{ 'error': form.errors.event_start }"
                         @input="clearFieldError('event_start')"
                         @blur="onEventStartBlur"
@@ -482,7 +476,7 @@ const sortOptions3 = computed(() => [
                         type="datetime-local"
                         class="dialog__input"
                         style="width: 100%"
-                        placeholder="Кол-во"
+                        :placeholder="capitalizeFirstLetter(langStore.translations.count_short)"
                         :class="{ 'error': form.errors.event_end }"
                         @input="clearFieldError('event_end')"
                         @blur="onEventEndBlur"
@@ -508,7 +502,7 @@ const sortOptions3 = computed(() => [
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это интервал дат, в который участник (команда) может отправить свое решение на проверку</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.submission_date_range_hint) }}</p>
                 </div>
             </div>
         </div>
@@ -552,7 +546,7 @@ const sortOptions3 = computed(() => [
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это интервал дат, в который судьи оценивают работы участников</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.judging_date_range_hint) }}</p>
                 </div>
             </div>
         </div>
@@ -618,8 +612,8 @@ const sortOptions3 = computed(() => [
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это картинка для карточки хакатона и страницы мероприятия</p>
-                    <p>JPG/PNG, до 5 МБ</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.event_image_hint) }}</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.event_image_limits) }}</p>
                 </div>
             </div>
         </div>

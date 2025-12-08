@@ -134,7 +134,7 @@ function capitalizeFirstLetter(str) {
             <div class="dialog__inner" :class="{ 'is-saving': saving }">
                 <div class="dialog__header">
                     <p>{{
-                            props.initial ? 'Редактировать группу критериев' : capitalizeFirstLetter(langStore.translations.addCriteriaGroup)
+                            props.initial ? capitalizeFirstLetter(langStore.translations.edit_criteria_group) : capitalizeFirstLetter(langStore.translations.addCriteriaGroup)
                         }}</p>
                     <div class="dialog__close" @click="close">
                         <svg width="13" height="12" viewBox="0 0 13 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -190,7 +190,7 @@ function capitalizeFirstLetter(str) {
                         {{ capitalizeFirstLetter(langStore.translations.cansel) }}
                     </button>
                     <button class="main__btn dialog__btn" @click="submit">{{
-                            props.initial ? 'Изменить' : 'Добавить'
+                            props.initial ? capitalizeFirstLetter(langStore.translations.update) : capitalizeFirstLetter(langStore.translations.add)
                         }}
                     </button>
                 </div>
@@ -205,19 +205,16 @@ function capitalizeFirstLetter(str) {
     inset: 0;
 }
 
-/* контейнер как область для абсолютного оверлея */
 .dialog__container {
     position: relative;
 }
 
-/* блюрим и блокируем ТОЛЬКО контент модалки */
 .dialog__inner.is-saving {
     filter: blur(3px);
     user-select: none;
     pointer-events: none;
 }
 
-/* оверлей внутри модалки */
 .dialog__saving-overlay {
     position: absolute;
     inset: 0;
@@ -227,7 +224,7 @@ function capitalizeFirstLetter(str) {
     background: rgba(255, 255, 255, 0.55);
     backdrop-filter: blur(2px);
     border-radius: inherit;
-    pointer-events: all; /* гасим клики */
+    pointer-events: all;
 }
 
 .dialog__saving-spinner {

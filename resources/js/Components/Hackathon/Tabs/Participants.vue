@@ -14,21 +14,18 @@ const props = defineProps({
 
 const langStore = useLangStore()
 
-// UI
 const search  = ref('')
 const sort    = ref('dateD')
 const perPage = ref(8)
 
-// ВАЖНО: одиночный выбор
 const selected = reactive({
-    team  : null,        // 'yes' | 'no' | null
-    status: null,        // 'draft' | 'published' | null
+    team  : null,
+    status: null,
 })
 function toggle(group, value) {
     selected[group] = selected[group] === value ? null : value
 }
 
-// Данные
 const loading = ref(false)
 const error   = ref('')
 const count   = ref(0)
@@ -69,7 +66,6 @@ function onPaginationClick(e) {
     fetchTeams(page)
 }
 
-// Фильтры (подписи любые — важны value)
 const filterGroups = ref([
     {
         name: 'team',
@@ -94,7 +90,6 @@ function mapSort(v) {
     return allowedOrders.has(v) ? v : undefined
 }
 
-// сортировка -> значение order как ждёт бэк
 function mapOrderToSort(v) {
     switch (v) {
         case 'dateA':  return 'dateA'
@@ -107,7 +102,6 @@ function mapOrderToSort(v) {
 
 function readQueryIntoState() {
     const sp = new URLSearchParams(window.location.search)
-    // page читаем отдельно при fetch
     const q  = sp.get('q') ?? ''
     const ord = sp.get('order') ?? 'dateD'
     const team = sp.get('team')
@@ -121,17 +115,16 @@ function readQueryIntoState() {
     perPage.value = pp
 }
 
-// query для бэка
 function buildParams(page = 1) {
     const order = mapSort(sort.value)
     const params = {
         page,
         per_page: perPage.value,
-        order,                      // <-- имя параметра
+        order,
     }
     if (search.value.trim()) params.q = search.value.trim()
-    if (selected.team)   params.team   = selected.team     // <-- одно значение
-    if (selected.status) params.status = selected.status   // <-- одно значение
+    if (selected.team)   params.team   = selected.team
+    if (selected.status) params.status = selected.status
     return params
 }
 
@@ -198,7 +191,6 @@ async function fetchTeams(page = 1) {
     }
 }
 
-// пагинация (axios)
 function extractPage(url) {
     if (!url) return null
     try {
@@ -233,7 +225,6 @@ function membersOf(team) {
     return cap ? list.filter(u => u !== cap) : list
 }
 
-// авто-запросы
 let t
 watch(search, () => { clearTimeout(t); t = setTimeout(() => fetchTeams(1), 400) })
 watch([sort, () => selected.team, () => selected.status], () => fetchTeams(1))
@@ -249,7 +240,6 @@ onMounted(async () => {
 })
 
 function pageBaseHref() {
-    // текущий путь страницы (вкладка/хакатон), без query
     return window.location.pathname
 }
 
@@ -264,7 +254,6 @@ function buildPageQuery(page) {
 }
 
 function toPageLinks(metaLinks, current, last) {
-    // Если meta.links — массив от Laravel, пересобираем URL на базу страницы
     if (Array.isArray(metaLinks) && metaLinks.length) {
         return metaLinks.map(l => {
             const p = extractPage(l.url)
@@ -274,7 +263,6 @@ function toPageLinks(metaLinks, current, last) {
             }
         })
     }
-    // Fallback: сгенерировать вручную
     const base = pageBaseHref()
     const links = []
     links.push({ url: current > 1 ? `${base}?${buildPageQuery(current - 1)}` : null, label: '&laquo; Previous', active: false })
@@ -300,7 +288,6 @@ function saveBlob(blob, filename) {
 
 function getFilenameFromDisposition(disposition, fallback) {
     if (!disposition) return fallback
-    // filename*=UTF-8''name.xlsx   или   filename="name.xlsx"
     const mStar = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(disposition)
     if (mStar?.[1]) return decodeURIComponent(mStar[1])
     const m = /filename\s*=\s*"?([^";]+)"?/i.exec(disposition)
@@ -320,7 +307,7 @@ async function finishHackathon() {
         const filename = getFilenameFromDisposition(headers['content-disposition'], fallbackName)
 
         saveBlob(blob, filename)
-        useToast().success('Выгрузка участников начата, файл скачан.')
+        useToast().success(capitalizeFirstLetter(langStore.translations.participants_export_started))
     } catch (e) {
         console.error('download-users', e?.response ?? e)
         useToast().error(e?.response?.data?.message || 'Не удалось выгрузить участников.')
@@ -453,7 +440,6 @@ const sortOptions = computed(() => [
                         >
                             <p class="hackathon__participants_title">{{ team.title ?? team.name }}</p>
 
-                            <!-- Капитан (ищем по position.name/slug/id) -->
                             <template v-if="captainOf(team)">
                                 <div class="hackathon__my-project__list_item">
                                     <div class="hackathon__my-project__list_container">
@@ -464,9 +450,8 @@ const sortOptions = computed(() => [
                                 </div>
                             </template>
 
-                            <!-- Остальные участники -->
                             <div class="hackathon__participants_team" v-if="(team.users?.length ?? 0) > 0">
-                                <p class="hackathon__participants_text" style="margin-bottom: unset">Команда</p>
+                                <p class="hackathon__participants_text" style="margin-bottom: unset">{{ capitalizeFirstLetter(langStore.translations.team_title) }}</p>
 
                                 <div
                                     v-for="m in membersOf(team)"

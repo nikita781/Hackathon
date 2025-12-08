@@ -33,12 +33,9 @@ async function fetchProject () {
                 project:   props.project.slug,
             })
         );
-        // сервер возвращает { project: ... }
         loadedProject.value = data.project;
     } catch (e) {
         console.error('project-fetch', e?.response ?? e);
-        // по желанию: показать тост
-        // const toast = useToast(); toast.error('Не удалось загрузить проект');
     } finally {
         loadingProject.value = false;
     }
@@ -67,7 +64,7 @@ async function getPreview() {
 onMounted(async () => {
     await nextTick();
     previewUrl.value = null;
-    await Promise.all([ fetchProject(), getPreview() ]); // <-- загружаем проект при входе
+    await Promise.all([ fetchProject(), getPreview() ]);
 });
 
 watch(() => props.project, async () => {
@@ -186,7 +183,7 @@ onMounted(async () => {
                     :disabled="disabled"
                     @click="publishProject"
             >
-                <span v-if="pending">Отправка…</span>
+                <span v-if="pending">{{ capitalizeFirstLetter(langStore.translations.submission) }}…</span>
                 <span v-else>{{ capitalizeFirstLetter(langStore.translations.send) }}</span>
             </button>
             <button class="main__btn main__btn_white dialog__btn" @click="cancel">

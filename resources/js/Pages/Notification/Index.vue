@@ -91,28 +91,22 @@ function capitalizeFirstLetter(str) {
 const isNonEmptyStr = v => typeof v === 'string' && v.trim().length > 0
 
 function getNotificationImage(n) {
-    // 1) Для приглашений — фиксированная картинка
     if (n?.notification_type === 'InviteNotification') {
         return '/krasnyi-konvert-s-priglasit-karty.jpg'
     }
 
-    // 2) Приоритет — картинка хакатона, если она есть и не пустая
     const hackImg = n?.hackathon?.image_path
-    // console.log(n)
     if (hackImg) {
         return hackImg
     }
 
-    // 3) Затем превью проекта, если можем его корректно построить
     if (n?.project?.slug && n?.project?.hackathon?.slug) {
         const preview = getPreviewProject(n.project)
-        // Если getPreviewProject вернул свою заглушку '/project.jpg', используем общий фолбэк
         if (preview && preview !== '/project.jpg') {
             return preview
         }
     }
 
-    // 4) Общий фолбэк
     return '/test.jpg'
 }
 

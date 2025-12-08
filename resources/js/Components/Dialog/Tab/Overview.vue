@@ -85,7 +85,8 @@ async function fetchHackathon ({
 
         if (props.isEdit) {
             const overviewTab = data.tabs.original[0]
-            const h = data.hackathon.original
+            const h = data.hackathon?.original ?? data.hackathon
+            console.log(data)
             overviewTabId.value = overviewTab?.id ?? null
 
             if (refreshEditors) {
@@ -115,13 +116,30 @@ async function fetchHackathon ({
             }
         }
 
+        // console.log(data)
+        //
+        // if (refreshNominations) {
+        //     const raw = data.hackathon.original.nominations || data.hackathon.nominations || []
+        //     nominations.value = raw.map(n => ({
+        //         ...n,
+        //             distribution: Array.isArray(n.distribution) ? n.distribution : (n.distribution && typeof n.distribution === 'object' ? Object.values(n.distribution).sort((a,b)=>(a.place??0)-(b.place??0))
+        //                     : [])
+        //         }))
+        // }
+
+        const hackathonPayload = data.hackathon?.original ?? data.hackathon ?? {}
+
         if (refreshNominations) {
-            const raw = data.hackathon.original.nominations || []
+            const raw = hackathonPayload.nominations || []
+
             nominations.value = raw.map(n => ({
                 ...n,
-                    distribution: Array.isArray(n.distribution) ? n.distribution : (n.distribution && typeof n.distribution === 'object' ? Object.values(n.distribution).sort((a,b)=>(a.place??0)-(b.place??0))
-                            : [])
-                }))
+                distribution: Array.isArray(n.distribution)
+                    ? n.distribution
+                    : (n.distribution && typeof n.distribution === 'object'
+                        ? Object.values(n.distribution).sort((a, b) => (a.place ?? 0) - (b.place ?? 0))
+                        : [])
+            }))
         }
 
         await nextTick()
@@ -201,7 +219,6 @@ watch(
 
 function pad2(n) { return String(n).padStart(2, '0') }
 
-/** "2025-10-01T10:00" (локаль) → "2025-10-01T08:00:00.000Z" (UTC) */
 function localDateTimeToUtcISO(localStr) {
     if (!localStr) return ''
     const [datePart, timePart] = localStr.split('T')
@@ -212,10 +229,8 @@ function localDateTimeToUtcISO(localStr) {
     return isNaN(local.getTime()) ? '' : local.toISOString()
 }
 
-/** Приводим всё, что похоже на UTC без суффикса, к ISO с Z */
 function normalizeToIsoZ(s) {
     const t = s.trim()
-    // "YYYY-MM-DD HH:mm[:ss[.ms]]" или "YYYY-MM-DDTHH:mm[:ss[.ms]]"
     const re = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/
     if (re.test(t) && !/[zZ]|[+\-]\d{2}:\d{2}$/.test(t)) {
         return t.replace(' ', 'T') + 'Z'
@@ -223,7 +238,6 @@ function normalizeToIsoZ(s) {
     return t
 }
 
-/** "2025-10-01T08:00:00Z" (UTC) → "2025-10-01T10:00" (локаль для <input type="datetime-local">) */
 function utcToLocalInputValue(utcStr) {
     if (!utcStr) return ''
     const d = new Date(normalizeToIsoZ(utcStr))
@@ -364,7 +378,7 @@ onMounted(async () => {
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это блок описания мероприятия, отображаемый на главной вкладке хакатона Обзор</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.overview_description_block) }}</p>
                 </div>
             </div>
         </div>
@@ -383,7 +397,7 @@ onMounted(async () => {
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это блок о плане проведения мероприятия, отображаемый на главной вкладке хакатона Обзор</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.overview_plan_block) }}</p>
                 </div>
             </div>
         </div>
@@ -403,7 +417,7 @@ onMounted(async () => {
                     </svg>
                     <div class="tooltipSquare"></div>
                     <div class="tooltip">
-                        <p>Это блок, подразделяющий призовой фонд по номинациям и местам</p>
+                        <p>{{ capitalizeFirstLetter(langStore.translations.prize_distribution_block) }}</p>
                     </div>
                 </div>
             </div>
@@ -449,8 +463,8 @@ onMounted(async () => {
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это блок для добавление картинок партнеров</p>
-                    <p>JPG/PNG, до 5 МБ</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.partners_block) }}</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.event_image_limits) }}</p>
                 </div>
             </div>
         </div>

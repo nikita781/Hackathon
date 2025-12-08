@@ -7,7 +7,6 @@ const props = defineProps({
     modelValue: Boolean,
     hackathon: { type: Object, required: true },
     projectId: { type: [String, Number], required: true },
-    // массив оценок проекта с сервера (если есть)
     existingEvaluations: { type: Array, default: () => [] },
 });
 const emit = defineEmits(["update:modelValue"]);
@@ -26,7 +25,6 @@ const hover = reactive({});
 
 const evaluations = reactive({});
 
-// Функция для установки оценки
 function setEvaluation(criterionId, score) {
     evaluations[criterionId] = score;
 }
@@ -34,9 +32,7 @@ function setEvaluation(criterionId, score) {
 console.log(props.hackathon.criteria_groups)
 
 function prefillFromExisting() {
-    // сначала очищаем
     Object.keys(evaluations).forEach(k => delete evaluations[k]);
-    // потом вносим имеющиеся (если есть)
     (props.existingEvaluations || []).forEach(ev => {
         const cid   = ev?.criterion?.id ?? ev?.criterion_id ?? ev?.criterionId
         const score = ev?.score
@@ -46,7 +42,6 @@ function prefillFromExisting() {
     })
 }
 
-// Функция для отправки оценки на сервер
 async function submitEvaluation() {
     try {
         const response = await axios.post(route('hackathons.projects.rate', {
@@ -54,7 +49,7 @@ async function submitEvaluation() {
             project: props.projectId
         }), {
             evaluations: Object.keys(evaluations).map(key => ({
-                criterion_id: key,  // Теперь передаем criterion_id
+                criterion_id: key,
                 score: evaluations[key]
             }))
         });
@@ -65,7 +60,6 @@ async function submitEvaluation() {
     }
 }
 
-// Для наведения мыши
 function setHover(key, n) {
     hover[key] = n
 }
@@ -85,13 +79,11 @@ onMounted(async () => {
     await langStore.fetchTranslations()
 });
 
-// Если модалку закрыли извне (родитель выставил modelValue=false) — тоже чистим
 watch(() => props.modelValue, (val, oldVal) => {
-    if (val && !oldVal) prefillFromExisting(); // открыли — предзаполняем
-    if (!val && oldVal) resetState();          // закрыли — чистим
+    if (val && !oldVal) prefillFromExisting();
+    if (!val && oldVal) resetState();
 });
 
-// При открытии другого проекта/хакатона сбрасываем прежние оценки
 watch(() => [props.projectId, props.hackathon.slug], () => {
     if (props.modelValue) prefillFromExisting();
     else resetState();
@@ -149,6 +141,6 @@ watch(() => props.existingEvaluations, () => {
 <style scoped>
 .active {
     font-weight: bold;
-    color: #E80024; /* Вы можете настроить цвет по своему усмотрению */
+    color: #E80024;
 }
 </style>

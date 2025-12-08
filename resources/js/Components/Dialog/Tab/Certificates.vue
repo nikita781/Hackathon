@@ -56,7 +56,7 @@ async function uploadTemplate() {
     }
 
     if (!file.value) {
-        form.setError('template', 'Загрузите файл шаблона (.html)')
+        form.setError('template', capitalizeFirstLetter(langStore.translations.upload_template_file))
         return
     }
     pending.value = true
@@ -110,7 +110,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
 <template>
     <div class="certs">
         <button class="main__btn" @click="showInfo = true" style="width: fit-content">
-            Инструкция
+            {{ capitalizeFirstLetter(langStore.translations.instruction) }}
         </button>
         <div class="dialog__title_header">
             <div class="dialog__title_container">
@@ -143,7 +143,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
 
         <div class="dialog__component" style="width: 100%">
             <div class="dialog__title_container">
-                <p class="dialog__title">Высота и ширина</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.height_width) }}</p>
                 <div class="help-tt" aria-label="help">
                     <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10" stroke="#000" />
@@ -152,7 +152,9 @@ onMounted(async () => { await langStore.fetchTranslations() })
                     </svg>
                     <div class="tooltipSquare"></div>
                     <div class="tooltip">
-                        <p>Укажите размеры сертификата в миллиметрах (50–1000 мм). Поля необязательны, но при заполнении одного — второе обязательно.</p>
+                        <p>{{
+                                capitalizeFirstLetter(langStore.translations.certificate_dimensions_hint)
+                            }}</p>
                     </div>
                 </div>
             </div>
@@ -163,7 +165,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
                     type="number"
                     class="dialog__input"
                     style="width: 100%"
-                    placeholder="Высота (мм)"
+                    :placeholder="capitalizeFirstLetter(langStore.translations.height_mm)"
                     min="50"
                     max="1000"
                     step="1"
@@ -176,7 +178,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
                     type="number"
                     class="dialog__input"
                     style="width: 100%"
-                    placeholder="Ширина (мм)"
+                    :placeholder="capitalizeFirstLetter(langStore.translations.width_mm)"
                     min="50"
                     max="1000"
                     step="1"

@@ -20,7 +20,7 @@ function capitalizeFirstLetter(str) {
             <div class="footer__header">
                 <div class="footer__header_info">
                     <p class="footer__header_title">{{capitalizeFirstLetter(langStore.translations.privacy_policy)}}</p>
-                    <p class="footer__header_text">ООО «ЦТБ» ИНН 9723191459</p>
+                    <p class="footer__header_text">{{ capitalizeFirstLetter(langStore.translations.company_ctb_info) }}</p>
                 </div>
                 <div class="footer__header_logo">
                     <div class="footer__header_social">

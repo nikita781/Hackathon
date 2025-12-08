@@ -43,11 +43,6 @@ function close() {
 async function submitAppeal() {
     errorMsg.value = '';
     backendErrors.value = {};
-    // console.log(props.message.id)
-    // if (!textAppeal.value.trim()) {
-    //     errorMsg.value = 'Введите текст обращения';
-    //     return;
-    // }
 
     try {
         pending.value = true;
@@ -90,7 +85,7 @@ onMounted(async () => {
     <div v-if="modelValue" class="dialog" style="z-index:2">
         <div class="dialog__container dialog__container_small" @click.stop>
             <div class="dialog__header">
-                <p v-if="message.messages[1] || !props.can">Ответ</p>
+                <p v-if="message.messages[1] || !props.can">{{ capitalizeFirstLetter(langStore.translations.reply) }}</p>
                 <p v-else>{{ capitalizeFirstLetter(langStore.translations.write_reply) }}</p>
                 <div class="dialog__close" @click="close"><svg width="13" height="12" viewBox="0 0 13 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -101,7 +96,7 @@ onMounted(async () => {
             </div>
 <!--            <pre>{{message}}</pre>-->
             <div class="dialog__component">
-                <p class="message-type" v-if="message.type === 'bug'">Сообщение об ошибке</p>
+                <p class="message-type" v-if="message.type === 'bug'">{{ capitalizeFirstLetter(langStore.translations.error_message) }}</p>
                 <p class="message-type" v-if="message.type === 'suggestion'">{{ capitalizeFirstLetter(langStore.translations.suggestion) }}</p>
                 <p class="message-type" v-if="message.type === 'question'">{{ capitalizeFirstLetter(langStore.translations.question) }}</p>
             </div>
@@ -145,7 +140,7 @@ onMounted(async () => {
                     @click="submitAppeal"
                     :disabled="isDisabled"
                 >
-                    {{ pending ? 'Отправка…' : capitalizeFirstLetter(langStore.translations.send) }}
+                    {{ pending ? `${capitalizeFirstLetter(langStore.translations.submission)}…` : capitalizeFirstLetter(langStore.translations.send) }}
                 </button>
             </div>
         </div>

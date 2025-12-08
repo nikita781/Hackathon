@@ -72,7 +72,7 @@ onMounted(async () => {
                     @click="send"
                     :disabled="pending"
                 >
-                    {{ pending ? 'Отправка...' : capitalizeFirstLetter(langStore.translations.send) }}
+                    {{ pending ? `${capitalizeFirstLetter(langStore.translations.submission)}...` : capitalizeFirstLetter(langStore.translations.send) }}
                 </button>
             </div>
         </div>

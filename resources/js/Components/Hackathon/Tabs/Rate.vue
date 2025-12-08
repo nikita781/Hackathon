@@ -55,9 +55,6 @@ const getReadonlyScore = (criterion) => {
 let abortCtrl = null
 let searchTimer = null
 
-// --- ТАБЫ «Оценить / Оценено» ---
-// 0 = Оценить (еще не оцененные) → rated=no
-// 1 = Оценено (уже оцененные)    → rated=yes
 const activeTab = ref(0)
 function setActiveTab (idx) {
     if (activeTab.value === idx) return
@@ -65,7 +62,6 @@ function setActiveTab (idx) {
     fetchGallery(1)
 }
 
-// Анимация слайдера как в примере my-hackathons
 const tabsRef = ref([])
 const sliderStyle = ref({})
 function recalcSlider () {
@@ -111,7 +107,6 @@ const buildParams = (pageNum = 1) => {
     const params = {
         page    : pageNum,
         per_page: perPage.value,
-        // фильтр по табу
         rated   : activeTab.value === 0 ? 'no' : 'yes',
     }
     if (q) {
@@ -236,12 +231,10 @@ watch(search, () => {
     searchTimer = setTimeout(() => fetchGallery(1), 400)
 })
 
-// При смене таба — перерисовываем слайдер
 watch(activeTab, () => {
     recalcSlider()
 })
 
-// Когда обновляются переводы (может поменяться ширина текста табов) — пересчитать слайдер
 watch(
     () => langStore.translations,
     () => recalcSlider(),
@@ -490,7 +483,6 @@ const sortOptions = computed(() => [
             <div class="hackathon__tab_container">
                 <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.evaluate_projects) }}</p>
 
-                <!-- Табы с анимированным слайдером -->
                 <div class="my-hackathon__tabs">
                     <p
                         :class="['my-hackathon__tabs_item',{active:activeTab===0}]"
@@ -633,7 +625,7 @@ const sortOptions = computed(() => [
                         :href="img.url"
                         class="hackathon__oneProject_gallery-item"
                         target="_blank" rel="noopener noreferrer"
-                        title="Открыть в новой вкладке"
+                        :title="capitalizeFirstLetter(langStore.translations.open_in_new_tab)"
                     >
                         <img :src="img.url" :alt="img.name || 'Изображение проекта'">
                     </a>
@@ -669,7 +661,7 @@ const sortOptions = computed(() => [
             </div>
 
             <div class="hackathon__tab_container" v-if="groupCriteries?.length">
-                <p class="hackathon__my-project__title">Итоговая оценка</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.final_score) }}</p>
                 <div v-for="group in groupCriteries" :key="group.id" class="dialog__prize">
                     <div class="dialog__eva_container">
                         <p class="dialog__eva">{{ group.title }}</p>

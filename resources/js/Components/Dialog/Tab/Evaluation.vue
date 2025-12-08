@@ -65,7 +65,6 @@ function onSaved () {
     fetchData({ refreshDates: false })
 }
 
-/* ===== ЗАГРУЗКА: подхватываем даты из таба "Оценка" ===== */
 const fetchData = async ({ refreshDates = true } = {}) => {
     if (!props.hackathonSlug) return
     try{
@@ -74,8 +73,7 @@ const fetchData = async ({ refreshDates = true } = {}) => {
             { headers:{Accept:'application/json'} }
         )
 
-        // группы критериев (как и было)
-        groups.value = data?.hackathon?.original?.criteria_groups ?? []
+        groups.value = data?.hackathon?.original?.criteria_groups || data?.hackathon?.criteria_groups || []
 
         await nextTick()
         loaded.value = true
@@ -123,7 +121,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
                     </svg>
                     <div class="tooltipSquare"></div>
                     <div class="tooltip">
-                        <p>Это блок для добавления критериев оценки проектов мероприятия</p>
+                        <p>{{ capitalizeFirstLetter(langStore.translations.criteria_block_desc) }}</p>
                     </div>
                 </div>
             </div>
@@ -167,5 +165,4 @@ onMounted(async () => { await langStore.fetchTranslations() })
 </template>
 
 <style scoped>
-/* твои стили */
 </style>

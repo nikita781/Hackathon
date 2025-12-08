@@ -132,6 +132,10 @@ async function openMenu() {
     isOpen.value = true
     await nextTick()
     updateMenuPosition()
+    requestAnimationFrame(() => {
+        if (!isOpen.value) return
+        updateMenuPosition()
+    })
 }
 
 function onScrollOrResize(e) {

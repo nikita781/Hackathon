@@ -141,7 +141,6 @@ async function save () {
             fd.append(`sections[${si}][content]`, content)
         })
 
-        /* файлы */
         resourcesFiles.value.forEach(f => {
             if (f instanceof File) fd.append('files[]', f)
         })
@@ -149,7 +148,6 @@ async function save () {
 
         fd.append('_method', 'PATCH')
 
-        /* запрос */
         await axios.post(
             route('hackathons.tabs.update', { hackathon: props.hackathonSlug }),
             fd,
@@ -239,7 +237,7 @@ onMounted(async () => {
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это блок задания мероприятия, отображаемый на хакатона Ресурсы</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.resources_task_block) }}</p>
                 </div>
             </div>
         </div>
@@ -259,7 +257,7 @@ onMounted(async () => {
                 </svg>
                 <div class="tooltipSquare"></div>
                 <div class="tooltip">
-                    <p>Это блок для добавления файлов и дальнейшего скачивания на вкладке Ресурсы</p>
+                    <p>{{ capitalizeFirstLetter(langStore.translations.resources_files_block) }}</p>
                 </div>
             </div>
         </div>

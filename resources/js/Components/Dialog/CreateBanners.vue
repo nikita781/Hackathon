@@ -1,4 +1,3 @@
-<!-- resources/js/Components/Dialog/CreateBanners.vue (диалог добавления/редактирования) -->
 <script setup>
 import { computed, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
@@ -9,7 +8,7 @@ const toast = useToast();
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
-    banner: { type: Object, default: null }, // null => создание; объект => редактирование
+    banner: { type: Object, default: null },
 });
 const emit = defineEmits(["update:modelValue", "saved"]);
 
@@ -20,7 +19,7 @@ const errors = ref({});
 const isEdit = computed(() => !!props.banner);
 const title = computed(() => (isEdit.value ? "Изменить баннер" : "Добавить баннер"));
 const submitLabel = computed(() => (isEdit.value ? "Сохранить" : "Добавить"));
-const disabled = computed(() => pending.value || !image.value); // картинка обязательна и при create, и при update
+const disabled = computed(() => pending.value || !image.value);
 
 function close() {
     if (pending.value) return;
@@ -31,7 +30,6 @@ watch(
     () => props.modelValue,
     (open) => {
         if (!open) return;
-        // при открытии — показать текущий превью, если редактирование
         image.value = props.banner
             ? route('banners.image', { banner: props.banner.id })
             : null;
@@ -45,7 +43,6 @@ function submit() {
     errors.value = {};
 
     const data = {
-        // важно: поле должно называться 'image', т.к. так ждёт бекэнд
         image: image.value,
         _method: isEdit.value ? "patch" : undefined,
     };

@@ -191,11 +191,6 @@ async function submit() {
         for (const file of newGalleryFiles.value) {
             if (file instanceof File) fd.append('gallery[]', file)
         }
-        // Если есть удалённые медиафайлы, передаём их
-        // if (deletedMediaIds.value.length) {
-        //     fd.append('delete_media_ids', deletedMediaIds.value); // передаем массив удалённых файлов
-        //     console.log(deletedMediaIds.value)
-        // }
         if (deletedMediaIds.value.length) {
             deletedMediaIds.value.forEach(id => {
                 fd.append('delete_media_ids[]', id);
@@ -260,7 +255,7 @@ onMounted(async () => {
                 download
                 :title="serverPresentationFilename || 'presentation.pptx'"
             >
-                Скачать
+                {{ capitalizeFirstLetter(langStore.translations.download) }}
             </a>
             <DropPPTX :key="pptxKey" v-model:file="pptx" />
             <span v-if="errors.presentation" class="error__text">{{ errors.presentation[0] }}</span>
@@ -271,7 +266,7 @@ onMounted(async () => {
                 style="width: fit-content"
                 @click="clearLocalPptx"
             >
-                Очистить файл
+                {{ capitalizeFirstLetter(langStore.translations.clear_file) }}
             </button>
             <button
                 v-if="canDeleteServer"
@@ -281,7 +276,7 @@ onMounted(async () => {
                 :disabled="pending || pendingDeleteServer"
                 @click="deleteServerPresentation"
             >
-                Удалить презентацию
+                {{ capitalizeFirstLetter(langStore.translations.delete_presentation) }}
             </button>
         </div>
         <div class="dialog__component">
@@ -313,7 +308,7 @@ onMounted(async () => {
                 :aria-busy="pending"
                 @click.prevent="submit"
             >
-                {{ pending ? 'Отправка…' : capitalizeFirstLetter(langStore.translations.next) }}
+                {{ pending ? `${capitalizeFirstLetter(langStore.translations.submission)}…` : capitalizeFirstLetter(langStore.translations.next) }}
             </button>
             <button class="main__btn main__btn_white dialog__btn" :disabled="pending" @click="cancel">
                 {{ capitalizeFirstLetter(langStore.translations.cansel) }}

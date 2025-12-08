@@ -50,24 +50,20 @@ function onPagerClick(e) {
     const root = pagerWrap.value
     if (!root) return
 
-    // Ищем ближайшую ссылку
     const a = e.target.closest('a')
     if (!a || !root.contains(a)) return
 
-    // игнор модификаторов/не левой кнопки
     if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return
 
     const href = a.getAttribute('href') || a.href
     const page = extractPage(href)
     if (!page) return
 
-    // ВАЖНО: отменяем и гасим всплытие до Inertia
     e.preventDefault()
     e.stopPropagation()
 
     fetchSupport(page)
 
-    // Поддержим адресную строку
     const url = new URL(window.location.href)
     url.searchParams.set('page', String(page))
     window.history.replaceState({}, '', url)
@@ -92,17 +88,13 @@ const statusFilter = ref('open');
 
 const currentBucketKey = computed(() => {
     if (!isOrganizer.value) {
-        // без права отвечать: вкладки — going / completed
         return activeTab.value === 0 ? 'going' : 'completed';
     }
-    // организатор: вкладки «Для меня» / «От меня»
     if (activeTab.value === 0) {
-        // Для меня
         return statusFilter.value === 'open'
             ? 'receivedSupportGoing'
             : 'receivedSupportCompleted';
     } else {
-        // От меня
         return statusFilter.value === 'open' ? 'going' : 'completed';
     }
 });
@@ -258,12 +250,12 @@ watch([activeTab, statusFilter], () => fetchSupport(1))
                         @click="openAnswer(s)"
                         style="cursor: pointer"
                     >
-                        <p class="hackathon__support_title">Обращение {{ idx + 1 }}</p>
+                        <p class="hackathon__support_title">{{ capitalizeFirstLetter(langStore.translations.request) }} {{ idx + 1 }}</p>
                         <p class="hackathon__contact_links-item">{{ TYPE_LABEL[s.type] ?? s.type }}</p>
                     </div>
                 </template>
                 <p v-else class="hackathon__support_title" style="opacity:.7; margin-top:12px">
-                    Здесь пока пусто
+                    {{ capitalizeFirstLetter(langStore.translations.empty_here) }}
                 </p>
 
                 <div ref="pagerWrap" @click.capture="onPagerClick" style="margin-top: 30px">

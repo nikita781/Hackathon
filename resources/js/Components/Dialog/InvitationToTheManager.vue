@@ -6,13 +6,11 @@ import {useLangStore} from "@/store/lang.js";
 import {useToast} from "vue-toastification";
 import CustomSelect from "@/Components/CustomSelect.vue";
 
-// props
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
-    hackathon:  { type: Object,  required: true },  // нужен slug
+    hackathon:  { type: Object,  required: true },
 });
 
-// ui
 const emit = defineEmits(["update:modelValue"]);
 const close = () => emit("update:modelValue", false);
 
@@ -22,7 +20,6 @@ const { copy, copied } = useClipboard();
 
 const toast = useToast();
 
-// поле «пригласить по ID»
 const userIds = ref([{ user_id: "", role_id: null }]);
 const rowErrors = ref({})
 const pending = ref(false)
@@ -70,12 +67,10 @@ async function doLookup(i, q) {
     }
 }
 
-// роли подтягиваем один раз при открытии
 async function getRoles() {
     try {
         const { data } = await axios.get(route("roles"));
         rolesResp.value = data ?? { roles: [] };
-        // если в первой строке не выбрана роль — выставим первую из списка
         if (rolesResp.value?.roles?.length && userIds.value[0] && !userIds.value[0].role_id) {
             userIds.value[0].role_id = rolesResp.value.roles[0].id;
         }
@@ -84,7 +79,6 @@ async function getRoles() {
     }
 }
 
-// ссылка (на дефолтную роль, как сейчас на бэке)
 async function getLink() {
     inviteLink.value = "";
     try {
@@ -97,7 +91,6 @@ async function getLink() {
     }
 }
 
-// при открытии модалки
 watch(
     () => props.modelValue,
     async (v) => {
@@ -125,7 +118,7 @@ const inviteBtnDisabled = computed(() => pending.value || hasForbidden.value)
 
 const inviteUsers = async () => {
     if (hasForbidden.value) {
-        toast.error('Некоторых пользователей нельзя пригласить — см. подсказки под полями.')
+        toast.error(capitalizeFirstLetter(langStore.translations.some_users_cannot_be_invited))
         return
     }
     try {
@@ -155,7 +148,7 @@ const inviteUsers = async () => {
             payload
         );
 
-        toast.success("Приглашение отправлено", {
+        toast.success(capitalizeFirstLetter(langStore.translations.invitation_sent), {
             position: 'top-right',
             timeout: 5000,
         });
@@ -303,7 +296,7 @@ const roleOptions = computed(() =>
                 <small v-if="rowErrors[index]" class="error__text">{{ rowErrors[index] }}</small>
                 <div v-if="lookups[index]?.touched" class="dialog__hint" style="margin-top:6px">
                     <template v-if="lookups[index].loading">
-                        Ищем…
+                        {{ capitalizeFirstLetter(langStore.translations.searching) }}
                     </template>
 
                     <template v-else-if="lookups[index].found">
@@ -318,8 +311,8 @@ const roleOptions = computed(() =>
                                 <div>
                                     <b>@{{ lookups[index].user.nickname }}</b>
                                     (ID {{ lookups[index].user.id }})
-                                    <span v-if="lookups[index].canInvite" class="found-user__ok"> — можно пригласить</span>
-                                    <span v-else class="error__text"> — нельзя пригласить</span>
+                                    <span v-if="lookups[index].canInvite" class="found-user__ok"> — {{ langStore.translations.can_invite }}</span>
+                                    <span v-else class="error__text"> — {{ langStore.translations.cannot_invite }}</span>
                                 </div>
                                 <ul
                                     v-if="!lookups[index].canInvite && lookups[index].errors?.length"
@@ -333,7 +326,7 @@ const roleOptions = computed(() =>
                     </template>
 
                     <template v-else>
-                        <p class="error__text">Пользователь не найден</p>
+                        <p class="error__text">{{ capitalizeFirstLetter(langStore.translations.user_not_found) }}</p>
                     </template>
                 </div>
             </div>
@@ -357,7 +350,7 @@ const roleOptions = computed(() =>
                     :disabled="inviteBtnDisabled"
                     @click="inviteUsers"
                 >
-                    {{ hasForbidden ? 'Нельзя пригласить' : capitalizeFirstLetter(langStore.translations.invite) }}
+                    {{ hasForbidden ? capitalizeFirstLetter(langStore.translations.cannot_invite) : capitalizeFirstLetter(langStore.translations.invite) }}
                 </button>
             </div>
         </div>
@@ -365,7 +358,6 @@ const roleOptions = computed(() =>
 </template>
 
 <style scoped>
-/* при желании — мелкие доработки UI */
 .dialog__hint {
     font-size: 12px;
 }

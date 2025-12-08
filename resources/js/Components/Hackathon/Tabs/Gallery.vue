@@ -8,7 +8,7 @@ import axios from 'axios'
 import Pagination from '@/Components/Pagination.vue'
 import CustomSelect from "@/Components/CustomSelect.vue";
 
-const rawLinks = ref([]) // что пришло с бэка (meta.links)
+const rawLinks = ref([])
 const pageLinks = computed(() =>
     (rawLinks.value || []).map(l => ({
         ...l,
@@ -146,7 +146,6 @@ function onPagerClick (e) {
 const getReadonlyScore = (criterion) => {
     const arr = Array.isArray(criterion?.evaluations) ? criterion.evaluations : []
     if (!arr.length) return 0
-    // если несколько оценок — усредняем и округляем
     const avg = arr.reduce((s, e) => s + Number(e?.score || 0), 0) / arr.length
     return Math.round(avg)
 }
@@ -262,7 +261,7 @@ function goNext () { if (canNext.value) fetchGallery(page.value + 1) }
 function goPage (p) { if (p >= 1 && p <= lastPage.value) fetchGallery(p) }
 
 const pagesWindow = computed(() => {
-    const W = 2 // по 2 с каждой стороны
+    const W = 2
     const cur = page.value
     const last = lastPage.value
     const start = Math.max(1, cur - W)
@@ -520,7 +519,7 @@ const sortOptions = computed(() => [
                         :href="img.url"
                         class="hackathon__oneProject_gallery-item"
                         target="_blank" rel="noopener noreferrer"
-                        title="Открыть в новой вкладке"
+                        :title="capitalizeFirstLetter(langStore.translations.open_in_new_tab)"
                     >
                         <img :src="img.url" :alt="img.name || 'Изображение проекта'">
                     </a>
@@ -558,7 +557,7 @@ const sortOptions = computed(() => [
             </div>
 
             <div class="hackathon__tab_container" v-if="groupCriteries">
-                <p class="hackathon__my-project__title">Итоговая оценка</p>
+                <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.final_score) }}</p>
 
                 <div v-for="group in groupCriteries" :key="group.id" class="dialog__prize">
                     <div class="dialog__eva_container">

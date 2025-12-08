@@ -148,7 +148,7 @@ function imgFallback(e) {
                 <div class="header__main">
                     <div class="header__content">
                         <a v-if="isAuthenticated" :href="isAdminOrMainAdmin ? '/admin/users' : '/my-hackathons'" class="header__link" :class="{ active: isActiveMyHackathons }">
-                            {{ isAdminOrMainAdmin ? 'Админ панель' : langStore.translations.my_hackathons }}
+                            {{ isAdminOrMainAdmin ? capitalizeFirstLetter(langStore.translations.admin_panel) : langStore.translations.my_hackathons }}
                         </a>
                         <div class="header__btns" v-else>
                             <a @click="showLogin = true" class="main__btn">{{ langStore.translations.Login }}</a>

@@ -220,7 +220,7 @@ onMounted(async () => {
                 :aria-busy="pending"
                 @click.prevent="submit"
             >
-                {{ pending ? 'Отправка…' : capitalizeFirstLetter(langStore.translations.next) }}
+                {{ pending ? `${capitalizeFirstLetter(langStore.translations.submission)}…` : capitalizeFirstLetter(langStore.translations.next) }}
             </button>
             <button class="main__btn main__btn_white dialog__btn" :disabled="pending" @click="cancel">
                 {{ capitalizeFirstLetter(langStore.translations.cancel) }}

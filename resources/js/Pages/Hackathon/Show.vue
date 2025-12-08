@@ -156,13 +156,12 @@ function acceptHackathon() {
 
     axios.post(route('admin.moderation.hackathonsaccept', { hackathon: props.hackathon.slug }), { comment: '' })
         .then(() => {
-            toast.success('Хакатон принят и опубликован', { position: 'top-right', timeout: 5000 })
-            // подтянуть свежие данные только для нужных пропсов
+            toast.success(capitalizeFirstLetter(langStore.translations.hackathon_published), { position: 'top-right', timeout: 5000 })
             router.reload({only: ['hackathon', 'can', 'tabs']});
         })
         .catch((error) => {
             console.error('Ошибка при принятии хакатона:', error)
-            toast.error('Не удалось принять хакатон', { position: 'top-right', timeout: 5000 })
+            toast.error(capitalizeFirstLetter(langStore.translations.hackathon_publish_failed), { position: 'top-right', timeout: 5000 })
         })
 }
 
@@ -229,7 +228,7 @@ async function downloadProtokol() {
         const filename = getFilenameFromDisposition(headers['content-disposition'], fallback)
 
         saveBlob(blob, filename)
-        toast.success('Отчёт скачан.', { position: 'top-right', timeout: 5000 })
+        toast.success(capitalizeFirstLetter(langStore.translations.report_downloaded), { position: 'top-right', timeout: 5000 })
     } catch (e) {
         console.error('download-report', e?.response ?? e)
         toast.error(e?.response?.data?.message || 'Не удалось выгрузить отчёт.', {
@@ -242,7 +241,7 @@ async function downloadProtokol() {
 
 const withCacheBust = (url, ver) => {
     if (!url) return url
-    const v = ver ? new Date(ver).getTime() : Date.now() // updated_at → таймстамп
+    const v = ver ? new Date(ver).getTime() : Date.now()
     return url + (url.includes('?') ? '&' : '?') + 'v=' + v
 }
 
@@ -257,15 +256,14 @@ async function finishHackathon() {
     try {
         finishing.value = true
         await axios.post(route('hackathons.finish', { hackathon: props.hackathon.slug }))
-        // показываем тост и подтягиваем свежие пропсы
-        toast.success(`Хакатон "${props.hackathon.slug}" завершён`, {
+        toast.success(capitalizeFirstLetter(langStore.translations.hackathon_finished_title), {
             position: 'top-right',
             timeout: 5000,
         })
         router.reload({ only: ['hackathon', 'can', 'tabs', 'flash'] })
     } catch (e) {
         console.error('finish-hackathon', e?.response ?? e)
-        toast.error('Сейчас хакатон нельзя завершить', {
+        toast.error(capitalizeFirstLetter(langStore.translations.cannot_finish_hackathon), {
             position: 'top-right',
             timeout: 5000,
         })
@@ -344,7 +342,7 @@ async function finishHackathon() {
                                         </svg>
                                         <div class="tooltipSquare"></div>
                                         <div class="tooltip">
-                                            <p>Даты проведения хакатона</p>
+                                            <p>{{ capitalizeFirstLetter(langStore.translations.hackathon_dates) }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -356,7 +354,7 @@ async function finishHackathon() {
                                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#1f1f1f"><path d="m384-336 56-57-87-87 87-87-56-57-144 144 144 144Zm192 0 144-144-144-144-56 57 87 87-87 87 56 57ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/></svg>
                                         <div class="tooltipSquare"></div>
                                         <div class="tooltip">
-                                            <p>Даты выполнения задания хакатона</p>
+                                            <p>{{ capitalizeFirstLetter(langStore.translations.hackathon_task_dates) }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -368,7 +366,7 @@ async function finishHackathon() {
                                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#1f1f1f"><path d="M824-80 716-188q-22 13-46 20.5t-50 7.5q-75 0-127.5-52.5T440-340q0-75 52.5-127.5T620-520q75 0 127.5 52.5T800-340q0 26-7.5 50T772-244l108 108-56 56ZM620-240q42 0 71-29t29-71q0-42-29-71t-71-29q-42 0-71 29t-29 71q0 42 29 71t71 29Zm220-320h-80v-200h-80v120H280v-120h-80v560h200v80H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v200ZM480-760q17 0 28.5-11.5T520-800q0-17-11.5-28.5T480-840q-17 0-28.5 11.5T440-800q0 17 11.5 28.5T480-760Z"/></svg>
                                         <div class="tooltipSquare"></div>
                                         <div class="tooltip">
-                                            <p>Даты выставления оценок проектов</p>
+                                            <p>{{ capitalizeFirstLetter(langStore.translations.hackathon_judging_dates) }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -429,7 +427,7 @@ async function finishHackathon() {
                                     @click="acceptHackathon"
                                     v-if="props.can.hackathon.moderate && props.hackathon.status === 2"
                                 >
-                                    Принять
+                                    {{ capitalizeFirstLetter(langStore.translations.accept) }}
                                 </button>
                                 <button
                                     type="button"
@@ -437,14 +435,14 @@ async function finishHackathon() {
                                     v-if="props.can.hackathon.moderate && props.hackathon.status === 2"
                                     @click="showRejectHackathon = true"
                                 >
-                                    Отклонить
+                                    {{ capitalizeFirstLetter(langStore.translations.decline) }}
                                 </button>
                                 <button
                                     type="button"
                                     class="main__btn hackathon__btn blocked"
                                     v-if="props.can.hackathon.moderate && props.hackathon.status === 4"
                                 >
-                                    Отклонен
+                                    {{ capitalizeFirstLetter(langStore.translations.rejected) }}
                                 </button>
                                 <button
                                     type="button"
@@ -452,7 +450,7 @@ async function finishHackathon() {
                                     v-if="props.can.hackathon.moderate && props.hackathon.status === 3"
                                     disabled
                                 >
-                                    Принят
+                                    {{ capitalizeFirstLetter(langStore.translations.approved) }}
                                 </button>
                                 <button
                                     v-if="props.can.hackathon.downloadProtocol"
@@ -461,7 +459,7 @@ async function finishHackathon() {
                                     @click="downloadProtokol"
                                     :disabled="syncing"
                                 >
-                                    {{ syncing ? 'Выгружаем…' : 'Выгрузить отчёт' }}
+                                    {{ syncing ? capitalizeFirstLetter(langStore.translations.exporting) : capitalizeFirstLetter(langStore.translations.export_report) }}
                                 </button>
                                 <button
                                     type="button"
@@ -470,7 +468,7 @@ async function finishHackathon() {
                                     @click="finishHackathon"
                                     :disabled="finishing"
                                 >
-                                    {{ finishing ? 'Завершаем…' : 'Завершить хакатон' }}
+                                    {{ finishing ? capitalizeFirstLetter(langStore.translations.finishing) : capitalizeFirstLetter(langStore.translations.finish_hackathon) }}
                                 </button>
                             </div>
                             <TakePart
@@ -513,7 +511,7 @@ async function finishHackathon() {
                 <svg @click="openMenu" class="hackathon__menu_container-phone-svg" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#1f1f1f"><path d="M440-120v-240h80v80h320v80H520v80h-80Zm-320-80v-80h240v80H120Zm160-160v-80H120v-80h160v-80h80v240h-80Zm160-80v-80h400v80H440Zm160-160v-240h80v80h160v80H680v80h-80Zm-480-80v-80h400v80H120Z"/></svg>
                 <div v-if="menuVisible" class="slide-out-menu red">
                     <div class="menu-header">
-                        <h3>Вкладки</h3>
+                        <h3>{{ capitalizeFirstLetter(langStore.translations.tabs) }}</h3>
                         <svg @click="closeMenu" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M9.40994 7.99994L15.7099 1.70994C15.8982 1.52164 16.004 1.26624 16.004 0.999941C16.004 0.73364 15.8982 0.478245 15.7099 0.289941C15.5216 0.101638 15.2662 -0.00415039 14.9999 -0.00415039C14.7336 -0.00415039 14.4782 0.101638 14.2899 0.289941L7.99994 6.58994L1.70994 0.289941C1.52164 0.101638 1.26624 -0.00415015 0.999939 -0.00415015C0.733637 -0.00415015 0.478243 0.101638 0.289939 0.289941C0.101635 0.478245 -0.00415253 0.73364 -0.00415254 0.999941C-0.00415254 1.26624 0.101635 1.52164 0.289939 1.70994L6.58994 7.99994L0.289939 14.2899C0.196211 14.3829 0.121816 14.4935 0.0710478 14.6154C0.0202791 14.7372 -0.00585938 14.8679 -0.00585938 14.9999C-0.00585938 15.132 0.0202791 15.2627 0.0710478 15.3845C0.121816 15.5064 0.196211 15.617 0.289939 15.7099C0.382902 15.8037 0.493503 15.8781 0.615362 15.9288C0.737221 15.9796 0.867927 16.0057 0.999939 16.0057C1.13195 16.0057 1.26266 15.9796 1.38452 15.9288C1.50638 15.8781 1.61698 15.8037 1.70994 15.7099L7.99994 9.40994L14.2899 15.7099C14.3829 15.8037 14.4935 15.8781 14.6154 15.9288C14.7372 15.9796 14.8679 16.0057 14.9999 16.0057C15.132 16.0057 15.2627 15.9796 15.3845 15.9288C15.5064 15.8781 15.617 15.8037 15.7099 15.7099C15.8037 15.617 15.8781 15.5064 15.9288 15.3845C15.9796 15.2627 16.0057 15.132 16.0057 14.9999C16.0057 14.8679 15.9796 14.7372 15.9288 14.6154C15.8781 14.4935 15.8037 14.3829 15.7099 14.2899L9.40994 7.99994Z" fill="#171717"/>
                         </svg>

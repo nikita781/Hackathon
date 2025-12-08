@@ -249,7 +249,7 @@ onMounted(async () => {
                    :href="img.url"
                    class="hackathon__oneProject_gallery-item"
                    target="_blank" rel="noopener noreferrer"
-                   title="Открыть в новой вкладке"
+                   :title="capitalizeFirstLetter(langStore.translations.open_in_new_tab)"
                 ><img :src="img.url" :alt="img.name || 'Изображение проекта'">
                 </a>
             </div>
@@ -279,7 +279,7 @@ onMounted(async () => {
             </div>
         </div>
         <div class="hackathon__tab_container" v-if="groupCriteries?.length">
-            <p class="hackathon__my-project__title">Итоговая оценка</p>
+            <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.final_score) }}</p>
             <div v-for="group in groupCriteries" :key="group.id" class="dialog__prize">
                 <div class="dialog__eva_container"><p class="dialog__eva">{{ group.title }}</p>
                 </div>
@@ -320,10 +320,10 @@ onMounted(async () => {
                     <div class="hackathon__my-project__item_header">
                         <img :src="previews[project.slug]" v-if="previews[project.slug]" alt="">
                         <div class="skeleton-loader" v-if="!previews[project.slug]"></div>
-                        <p class="main__card_photo-status black" v-if="project.status === 1">Черновик</p>
-                        <p class="main__card_photo-status yellow" v-if="project.status === 2">На рассмотрении</p>
-                        <p class="main__card_photo-status red" v-else-if="project.status === 4">Отклонен</p>
-                        <p class="main__card_photo-status green" v-else-if="project.status === 3">Принят</p>
+                        <p class="main__card_photo-status black" v-if="project.status === 1">{{ capitalizeFirstLetter(langStore.translations.draft) }}</p>
+                        <p class="main__card_photo-status yellow" v-if="project.status === 2">{{ capitalizeFirstLetter(langStore.translations.pending) }}</p>
+                        <p class="main__card_photo-status red" v-else-if="project.status === 4">{{ capitalizeFirstLetter(langStore.translations.rejected) }}</p>
+                        <p class="main__card_photo-status green" v-else-if="project.status === 3">{{ capitalizeFirstLetter(langStore.translations.approved) }}</p>
                         <button
                             type="button"
                             class="main__btn_main hackathon__my-project__team_svg"

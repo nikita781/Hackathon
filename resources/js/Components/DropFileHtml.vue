@@ -39,14 +39,14 @@ function validHtml(file) {
     return (byMime || byExt) && under2Mb
 }
 
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 function handleFiles(files) {
     if (!files?.length) return
     const file = files[0]
-
-    if (!validHtml(file)) {
-        alert('Допустим только .html до 2 МБ')
-        return
-    }
 
     revoke()
     fileName.value = file.name
@@ -58,11 +58,6 @@ function onDrop(e)  { e.preventDefault(); dragging.value = false; handleFiles(e.
 function onDrag(e)  { e.preventDefault(); dragging.value = e.type === 'dragenter' || e.type === 'dragover' }
 
 onBeforeUnmount(revoke)
-
-function capitalizeFirstLetter(str) {
-    if (!str) return str;
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
 
 onMounted(async () => { await langStore.fetchTranslations() })
 </script>
@@ -80,7 +75,7 @@ onMounted(async () => { await langStore.fetchTranslations() })
 
         <template v-if="!fileName">
             <p class="hint">
-                {{ 'Загрузите файл (.html)' }}
+                {{ capitalizeFirstLetter(langStore.translations.upload_template_file) }}
             </p>
         </template>
 

@@ -82,7 +82,7 @@ async function doLookup(i, q){
         ensureLookupRow(i)
         lookups.value[i].loading   = false
         lookups.value[i].found     = !!data?.user
-        lookups.value[i].user      = data?.user ?? null   // UserResource с полями id, nickname, photo
+        lookups.value[i].user      = data?.user ?? null
         lookups.value[i].canInvite = !!data?.canInvite
         lookups.value[i].errors    = data?.errors ?? []
     } catch(e){
@@ -149,7 +149,7 @@ const toId = (val) => {
 
 const inviteUsers = async () => {
     if (hasForbidden.value){
-        toast.error('Некоторых пользователей нельзя пригласить — см. подсказки под полями.')
+        toast.error(capitalizeFirstLetter(langStore.translations.some_users_cannot_be_invited))
         return
     }
     try {
@@ -168,7 +168,7 @@ const inviteUsers = async () => {
                 })
             }
         )
-        toast.success("Приглашение отправлено", {
+        toast.success(capitalizeFirstLetter(langStore.translations.invitation_sent), {
             position: 'top-right',
             timeout: 5000,
         });
@@ -271,7 +271,7 @@ const positionOptions = computed(() =>
                 </p>
                 <div v-if="lookups[index]?.touched" class="dialog__hint" style="margin-top:6px">
                     <template v-if="lookups[index].loading">
-                        Ищем…
+                        {{ capitalizeFirstLetter(langStore.translations.searching) }}
                     </template>
 
                     <template v-else-if="lookups[index].found">
@@ -286,8 +286,8 @@ const positionOptions = computed(() =>
                                 <div>
                                     <b>@{{ lookups[index].user.nickname }}</b>
                                     (ID {{ lookups[index].user.id }})
-                                    <span v-if="lookups[index].canInvite" class="found-user__ok"> — можно пригласить</span>
-                                    <span v-else class="error__text"> — нельзя пригласить</span>
+                                    <span v-if="lookups[index].canInvite" class="found-user__ok"> — {{ langStore.translations.can_invite }}</span>
+                                    <span v-else class="error__text"> — {{ langStore.translations.cannot_invite }}</span>
                                 </div>
                                 <ul v-if="!lookups[index].canInvite && lookups[index].errors?.length" class="error__text" style="margin:4px 0 0 0;padding-left:16px">
                                     <li v-for="(e,i2) in lookups[index].errors" :key="i2">{{ e }}</li>
@@ -297,7 +297,7 @@ const positionOptions = computed(() =>
                     </template>
 
                     <template v-else>
-                        <p class="error__text">Пользователь не найден</p>
+                        <p class="error__text">{{ capitalizeFirstLetter(langStore.translations.user_not_found) }}</p>
                     </template>
                 </div>
             </div>

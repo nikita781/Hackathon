@@ -57,7 +57,7 @@ const removeUser = async () => {
             u => u.user.id !== userToRemove.value
         )
         closeConfirmDialog()
-        toast.success("Участник исключен", {
+        toast.success(capitalizeFirstLetter(langStore.translations.participant_removed), {
             position: 'top-right',
             timeout: 5000,
         });
@@ -169,7 +169,7 @@ const positionOptions = computed(() =>
                     <CustomSelect
                         v-model="person.position.id"
                         :options="positionOptions"
-                        placeholder="Выберите роль"
+                        :placeholder="capitalizeFirstLetter(langStore.translations.participant_removed)"
                         min-width="230px"
                         full-width
                         close-by-scroll

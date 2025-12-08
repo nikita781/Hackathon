@@ -46,19 +46,18 @@ async function submit () {
     await form.post(route('login'), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success('Успешная авторизация', { position:'top-right', timeout:5000 })
+            toast.success(capitalizeFirstLetter(langStore.translations.auth_success), { position:'top-right', timeout:5000 })
             close()
         },
         onError: (errors) => {
-            // errors — это bag валидации от Inertia/Laravel
             const msg =
                 errors.login ??
                 errors.email ??
                 errors.password ??
                 Object.values(errors)[0] ??
-                'Неверный логин или пароль'
+                capitalizeFirstLetter((langStore.translations.invalid_credentials))
             toast.error(msg, { position:'top-right', timeout:5000 })
-            form.reset('password') // на ошибке очищаем пароль
+            form.reset('password')
         },
         onFinish: () => { pending.value = false },
     })
@@ -93,7 +92,7 @@ onMounted(async () => {
                 </svg></div>
             </div>
             <div class="dialog__component" style="margin-top: -10px">
-                <p class="dialog__title">Хэндл/e-mail</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.handle_email) }}</p>
                 <input
                     v-model="form.login"
                     type="text"
@@ -103,7 +102,7 @@ onMounted(async () => {
                 >
             </div>
             <div class="dialog__component" style="margin-top: -10px">
-                <p class="dialog__title">Пароль</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.password) }}</p>
                 <input
                     v-model="form.password"
                     type="password"

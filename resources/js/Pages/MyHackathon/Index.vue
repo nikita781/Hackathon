@@ -79,7 +79,6 @@ const hackathons = computed(() => {
 })
 
 function go(pageUrl) {
-    // pageUrl уже содержит ?page=N + твои q/filters благодаря withQueryString()
     router.get(pageUrl, {}, { preserveState:true, preserveScroll:true, replace:true })
 }
 
@@ -305,9 +304,13 @@ const sortOptions = computed(() => [
                         <img :src="hackathon.image_path" alt="Photo">
                         <p class="main__card_photo-status black" v-if="hackathon.status === 1 && props.can.create">
                             {{ capitalizeFirstLetter(langStore.translations.draft) }}</p>
-                        <p class="main__card_photo-status yellow" v-if="hackathon.status === 2 && props.can.create">На рассмотрении</p>
-                        <p class="main__card_photo-status red" v-else-if="hackathon.status === 4 && props.can.create">Отклонен</p>
-                        <p class="main__card_photo-status green" v-else-if="hackathon.status === 3 && props.can.create">Принят</p>
+                        <p class="main__card_photo-status yellow" v-if="hackathon.status === 2 && props.can.create">{{
+                                capitalizeFirstLetter(langStore.translations.pending)
+                            }}</p>
+                        <p class="main__card_photo-status red" v-else-if="hackathon.status === 4 && props.can.create">
+                            {{ capitalizeFirstLetter(langStore.translations.rejected) }}</p>
+                        <p class="main__card_photo-status green" v-else-if="hackathon.status === 3 && props.can.create">
+                            {{ capitalizeFirstLetter(langStore.translations.approved) }}</p>
                     </div>
                     <div class="main__card_content">
                         <div class="main__card_info-long">
@@ -318,7 +321,7 @@ const sortOptions = computed(() => [
                                 @click.stop.prevent="onPublishClick(hackathon)"
                                 style="max-width: unset"
                             >
-                                Опубликовать
+                                {{ capitalizeFirstLetter(langStore.translations.publish) }}
                             </button>
                         </div>
                         <div class="main__card_info">

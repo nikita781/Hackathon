@@ -64,7 +64,6 @@ function removeItem(list, idx){
     clearAllErrors()
 }
 
-/* ------------ форма для отправки ------------ */
 const form = useForm({
     sections: [
         { title:'Контакты',        items: [] },
@@ -73,7 +72,6 @@ const form = useForm({
     delete_media_ids: []
 })
 
-/* синхронизация локального состояния -> form.sections */
 watch(contacts, arr => {
     form.sections[0].items = arr.map(i => ({ title:i.title, content:i.value }))
 }, { deep:true, immediate:true })
@@ -82,7 +80,6 @@ watch(socials, arr => {
     form.sections[1].items = arr.map(i => ({ title:i.title, content:i.value }))
 }, { deep:true, immediate:true })
 
-/* dirty только после загрузки */
 watch([contacts, socials], () => {
     if (!loaded.value) return
     if (!dirty.value) {
@@ -91,7 +88,6 @@ watch([contacts, socials], () => {
     }
 }, { deep:true })
 
-/* ------------ загрузка для редактирования ------------ */
 async function fetchContacts(){
     try{
         const { data } = await axios.get(
@@ -99,10 +95,9 @@ async function fetchContacts(){
             { headers:{ Accept:'application/json' } }
         )
 
-        // Берём таб «Контакты»
         const tab =
             data?.tabs?.original?.find(t => t.title === 'Контакты')
-            ?? data?.tabs?.original?.[4] // запасной вариант по индексу
+            ?? data?.tabs?.original?.[4]
 
         const secContacts = tab?.sections?.find(s => s.title === 'Контакты')
         const secSocials  = tab?.sections?.find(s => s.title === 'Социальные сети')
@@ -114,11 +109,10 @@ async function fetchContacts(){
         loaded.value = true
     } catch (err){
         console.error('contacts-load-error', err?.response ?? err)
-        loaded.value = true   // чтобы не зависнуть
+        loaded.value = true
     }
 }
 
-/* ------------ сохранение ------------ */
 async function save(){
     emit('saving', true)
     const fd = new FormData()
@@ -168,7 +162,6 @@ const resetState = () => {
 
 function cancel(){ resetState(); emit('cancel') }
 
-/* ------------ i18n + init ------------ */
 onMounted(async () => {
     await langStore.fetchTranslations()
     if (props.isEdit) {

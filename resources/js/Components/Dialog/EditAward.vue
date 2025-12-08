@@ -8,11 +8,10 @@ const toast = useToast();
 
 const props = defineProps({
     modelValue: {type: Boolean, default: false},
-    award: {type: Object, default: null}, // редактирование существующей награды
+    award: {type: Object, default: null},
 });
 const emit = defineEmits(["update:modelValue", "saved"]);
 
-// одно поле: File | string (url)
 const image = ref(null);
 const pending = ref(false);
 const errors = ref({});
@@ -21,12 +20,7 @@ const isEdit = computed(() => !!props.award);
 const title = computed(() => "Изменить награду");
 const submitLabel = computed(() => "Сохранить");
 
-// если хотим строго как у баннеров — используем ту же логику:
-// кнопка активна, когда есть что-то в image (даже если это URL для превью)
 const disabled = computed(() => pending.value || !image.value);
-
-// если нужно требовать выбор нового файла — замените строку выше на:
-// const disabled = computed(() => pending.value || !(image.value instanceof File));
 
 function close() {
     if (pending.value) return;
@@ -37,7 +31,6 @@ watch(
     () => props.modelValue,
     (open) => {
         if (!open) return;
-        // при открытии — подставляем превью текущей картинки
         image.value = props.award
             ? (props.award.image ?? route('awards.image', {award: props.award.id}))
             : null;
@@ -51,13 +44,11 @@ function submit() {
     errors.value = {};
 
     const data = {
-        // поле должно называться 'image', так ждёт бекэнд
         image: image.value,
         _method: isEdit.value ? "patch" : undefined,
     };
 
     router.post(
-        // только обновление
         route("admin.contents.awardsupdate", props.award.id),
         data,
         {
