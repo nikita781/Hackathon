@@ -529,7 +529,7 @@ const sortOptions = computed(() => [
             <div class="hackathon__tab_container">
                 <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.materials) }}</p>
 
-                <div class="hackathon__oneProject_media" v-if="links.project">
+                <div class="hackathon__oneProject_media" v-if="links.project && oneProject.can.view_source_code">
                     <p class="hackathon__oneProject_media-title">{{ capitalizeFirstLetter(langStore.translations.projectLink) }}</p>
                     <div class="hackathon__oneProject_media-item">
                         <Hyperlink />

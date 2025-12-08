@@ -292,7 +292,7 @@ onMounted(async () => {
             </span>
         </div>
         <div class="dialog__component">
-            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.projectLink) }}</p>
+            <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.videoLink) }}</p>
             <input
                 v-model="videoLink"
                 type="text"
