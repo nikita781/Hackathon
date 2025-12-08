@@ -38,7 +38,7 @@ class AdminController extends Controller
 
         $hackathons = Hackathon::adminFilter($request)
             ->where('status', '!=', Hackathon::STATUS_DRAFT)
-            ->with(['owner', 'tags'])
+            ->with(['owner', 'tags', 'requests.user'])
             ->latest()
             ->paginate($perPage)
             ->withQueryString();

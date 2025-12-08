@@ -122,6 +122,8 @@ class TeamController extends Controller
 
     public function acceptInvite(Request $request, Hackathon $hackathon, Team $team, $token): RedirectResponse
     {
+        Gate::authorize('acceptInvite', $hackathon);
+
         $invite = TeamInvite::where('token', $token)->firstOrFail();
 
         if ($invite->isExpired()) {

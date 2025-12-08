@@ -19,6 +19,7 @@ class HackathonResource extends TranslatableResource
             'image_path' => route('hackathons.image', $this->resource),
             'format' => $this->format,
             'type' => $this->type,
+            'accessibility' => $this->accessibility,
             'min_team_size' => $this->min_team_size,
             'max_team_size' => $this->max_team_size,
             'registration_start' => $this->registration_start,
@@ -50,11 +51,13 @@ class HackathonResource extends TranslatableResource
             'awards' => AwardResource::collection($this->whenLoaded('awards')),
             'organizer' => new UserResource($this->whenLoaded('owner')),
             'projects' => ProjectResource::collection($this->whenLoaded('allProjects')),
+            'user_requests' => HackathonUserRequestResource::collection($this->whenLoaded('requests')),
             'users_count' => $this->users_count,
             'projects_count' => $this->all_projects_count,
             'moderation_projects_count' => $this->moderation_projects_count,
             'accepted_projects_count' => $this->accepted_projects_count,
             'rejected_projects_count' => $this->rejected_projects_count,
+            'requests_count' => $this->requests_count,
         ];
     }
 }
