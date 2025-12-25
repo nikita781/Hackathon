@@ -903,8 +903,11 @@ class HackathonController extends Controller
                 }
             }
 
-            $widthMm  = (float) ($templateMedia->getCustomProperty('width_mm') ?? 297);
-            $heightMm = (float) ($templateMedia->getCustomProperty('height_mm') ?? 210);
+            $widthMm  = (float) $templateMedia->getCustomProperty('width_mm');
+            $heightMm = (float) $templateMedia->getCustomProperty('height_mm');
+
+            if ($widthMm <= 0)  $widthMm = 297;
+            if ($heightMm <= 0) $heightMm = 210;
 
             // авто-фикс: если случайно сохранили pt вместо mm (842/595, 1032/732 и т.п.)
             if ($widthMm > 500 || $heightMm > 500) {
