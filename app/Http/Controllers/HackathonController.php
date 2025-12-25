@@ -903,20 +903,21 @@ class HackathonController extends Controller
                 }
             }
 
-            // Размер страницы (mm -> pt)
-            $widthMm  = (float) ($templateMedia->getCustomProperty('width_mm') ?? 0);
-            $heightMm = (float) ($templateMedia->getCustomProperty('height_mm') ?? 0);
+            $widthMm  = (float) ($templateMedia->getCustomProperty('width_mm') ?? 297);
+            $heightMm = (float) ($templateMedia->getCustomProperty('height_mm') ?? 210);
 
-            // авто-фикс если сохранили pt как mm
+            // авто-фикс: если случайно сохранили pt вместо mm (842/595, 1032/732 и т.п.)
             if ($widthMm > 500 || $heightMm > 500) {
-                $widthMm  = $widthMm / 2.83464567;
+                $widthMm  = $widthMm / 2.83464567;   // pt -> mm
                 $heightMm = $heightMm / 2.83464567;
             }
 
-            $paper = $defaultPaperPt;
-            if ($widthMm > 0 && $heightMm > 0) {
-                $paper = [0, 0, $widthMm * 72 / 25.4, $heightMm * 72 / 25.4];
-            }
+            // mm -> pt (то, что ждёт setPaper)
+            $widthPt  = $widthMm  * 72 / 25.4;
+            $heightPt = $heightMm * 72 / 25.4;
+
+            $paper = [0, 0, $widthPt, $heightPt];
+
 
             $pdf = Pdf::loadHTML($html)
                 ->setOption(['defaultFont' => 'Helvetica'])
