@@ -823,11 +823,57 @@ class HackathonController extends Controller
         return back()->with('status', __('certificate_template_uploaded'));
     }
 
-    public function downloadPreviewCertificate(Hackathon $hackathon): \Illuminate\Http\Response
+    public function uploadSeal(Request $request, Hackathon $hackathon): RedirectResponse
+    {
+        Gate::authorize('update', $hackathon); // или update, как вам нужно
+
+        $request->validate([
+            'seal' => ['required', 'file', 'mimes:png', 'max:2048'], // 2MB
+        ]);
+
+        if ($hackathon->hasMedia('certificate_seal')) {
+            $hackathon->clearMediaCollection('certificate_seal');
+        }
+
+        $hackathon->addMediaFromRequest('seal')
+            ->usingName('certificate_seal')
+            ->usingFileName('certificate_seal.png')
+            ->toMediaCollection('certificate_seal');
+
+        return back()->with('success', 'Печать загружена');
+    }
+
+    private function mediaToDataUrl(?Media $media): ?string
+    {
+        if (!$media) return null;
+
+        $path = $media->getPath();
+        if (!is_file($path)) return null;
+
+        $mime = $media->mime_type ?: 'image/png';
+        $data = base64_encode(file_get_contents($path));
+
+        return "data:$mime;base64,$data";
+    }
+
+    public function downloadPreviewCertificate(Hackathon $hackathon): \Symfony\Component\HttpFoundation\Response
     {
         Gate::authorize('update', $hackathon);
 
-        $templateMedia = $hackathon->getMedia('template')->first();
+        $templateMedia = $hackathon->getFirstMedia('template');
+
+        // Печать как в дефолтном (data-url)
+        $sealMedia = $hackathon->getFirstMedia('certificate_seal');
+        $sealSrc = $this->mediaToDataUrl($sealMedia);
+
+        // fallback: абсолютный URL
+        if (!$sealSrc) {
+            $sealUrl = $hackathon->getFirstMediaUrl('certificate_seal'); // может быть "/storage/.."
+            $sealSrc = $sealUrl ? asset($sealUrl) : '';
+        }
+
+        $defaultPaperPt = [0, 0, 1032, 732];
+
         if ($templateMedia) {
             $template = file_get_contents($templateMedia->getPath());
 
@@ -840,16 +886,36 @@ class HackathonController extends Controller
                 'organizatorNickname' => $hackathon->owner->nickname,
                 'startTime' => $hackathon->event_start->format('d.m.Y'),
                 'endTime' => $hackathon->event_end->format('d.m.Y'),
-                'seal' => null,
+                'seal' => $sealSrc,
             ]);
 
-            $width = ($templateMedia->getCustomProperty('width_mm') ?? 297) * 2.8346;
-            $height = ($templateMedia->getCustomProperty('height_mm') ?? 210) * 2.8346;
+            if ($sealSrc) {
+                $hasAnyImg = str_contains($html, '<img');
+                $sealAsTextExists = str_contains($html, $sealSrc);
 
-            $customPaper = [0, 0, $width, $height];
+                if (!$hasAnyImg && $sealAsTextExists) {
+                    $html = str_replace($sealSrc, '<img src="'.$sealSrc.'" alt="seal">', $html);
+                } elseif ($sealAsTextExists && !str_contains($html, 'src="'.$sealSrc.'"') && !str_contains($html, "src='".$sealSrc."'")) {
+                    $pos = strpos($html, $sealSrc);
+                    if ($pos !== false) {
+                        $html = substr_replace($html, '<img src="'.$sealSrc.'" alt="seal">', $pos, strlen($sealSrc));
+                    }
+                }
+            }
 
-            if ($width === 0.0 || $height === 0.0) {
-                $customPaper = "A4";
+            // Размер страницы (mm -> pt)
+            $widthMm  = (float) ($templateMedia->getCustomProperty('width_mm') ?? 0);
+            $heightMm = (float) ($templateMedia->getCustomProperty('height_mm') ?? 0);
+
+            // авто-фикс если сохранили pt как mm
+            if ($widthMm > 500 || $heightMm > 500) {
+                $widthMm  = $widthMm / 2.83464567;
+                $heightMm = $heightMm / 2.83464567;
+            }
+
+            $paper = $defaultPaperPt;
+            if ($widthMm > 0 && $heightMm > 0) {
+                $paper = [0, 0, $widthMm * 72 / 25.4, $heightMm * 72 / 25.4];
             }
 
             $pdf = Pdf::loadHTML($html)
@@ -858,16 +924,15 @@ class HackathonController extends Controller
                 ->setOption('margin-bottom', 0)
                 ->setOption('margin-left', 0)
                 ->setOption('margin-right', 0)
-                ->setPaper('a4', 'landscape')
                 ->setOption('dpi', 300)
                 ->setOption('zoom', 1.0)
-                ->setPaper($customPaper);
+                ->setOption('enable-local-file-access', true)
+                ->setPaper($paper);
 
-            return $pdf->stream("preview-certificate.pdf");
+            return $pdf->download('preview-certificate.pdf');
         }
 
-        $customPaper = [0, 0, 1032, 732];
-
+        // дефолтный сертификат
         $pdf = Pdf::loadView('certificate', [
             'hackathonTitle' => $hackathon->title,
             'userName' => 'Test User',
@@ -876,13 +941,14 @@ class HackathonController extends Controller
             'organizatorNickname' => $hackathon->owner->nickname,
             'startTime' => $hackathon->event_start->format('d.m.Y'),
             'endTime' => $hackathon->event_end->format('d.m.Y'),
-            'seal' => null,
+            'seal' => $sealSrc,
         ])
             ->setOption(['defaultFont' => 'Helvetica'])
-            ->setPaper($customPaper);
+            ->setPaper($defaultPaperPt);
 
-        return $pdf->download("preview-certificate.pdf");
+        return $pdf->download('preview-certificate.pdf');
     }
+
 
     private function safeHtmlClean($content)
     {

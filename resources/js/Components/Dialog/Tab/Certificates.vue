@@ -6,6 +6,54 @@ import { useForm } from '@inertiajs/vue3'
 import {useLangStore} from '@/store/lang.js'
 import InfoCertificates from "@/Components/Dialog/InfoCertificates.vue";
 
+const sealInput = ref(null)
+
+function pickSeal() {
+  form.clearErrors('seal')
+  sealInput.value?.click()
+}
+
+async function onSealPicked(e) {
+  const f = e.target.files?.[0]
+  if (!f) return
+
+  const fd = new FormData()
+  fd.append('seal', f)
+  fd.append('_method', 'patch')
+
+  try {
+    pending.value = true
+    await axios.post(route('hackathons.upload-seal', { hackathon: props.hackathonSlug }), fd, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    } catch (err) {
+    console.error(err)
+
+    if (err?.response?.status === 403) {
+        form.setError('seal', 'Нет прав на загрузку печати (403)')
+        return
+    }
+    if (err?.response?.status === 404) {
+        form.setError('seal', 'Маршрут загрузки печати не найден (404)')
+        return
+    }
+
+    if (err?.response?.status === 422 && err.response.data?.errors) {
+        Object.entries(err.response.data.errors).forEach(([field, messages]) => {
+        form.setError(field, (messages || []).join(' '))
+        })
+        return
+    }
+
+    form.setError('seal', 'Ошибка загрузки печати')
+    }finally {
+    pending.value = false
+    e.target.value = ''
+  }
+}
+
+
+
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
     admin:        { type: Boolean, default: () => false },
@@ -128,6 +176,18 @@ onMounted(async () => { await langStore.fetchTranslations() })
             </div>
 
             <div class="dialog__actions">
+                <input
+                    ref="sealInput"
+                    type="file"
+                    accept="image/png"
+                    style="display:none"
+                    @change="onSealPicked"
+                    />
+
+                    <button class="main__btn main__btn_white" @click="pickSeal" :disabled="isReadOnly">
+                    Печать (PNG)
+                    </button>
+                <small v-if="form.errors.seal" class="error__text">{{ form.errors.seal }}</small>
                 <button class="main__btn main__btn_white" @click="downloadPreview">
                     {{ capitalizeFirstLetter(langStore.translations.downloadPreview || 'Скачать превью') }}
                 </button>

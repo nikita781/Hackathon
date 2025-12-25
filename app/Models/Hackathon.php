@@ -361,4 +361,12 @@ class Hackathon extends Model implements HasMedia
             $counter++;
         } while (true);
     }
+    public function registerMediaCollections(): void
+    {
+        // уже используете template — значит можно зафиксировать коллекцию явно
+        $this->addMediaCollection('template')->singleFile();
+
+        // печать/штамп (png)
+        $this->addMediaCollection('certificate_seal')->singleFile();
+    }
 }

@@ -234,3 +234,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 
 // REFBOOK ROUTES
 Route::get('/refbook/roles', [AdminController::class, 'staffRoles'])->name('roles');
+
+
+
+Route::patch('/hackathons/{hackathon}/seal', [HackathonController::class, 'uploadSeal'])
+    ->name('hackathons.upload-seal');

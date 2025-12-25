@@ -271,7 +271,7 @@
             <td style="width:33%; text-align:right; vertical-align:top;">
                 <div class="seal-section" style="display:inline-block;">
                     @if(isset($seal) && $seal)
-                        <img src="{{ $seal }}" alt="Печать" class="seal" style="width:80px; height:80px; display:block; margin-left:auto;">
+                        <img src="{{ $seal }}" alt="Печать" class="seal" style="width:120px; height:120px; display:block; margin-left:auto;">
                     @else
                         <div class="seal" style="width:80px; height:80px; border:2px dashed #bdc3c7; color:#bdc3c7; font-size:10px; text-align:center; line-height:80px; display:block; margin-left:auto;">
                             ПЕЧАТЬ
