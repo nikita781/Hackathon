@@ -269,7 +269,7 @@ const roleOptions = computed(() =>
                 :key="index"
                 class="dialog__component"
             >
-                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.addMemberById) }}</p>
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.addMemberById) }} или nickname</p>
                 <div class="dialog__input_btns dialog__input_btns_small dialog__input_btns-phone">
                     <input
                         v-model="user.user_id"

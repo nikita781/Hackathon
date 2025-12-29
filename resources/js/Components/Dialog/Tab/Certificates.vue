@@ -5,8 +5,10 @@ import {router} from '@inertiajs/vue3'
 import { useForm } from '@inertiajs/vue3'
 import {useLangStore} from '@/store/lang.js'
 import InfoCertificates from "@/Components/Dialog/InfoCertificates.vue";
+import axios from "axios";
 
 const sealInput = ref(null)
+const sealFile = ref(null)
 
 function pickSeal() {
   form.clearErrors('seal')
@@ -14,45 +16,15 @@ function pickSeal() {
 }
 
 async function onSealPicked(e) {
-  const f = e.target.files?.[0]
-  if (!f) return
+    const f = e.target.files?.[0]
+    if (!f) return
 
-  const fd = new FormData()
-  fd.append('seal', f)
-  fd.append('_method', 'patch')
-
-  try {
-    pending.value = true
-    await axios.post(route('hackathons.upload-seal', { hackathon: props.hackathonSlug }), fd, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    } catch (err) {
-    console.error(err)
-
-    if (err?.response?.status === 403) {
-        form.setError('seal', 'Нет прав на загрузку печати (403)')
-        return
-    }
-    if (err?.response?.status === 404) {
-        form.setError('seal', 'Маршрут загрузки печати не найден (404)')
-        return
-    }
-
-    if (err?.response?.status === 422 && err.response.data?.errors) {
-        Object.entries(err.response.data.errors).forEach(([field, messages]) => {
-        form.setError(field, (messages || []).join(' '))
-        })
-        return
-    }
-
-    form.setError('seal', 'Ошибка загрузки печати')
-    }finally {
-    pending.value = false
+    sealFile.value = f
+    form.seal = f
+    form.clearErrors('seal')
+    emit('dirty', true)
     e.target.value = ''
-  }
 }
-
-
 
 const props = defineProps({
     hackathonSlug: { type: String, required: true },
@@ -69,6 +41,7 @@ const form = useForm({
     template: null,
     width: '',
     height: '',
+    seal: null,
 })
 
 const file = ref(null)
@@ -95,47 +68,68 @@ async function uploadTemplate() {
 
     const widthEmpty  = form.width === ''  || form.width === null  || typeof form.width === 'undefined'
     const heightEmpty = form.height === '' || form.height === null || typeof form.height === 'undefined'
-    console.log(widthEmpty)
-    console.log(heightEmpty)
-    console.log(file.value)
-    if (!file.value && widthEmpty && heightEmpty) {
+
+    const hasTemplate = !!file.value
+    const hasSeal = !!sealFile.value
+
+    if (!hasTemplate && !hasSeal && widthEmpty && heightEmpty) {
         emit('saved', { slug: props.hackathonSlug })
         return
     }
 
-    if (!file.value) {
+    if (!hasTemplate && (!widthEmpty || !heightEmpty)) {
         form.setError('template', capitalizeFirstLetter(langStore.translations.upload_template_file))
         return
     }
     pending.value = true
     emit('saving', true)
     try {
-        const fd = new FormData()
-        fd.append('template', file.value)
-        fd.append('_method', 'patch')
+        if (hasTemplate) {
+            const fd = new FormData()
+            fd.append('template', file.value)
+            fd.append('_method', 'patch')
 
-        if (form.width !== '' && form.width !== null && form.width !== undefined) {
-            fd.append('width', form.width)
-        }
-        if (form.height !== '' && form.height !== null && form.height !== undefined) {
-            fd.append('height', form.height)
+            if (!widthEmpty)  fd.append('width', form.width)
+            if (!heightEmpty) fd.append('height', form.height)
+            await axios.post(
+                route('hackathons.upload-template', { hackathon: props.hackathonSlug }),
+                fd,
+                { headers: { 'Content-Type': 'multipart/form-data' } }
+            )
         }
 
-        await axios.post(
-            route('hackathons.upload-template', { hackathon: props.hackathonSlug }),
-            fd,
-            { headers: { 'Content-Type': 'multipart/form-data' } }
-        )
+        if (hasSeal) {
+            const fd2 = new FormData()
+            fd2.append('seal', sealFile.value)
+            fd2.append('_method', 'patch')
+
+            await axios.post(
+                route('hackathons.upload-seal', { hackathon: props.hackathonSlug }),
+                fd2,
+                { headers: { 'Content-Type': 'multipart/form-data' } }
+            )
+        }
 
         emit('dirty', false)
         emit('saved', { slug: props.hackathonSlug })
     } catch (e) {
-        console.error('upload-template', e?.response ?? e)
+        console.error('upload-certs', e?.response ?? e)
+        if (e?.response?.status === 403) {
+            form.setError('seal', 'Нет прав (403)')
+            return
+        }
+        if (e?.response?.status === 404) {
+            form.setError('seal', 'Маршрут не найден (404)')
+            return
+        }
+
         if (e?.response?.status === 422 && e.response.data?.errors) {
             const errors = e.response.data.errors
             Object.entries(errors).forEach(([field, messages]) => {
                 form.setError(field, (messages || []).join(' '))
             })
+        } else {
+            form.setError('seal', 'Ошибка сохранения')
         }
     } finally {
         pending.value = false
@@ -160,6 +154,9 @@ onMounted(async () => { await langStore.fetchTranslations() })
         <button class="main__btn" @click="showInfo = true" style="width: fit-content">
             {{ capitalizeFirstLetter(langStore.translations.instruction) }}
         </button>
+        <small v-if="sealFile" class="hint small" style="text-align: end">
+            Выбрано: {{ sealFile.name }}
+        </small>
         <div class="dialog__title_header">
             <div class="dialog__title_container">
                 <p class="dialog__title">
@@ -183,10 +180,9 @@ onMounted(async () => { await langStore.fetchTranslations() })
                     style="display:none"
                     @change="onSealPicked"
                     />
-
-                    <button class="main__btn main__btn_white" @click="pickSeal" :disabled="isReadOnly">
+                <button class="main__btn main__btn_white" @click="pickSeal" :disabled="isReadOnly">
                     Печать (PNG)
-                    </button>
+                </button>
                 <small v-if="form.errors.seal" class="error__text">{{ form.errors.seal }}</small>
                 <button class="main__btn main__btn_white" @click="downloadPreview">
                     {{ capitalizeFirstLetter(langStore.translations.downloadPreview || 'Скачать превью') }}

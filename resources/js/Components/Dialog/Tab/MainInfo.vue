@@ -24,6 +24,7 @@ const form = useForm({
     title            : '',
     image_path       : null,
     format           : 'online',
+    accessibility    : 1,
     type             : 'team',
     min_team_size    : '',
     max_team_size    : '',
@@ -276,6 +277,20 @@ const sortOptions3 = computed(() => [
         label: `${capitalizeFirstLetter(langStore.translations.item_prize)}`,
     },
 ])
+const sortOptions4 = computed(() => [
+    {
+        value: '1',
+        label: `Открытый`,
+    },
+    {
+        value: '2',
+        label: `Модерируемый`,
+    },
+    {
+        value: '3',
+        label: `Закрытый`,
+    },
+])
 </script>
 
 <template>
@@ -307,7 +322,7 @@ const sortOptions3 = computed(() => [
         <small v-if="form.errors.title" class="error__text">{{ form.errors.title }}</small>
     </div>
     <div class="dialog__block">
-        <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
+        <div class="dialog__component" :class="form.type === 'team' ? 'medium' : 'medium'">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.hackathon_format) }}</p>
             <CustomSelect
                 v-model="form.format"
@@ -317,7 +332,19 @@ const sortOptions3 = computed(() => [
                 close-by-scroll
             />
         </div>
-        <div class="dialog__component" :class="form.type === 'team' ? 'small' : 'medium'">
+        <div class="dialog__component" :class="form.type === 'team' ? 'medium' : 'medium'">
+            <p class="dialog__title">Доступ</p>
+            <CustomSelect
+                v-model="form.accessibility"
+                :options="sortOptions4"
+                full-width
+                red
+                close-by-scroll
+            />
+        </div>
+    </div>
+    <div class="dialog__block">
+        <div class="dialog__component" :class="form.type === 'team' ? 'medium' : 'medium'">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.participation_type) }}</p>
             <CustomSelect
                 v-model="form.type"
@@ -327,7 +354,7 @@ const sortOptions3 = computed(() => [
                 close-by-scroll
             />
         </div>
-        <div v-if="form.type === 'team'" class="dialog__component">
+        <div v-if="form.type === 'team'" class="dialog__component medium">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.team_size) }} *</p>
             <div class="dialog__horizontal">
                 <div class="dialog__info">
@@ -339,6 +366,7 @@ const sortOptions3 = computed(() => [
                         :placeholder="capitalizeFirstLetter(langStore.translations.amount)"
                         :class="{ 'error': form.errors.min_team_size }"
                         @input="clearFieldError('min_team_size')"
+                        style="max-width: unset;"
                     >
                 </div>
                 <div class="dialog__info">
@@ -350,6 +378,7 @@ const sortOptions3 = computed(() => [
                         :placeholder="capitalizeFirstLetter(langStore.translations.amount)"
                         :class="{ 'error': form.errors.max_team_size }"
                         @input="clearFieldError('max_team_size')"
+                        style="max-width: unset;"
                     >
                 </div>
             </div>
