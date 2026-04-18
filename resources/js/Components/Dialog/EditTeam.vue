@@ -7,22 +7,30 @@ import {useToast} from "vue-toastification";
 import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
-    modelValue : Boolean,
+    modelValue: Boolean,
     team: Object,
-    positions : { type: Array,   default : () => [] },
-    hackathon : { type: Array,   default : () => [] },
+    positions: { type: Array, default: () => [] },
+    hackathon: { type: Object, default: null },
 })
+
 const emit = defineEmits([
     'update:modelValue',
 ])
-function close(){ emit('update:modelValue',false) }
+
+function close() {
+    emit('update:modelValue', false)
+}
 
 const showConfirmDialog = ref(false);
 const userToRemove = ref(null);
 const previousBodyOverflow = ref('')
+const langStore = useLangStore()
+const toast = useToast();
+
+const isProfileTeam = computed(() => !!props.team?.is_profile_team)
 
 const filteredUsers = computed(() => {
-    return props.team.users.filter(user => user.position.name !== 'Капитан');
+    return (props.team?.users ?? []).filter(user => user?.position?.id !== 1);
 });
 
 const confirmRemoveUser = (userId) => {
@@ -34,15 +42,15 @@ const closeConfirmDialog = () => {
     showConfirmDialog.value = false;
 };
 
-const toast = useToast();
-
 const removeUser = async () => {
     if (!userToRemove.value) return
 
-    const url = route('hackathons.teams.kick', {
-        hackathon: props.hackathon.slug,
-        team: props.team.id,
-    })
+    const url = isProfileTeam.value
+        ? route('profile.teams.kick', { team: props.team.id })
+        : route('hackathons.teams.kick', {
+            hackathon: props.hackathon.slug,
+            team: props.team.id,
+        })
 
     try {
         const fd = new FormData()
@@ -53,7 +61,7 @@ const removeUser = async () => {
             headers: { 'Content-Type': 'multipart/form-data' },
         })
 
-        props.team.users = props.team.users.filter(
+        props.team.users = (props.team.users ?? []).filter(
             u => u.user.id !== userToRemove.value
         )
         closeConfirmDialog()
@@ -83,7 +91,7 @@ const saveChanges = async () => {
     try {
         const fd = new FormData();
 
-        const updatedMembers = props.team.users.map(user => ({
+        const updatedMembers = (props.team?.users ?? []).map(user => ({
             member_id: user.user.id,
             position_id: user.position.id,
         }));
@@ -95,11 +103,20 @@ const saveChanges = async () => {
             fd.append(`members[${index}][position_id]`, member.position_id);
         });
 
-        await axios.post(route('hackathons.teams.update', { hackathon: props.hackathon.slug, team: props.team.id }), fd, {
+        const url = isProfileTeam.value
+            ? route('profile.teams.update', { team: props.team.id })
+            : route('hackathons.teams.update', { hackathon: props.hackathon.slug, team: props.team.id })
+
+        const { data } = await axios.post(url, fd, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
         });
+
+        if (data?.team) {
+            props.team.title = data.team.title
+            props.team.users = data.team.users ?? props.team.users
+        }
 
         close();
     } catch (error) {
@@ -123,8 +140,6 @@ function imgFallback(e) {
     e.target.onerror = null;
     e.target.src = PLACEHOLDER;
 }
-
-const langStore = useLangStore()
 
 function capitalizeFirstLetter(str) {
     if (!str) return str;
@@ -159,7 +174,6 @@ const positionOptions = computed(() =>
                     />
                 </svg></div>
             </div>
-<!--            <pre>{{team}}</pre>-->
             <div class="dialog__input_btns dialog__input_btns_small dialog__input_btns-phone" v-for="(person,idx) in filteredUsers" :key="idx">
                 <div class="hackathon__my-project__list_container" style="width: 100%">
                     <img :src="avatarSrc(person.user.photo)" @error="imgFallback" alt="Avatar">
@@ -199,7 +213,3 @@ const positionOptions = computed(() =>
         </div>
     </div>
 </template>
-
-<style scoped>
-
-</style>

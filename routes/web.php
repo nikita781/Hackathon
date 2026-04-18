@@ -53,8 +53,12 @@ Route::middleware('auth')->prefix('/profile/teams')->name('profile.teams.')->gro
     Route::prefix('/{team}')->group(function () {
         Route::patch('/', [ProfileTeamController::class, 'update'])->name('update');
         Route::delete('/', [ProfileTeamController::class, 'destroy'])->name('destroy');
+        Route::delete('/kick', [ProfileTeamController::class, 'kick'])->name('kick');
+        Route::delete('/leave', [ProfileTeamController::class, 'leave'])->name('leave');
         Route::post('/invite', [ProfileTeamController::class, 'createInvite'])->name('create-invite');
+        Route::post('/inviteById', [ProfileTeamController::class, 'inviteUserById'])->name('invite-by-id');
         Route::get('/invite/{token}', [ProfileTeamController::class, 'acceptInvite'])->name('accept-invite');
+        Route::get('/search', [ProfileTeamController::class, 'search'])->name('search');
     });
 });
 

@@ -177,12 +177,12 @@ function getPreviewProject(project) {
                         </div>
                         <p class="profile__tabs_awards_item_date">{{ capitalizeFirstLetter(langStore.translations.sentStatus) }} {{ formatDate(n.created_at) }}</p>
                     </div>
-                    <AcceptInvitationToJoin
-                        v-model="showAcceptInvitationToJoin"
-                        :url="currentUrl"
-                    />
                 </div>
             </div>
+            <AcceptInvitationToJoin
+                v-model="showAcceptInvitationToJoin"
+                :url="currentUrl"
+            />
             <Pagination style="margin-top: 40px;" :links="links" @navigate="go" />
         </div>
     </AuthenticatedLayout>

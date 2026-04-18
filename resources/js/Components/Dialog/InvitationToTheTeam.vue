@@ -2,22 +2,32 @@
 import IconsCancel from "@/Components/Icons/Cancel.vue";
 import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import { useClipboard } from '@vueuse/core'
-import {useForm} from "@inertiajs/vue3";
 import {useLangStore} from "@/store/lang.js";
 import {useToast} from "vue-toastification";
 import CustomSelect from "@/Components/CustomSelect.vue";
 
 const props = defineProps({
     modelValue : Boolean,
-    positions : { type: Array,   default : () => [] },
-    ownTeam : { type: Array,   default : () => [] },
-    hackathon : { type: Array,   default : () => [] },
+    positions : { type: Array, default : () => [] },
+    ownTeam : { type: Object, default : () => ({}) },
+    hackathon : { type: Object, default : null },
 })
+
 const emit = defineEmits([
     'update:modelValue',
 ])
 
 const previousBodyOverflow = ref('')
+const toast = useToast();
+const pending = ref(false)
+const lookups = ref([{ loading:false, touched:false, found:false, canInvite:false, user:null, errors:[] }])
+const debounceTimers = new Map()
+const rowErrors = ref([])
+const inviteLink = ref('')
+const { copy, copied } = useClipboard()
+const PLACEHOLDER = '/profile.jpg';
+const langStore = useLangStore()
+const isProfileTeam = computed(() => !!props.ownTeam?.is_profile_team)
 
 watch(
     () => props.modelValue,
@@ -35,39 +45,41 @@ onBeforeUnmount(() => {
     document.body.style.overflow = previousBodyOverflow.value || ''
 })
 
-const toast = useToast();
-
-const pending = ref(false)
-const lookups = ref([{ loading:false, touched:false, found:false, canInvite:false, user:null, errors:[] }])
-const debounceTimers = new Map()
-const PLACEHOLDER = '/profile.jpg';
-
 const blankLookup = () => ({ loading:false, touched:false, found:false, canInvite:false, user:null, errors:[] })
 const ensureLookupRow = (i) => { if (!lookups.value[i]) lookups.value.splice(i, 0, blankLookup()) }
 const clearTimer = (i) => { const t = debounceTimers.get(i); if (t) { clearTimeout(t); debounceTimers.delete(i) } }
 const defaultPositionId = () => props.positions[0]?.id
 
-function clearAllTimers(){ debounceTimers.forEach(t=>clearTimeout(t)); debounceTimers.clear() }
+function clearAllTimers(){ debounceTimers.forEach(t => clearTimeout(t)); debounceTimers.clear() }
+
 function resetState(){
     clearAllTimers()
     userIds.value   = [{ user_id: '', position_id: defaultPositionId() }]
     lookups.value   = [blankLookup()]
     rowErrors.value = []
     pending.value   = false
+    inviteLink.value = ''
 }
+
+function close(){ emit('update:modelValue',false) }
 
 function avatarSrc(photo){
     if (!photo) return PLACEHOLDER
     const url = String(photo).trim()
     return /[^/]+\.[a-z0-9]+(?:\?.*)?$/i.test(url) ? url : PLACEHOLDER
 }
+
 function imgFallback(e){ e.target.onerror=null; e.target.src=PLACEHOLDER }
 
 function onUserInput(i){
     rowErrors.value[i] && (rowErrors.value[i] = '')
-    ensureLookupRow(i); clearTimer(i)
+    ensureLookupRow(i)
+    clearTimer(i)
     const q = (userIds.value[i]?.user_id ?? '').toString().trim()
-    if (!q){ Object.assign(lookups.value[i], blankLookup()); return }
+    if (!q){
+        Object.assign(lookups.value[i], blankLookup())
+        return
+    }
     lookups.value[i].loading = true
     lookups.value[i].touched = true
     debounceTimers.set(i, setTimeout(() => doLookup(i, q), 350))
@@ -75,10 +87,11 @@ function onUserInput(i){
 
 async function doLookup(i, q){
     try{
-        const { data } = await axios.get(
-            route('hackathons.teams.search', { hackathon: props.hackathon.slug, team: props.ownTeam.id }),
-            { params: { q } }
-        )
+        const lookupRoute = isProfileTeam.value
+            ? route('profile.teams.search', { team: props.ownTeam.id })
+            : route('hackathons.teams.search', { hackathon: props.hackathon.slug, team: props.ownTeam.id })
+
+        const { data } = await axios.get(lookupRoute, { params: { q } })
         ensureLookupRow(i)
         lookups.value[i].loading   = false
         lookups.value[i].found     = !!data?.user
@@ -94,36 +107,33 @@ async function doLookup(i, q){
     }
 }
 
-const rowErrors = ref([])
-
-function close(){ emit('update:modelValue',false) }
-
-const inviteLink = ref('')
-const { copy, copied } = useClipboard()
-
 const userIds = ref([{ user_id: '', position_id: props.positions[0]?.id }])
-const form = useForm({
-    users: []
-})
 
 async function getLink () {
     inviteLink.value = ''
     try {
-        const { data } = await axios.post(
-            route('hackathons.teams.create-invite', {
+        const inviteRoute = isProfileTeam.value
+            ? route('profile.teams.create-invite', { team: props.ownTeam.id })
+            : route('hackathons.teams.create-invite', {
                 hackathon: props.hackathon.slug,
                 team     : props.ownTeam.id
             })
-        )
+
+        const { data } = await axios.post(inviteRoute)
         inviteLink.value = data.url
-    } catch (e) { console.error('link-error', e) }
+    } catch (e) {
+        console.error('link-error', e)
+    }
 }
 
-watch(() => props.modelValue, async v => {
-    if (!v){ resetState(); return }
+watch(() => [props.modelValue, props.ownTeam?.id], async ([opened]) => {
+    if (!opened){
+        resetState()
+        return
+    }
     resetState()
     await getLink()
-})
+}, { immediate: true })
 
 const addUserField = () => {
     userIds.value.push({ user_id: '', position_id: defaultPositionId() })
@@ -137,8 +147,7 @@ const removeUserField = (index) => {
     lookups.value.splice(index, 1)
 }
 
-const hasForbidden = computed(() => lookups.value.some(s => s.touched && s.found && s.canInvite === false)
-    )
+const hasForbidden = computed(() => lookups.value.some(s => s.touched && s.found && s.canInvite === false))
 const inviteBtnDisabled = computed(() => pending.value || hasForbidden.value)
 
 const toId = (val) => {
@@ -154,11 +163,15 @@ const inviteUsers = async () => {
     }
     try {
         pending.value = true
-        await axios.post(
-            route('hackathons.teams.invite-by-id', {
+        const inviteRoute = isProfileTeam.value
+            ? route('profile.teams.invite-by-id', { team: props.ownTeam.id })
+            : route('hackathons.teams.invite-by-id', {
                 hackathon: props.hackathon.slug,
                 team     : props.ownTeam.id,
-            }),
+            })
+
+        await axios.post(
+            inviteRoute,
             {
                 users: userIds.value.map(({ user_id, position_id }, i) => {
                     const found = lookups.value[i]?.found && lookups.value[i]?.user?.id != null
@@ -189,8 +202,6 @@ const inviteUsers = async () => {
         pending.value = false
     }
 }
-
-const langStore = useLangStore()
 
 function capitalizeFirstLetter(str) {
     if (!str) return str;

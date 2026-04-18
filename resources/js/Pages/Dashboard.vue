@@ -1,7 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import ConfirmDialog from "@/Components/Dialog/ConfirmDialog.vue";
+import CreateProfileTeam from "@/Components/Dialog/CreateProfileTeam.vue";
+import EditTeam from "@/Components/Dialog/EditTeam.vue";
+import InvitationToTheTeam from "@/Components/Dialog/InvitationToTheTeam.vue";
 import {Head, usePage} from '@inertiajs/vue3';
 import {computed, nextTick, onMounted, ref} from "vue";
+import {useToast} from "vue-toastification";
 import {useLangStore} from "@/store/lang.js";
 import Pagination from '@/Components/Pagination.vue'
 
@@ -9,13 +14,50 @@ const props = defineProps({
     user: Object,
     awards: Object,
     projects: Object,
+    positions: {
+        type: Array,
+        default: () => [],
+    },
+    createdTeams: {
+        type: Array,
+        default: () => [],
+    },
+    memberTeams: {
+        type: Array,
+        default: () => [],
+    },
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
 })
 
 const langStore = useLangStore()
+const toast = useToast()
 
-const activeTab = ref(usePage().props.query?.tab   === 'past' ? 1 : 0)
+function normalizeCollection(collection) {
+    if (Array.isArray(collection)) return collection
+    if (Array.isArray(collection?.data)) return collection.data
+    return []
+}
+
+function cloneTeams(list) {
+    return JSON.parse(JSON.stringify(normalizeCollection(list)))
+}
+
+const createdTeamsState = ref(cloneTeams(props.createdTeams))
+const memberTeamsState = ref(cloneTeams(props.memberTeams))
+
+const showCreateTeam = ref(false)
+const showEditTeam = ref(false)
+const showInvitation = ref(false)
+const showDeleteTeam = ref(false)
+const showLeaveTeam = ref(false)
+const selectedTeam = ref(null)
+const teamToDelete = ref(null)
+const teamToLeave = ref(null)
+const deletingTeam = ref(false)
+const leavingTeam = ref(false)
+
+const activeTab = ref(usePage().props.query?.tab === 'past' ? 1 : 0)
 
 function setActiveTab(idx) {
     if (activeTab.value === idx) return
@@ -43,12 +85,33 @@ const sliderStyle = computed(() => {
     };
 });
 
+const isOwnProfile = computed(() => props.auth?.user?.id === props.user?.id)
+
+const allTeams = computed(() => ([
+    ...createdTeamsState.value.map(team => ({ team, profileRole: 'captain' })),
+    ...memberTeamsState.value.map(team => ({ team, profileRole: 'member' })),
+]))
+
+const hasTeams = computed(() => allTeams.value.length > 0)
+
+const deleteTeamText = computed(() => {
+    if (!teamToDelete.value?.team?.title) return 'Удалить команду?'
+    return `Удалить команду «${teamToDelete.value.team.title}»?`
+})
+
+const leaveTeamText = computed(() => {
+    if (!teamToLeave.value?.team?.title) return 'Покинуть команду?'
+    return `Покинуть команду «${teamToLeave.value.team.title}»?`
+})
+
 onMounted(async () => {
     await langStore.fetchTranslations()
     await nextTick(() => {
         tabsRef.value = document.querySelectorAll('.my-hackathon__tabs_item');
     });
+
     const phone = document.getElementById('phone');
+    if (!phone) return
 
     phone.addEventListener('input', e => {
         let digits = e.target.value.replace(/\D/g, '');
@@ -102,11 +165,97 @@ function previewSrc(project) {
     const hackSlug = project?.hackathon?.slug
     if (hackSlug && typeof route === "function") {
         try {
-            // GET hackathons/{hackathon}/media  → name: hackathons.image
             return route("hackathons.image", { hackathon: hackSlug })
-        } catch (_) { /* no-op */ }
+        } catch (_) {}
     }
     return "/project.jpg"
+}
+
+function resolveTeamRole(team) {
+    const currentUserId = props.user?.id
+    const membership = (team?.users ?? []).find(item => item?.user?.id === currentUserId)
+    if (membership?.position?.id === 1) return 'Капитан'
+    return 'Участник'
+}
+
+function ownerLabel(team) {
+    if (!team?.owner?.nickname) return ''
+    return `Создатель: @${team.owner.nickname}`
+}
+
+function openEditTeam(team) {
+    selectedTeam.value = team
+    showEditTeam.value = true
+}
+
+function openInvitation(team) {
+    selectedTeam.value = team
+    showInvitation.value = true
+}
+
+function openDeleteTeam(team) {
+    teamToDelete.value = team
+    showDeleteTeam.value = true
+}
+
+function openLeaveTeam(team) {
+    teamToLeave.value = team
+    showLeaveTeam.value = true
+}
+
+function handleTeamCreated(team) {
+    createdTeamsState.value.unshift(team)
+}
+
+async function deleteTeam() {
+    if (!teamToDelete.value?.team?.id || deletingTeam.value) return
+
+    deletingTeam.value = true
+
+    try {
+        const targetId = teamToDelete.value.team.id
+
+        await axios.delete(route('profile.teams.destroy', { team: targetId }))
+        createdTeamsState.value = createdTeamsState.value.filter(team => team.id !== targetId)
+        memberTeamsState.value = memberTeamsState.value.filter(team => team.id !== targetId)
+        toast.success('Команда удалена', {
+            position: 'top-right',
+            timeout: 5000,
+        })
+    } catch (e) {
+        toast.error('Не удалось удалить команду.', {
+            position: 'top-right',
+            timeout: 5000,
+        })
+    } finally {
+        deletingTeam.value = false
+        teamToDelete.value = null
+    }
+}
+
+async function leaveTeam() {
+    if (!teamToLeave.value?.team?.id || leavingTeam.value) return
+
+    leavingTeam.value = true
+
+    try {
+        const targetId = teamToLeave.value.team.id
+
+        await axios.delete(route('profile.teams.leave', { team: targetId }))
+        memberTeamsState.value = memberTeamsState.value.filter(team => team.id !== targetId)
+        toast.success('Вы вышли из команды', {
+            position: 'top-right',
+            timeout: 5000,
+        })
+    } catch (e) {
+        toast.error('Не удалось покинуть команду.', {
+            position: 'top-right',
+            timeout: 5000,
+        })
+    } finally {
+        leavingTeam.value = false
+        teamToLeave.value = null
+    }
 }
 
 const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
@@ -119,11 +268,11 @@ const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
         :auth="props.auth"
         :notifications="props.notifications"
     >
-<!--        <pre>{{props.user}}</pre>-->
         <div class="profile">
             <div class="profile__header">
-                <h2 class="profile__nickname">{{props.user?.nickname}}</h2>
+                <h2 class="profile__nickname">{{ props.user?.nickname }}</h2>
                 <a
+                    v-if="isOwnProfile"
                     type="button"
                     class="main__btn_main hackathon__btn"
                     style="max-width: unset"
@@ -134,9 +283,8 @@ const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
                 </a>
             </div>
             <div class="profile__role">
-<!--                <pre>{{props.user.birthday}}</pre>-->
-                <p v-for="role in props.user?.roles">{{role?.title}}</p>
-                <p>ID{{props.user?.id}}</p>
+                <p v-for="role in props.user?.roles">{{ role?.title }}</p>
+                <p>ID{{ props.user?.id }}</p>
             </div>
             <div class="profile__content">
                 <div class="profile__content_form">
@@ -147,7 +295,7 @@ const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
                         </div>
                         <div class="dialog__component">
                             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.birthDate) }}</p>
-                            <input type="date" readonly :value="dateOnly(props.user.birthday)"class="dialog__input">
+                            <input type="date" readonly :value="dateOnly(props.user.birthday)" class="dialog__input">
                         </div>
                     </div>
                     <div class="profile__content_row">
@@ -163,11 +311,140 @@ const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
                 </div>
                 <div class="profile__content_image">
                     <div>
-                        <img :src="avatarSrc(props.auth.user.photo)" @error="imgFallback" alt="Profile" />
+                        <img :src="avatarSrc(props.user.photo)" @error="imgFallback" alt="Profile" />
                     </div>
                 </div>
             </div>
+
+            <div class="profile__teams">
+                <div class="profile__teams_header">
+                    <div>
+                        <p class="hackathon__my-project__title">Команды</p>
+                        <p class="profile__teams_subtitle">Все команды, где пользователь состоит или является капитаном.</p>
+                    </div>
+                    <button
+                        v-if="isOwnProfile"
+                        type="button"
+                        class="main__btn_main hackathon__btn"
+                        style="max-width: unset"
+                        @click="showCreateTeam = true"
+                    >
+                        Создать команду
+                    </button>
+                </div>
+
+                <div v-if="hasTeams" class="profile__teams_grid">
+                    <div
+                        v-for="entry in allTeams"
+                        :key="entry.team.id"
+                        class="hackathon__participants_item profile__teams_item"
+                    >
+                        <div class="profile__teams_item-header">
+                            <div class="profile__teams_meta">
+                                <p class="hackathon__participants_title">{{ entry.team.title }}</p>
+                                <div class="profile__teams_badges">
+                                    <span class="profile__teams_badge">
+                                        {{ resolveTeamRole(entry.team) }}
+                                    </span>
+                                    <span class="profile__teams_hint" v-if="entry.profileRole === 'member' && entry.team.owner?.nickname">
+                                        {{ ownerLabel(entry.team) }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div
+                                v-if="isOwnProfile && (entry.team.can?.update_profile || entry.team.can?.invite_profile || entry.team.can?.delete_profile || entry.team.can?.leave_profile)"
+                                class="profile__teams_actions"
+                            >
+                                <button
+                                    v-if="entry.team.can?.update_profile"
+                                    type="button"
+                                    class="main__btn_main"
+                                    style="width: fit-content; max-width: unset"
+                                    @click="openEditTeam(entry.team)"
+                                >
+                                    {{ capitalizeFirstLetter(langStore.translations.edit) }}
+                                </button>
+                                <button
+                                    v-if="entry.team.can?.invite_profile"
+                                    type="button"
+                                    class="main__btn_main"
+                                    style="width: fit-content; max-width: unset"
+                                    @click="openInvitation(entry.team)"
+                                >
+                                    {{ capitalizeFirstLetter(langStore.translations.invite) }}
+                                </button>
+                                <button
+                                    v-if="entry.team.can?.delete_profile"
+                                    type="button"
+                                    class="main__btn main__btn_white"
+                                    style="width: fit-content"
+                                    @click="openDeleteTeam(entry)"
+                                >
+                                    Удалить
+                                </button>
+                                <button
+                                    v-if="entry.team.can?.leave_profile"
+                                    type="button"
+                                    class="main__btn main__btn_white"
+                                    style="width: fit-content"
+                                    @click="openLeaveTeam(entry)"
+                                >
+                                    Покинуть
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="hackathon__my-project__list">
+                            <div
+                                v-for="(person, idx) in entry.team.users"
+                                :key="`${entry.team.id}-${person.user.id}-${idx}`"
+                                class="hackathon__my-project__list_item"
+                            >
+                                <div class="hackathon__my-project__list_container">
+                                    <img :src="avatarSrc(person.user.photo)" @error="imgFallback" alt="Avatar">
+                                    <p class="hackathon__my-project__list_text">{{ person.user.nickname }}</p>
+                                </div>
+                                <p class="hackathon__my-project__list_text">{{ person.position.name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else class="profile__teams_empty">
+                    Пока команд нет.
+                </div>
+            </div>
         </div>
+
+        <CreateProfileTeam
+            v-model="showCreateTeam"
+            @created="handleTeamCreated"
+        />
+        <EditTeam
+            v-if="selectedTeam"
+            v-model="showEditTeam"
+            :team="selectedTeam"
+            :positions="normalizeCollection(props.positions)"
+        />
+        <InvitationToTheTeam
+            v-if="selectedTeam"
+            v-model="showInvitation"
+            :positions="normalizeCollection(props.positions)"
+            :ownTeam="selectedTeam"
+        />
+        <ConfirmDialog
+            v-model="showDeleteTeam"
+            :text="deleteTeamText"
+            @confirm="deleteTeam"
+            @cancel="teamToDelete = null"
+        />
+        <ConfirmDialog
+            v-model="showLeaveTeam"
+            :text="leaveTeamText"
+            @confirm="leaveTeam"
+            @cancel="teamToLeave = null"
+        />
+
         <div class="my-hackathon__tabs_cont">
             <div class="my-hackathon__tabs">
                 <p :class="['my-hackathon__tabs_item',{active:activeTab===0}]" @click="setActiveTab(0)">
@@ -183,7 +460,6 @@ const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
                 ></div>
             </div>
             <div class="profile__tabs">
-<!--                <pre>{{props.awards}}</pre>-->
                 <div v-if="currentTabBody === 'awards'" class="profile__tabs_awards">
                     <div v-for="(award, index) in props.awards" :key="index" class="profile__tabs_awards_item">
                         <img :src="award.image || '/default-award.jpg'" alt="Prize">
@@ -201,7 +477,6 @@ const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
 
                 <div v-else>
                     <div class="hackathon__gallery_container">
-                        <!--                    <pre>{{props.projects}}</pre>-->
                         <div
                             v-for="project in props.projects.data"
                             :key="project.slug || project.id"

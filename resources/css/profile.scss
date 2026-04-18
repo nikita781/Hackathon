@@ -180,4 +180,95 @@ $x-big: 1829.98px;
             }
         }
     }
+    &__teams {
+        margin-top: 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        @media screen and (max-width: $medium) {
+            margin-top: 30px;
+        }
+        @media screen and (max-width: $x-small) {
+            margin-top: 20px;
+            gap: 20px;
+        }
+        &_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            @media screen and (max-width: $small) {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        &_subtitle {
+            margin-top: 8px;
+            color: #666;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        &_grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            @media screen and (max-width: $large) {
+                grid-template-columns: 1fr;
+            }
+        }
+        &_item {
+            gap: 24px;
+        }
+        &_item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            @media screen and (max-width: $small) {
+                flex-direction: column;
+            }
+        }
+        &_meta {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        &_badges {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+        &_badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 12px;
+            border-radius: 100px;
+            background: rgba(232, 0, 36, 0.08);
+            color: #e80024;
+            font-size: 14px;
+            font-family: "Cera Bold";
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        &_hint {
+            color: #666;
+            font-size: 15px;
+        }
+        &_actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: flex-end;
+            @media screen and (max-width: $small) {
+                justify-content: unset;
+            }
+        }
+        &_empty {
+            padding: 28px 24px;
+            border-radius: 10px;
+            box-shadow: 0 0 16px 0 rgba(0, 0, 0, 0.08);
+            font-size: 18px;
+        }
+    }
 }

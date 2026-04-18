@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\AwardResource;
+use App\Http\Resources\PositionResource;
 use App\Http\Resources\TeamResource;
 use App\Http\Resources\UserProjectsResource;
 use App\Http\Resources\UserResource;
+use App\Models\Position;
 use App\Models\Project;
 use App\Models\User;
 use Inertia\Inertia;
@@ -50,6 +52,7 @@ class UserController extends Controller
             'user' => new UserResource($user),
             'awards' => AwardResource::collection($user->awards()->withPivot('awarded_at')->get()),
             'projects' => $projects,
+            'positions' => PositionResource::collection(Position::getAllPositionExceptCapitan()),
             'createdTeams' => TeamResource::collection($createdTeams),
             'memberTeams' => TeamResource::collection($memberTeams),
         ]);

@@ -1,13 +1,17 @@
 <script setup>
-import {computed, nextTick, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import IconsCheck from '@/Components/Icons/Check.vue'
 import {useLangStore} from "@/store/lang.js";
+import {useToast} from "vue-toastification";
 
 const props = defineProps({
     modelValue : Boolean,
     hackathonSlug: { type:String, required: true },
+    hackathon: { type: Object, default: null },
+    availableProfileTeams: { type: Array, default: () => [] },
     is_join: Boolean
 })
+
 const emit = defineEmits([
     'update:modelValue',
     'joined',
@@ -15,29 +19,123 @@ const emit = defineEmits([
 ])
 
 const langStore = useLangStore()
+const toast = useToast()
 
 function close(){ emit('update:modelValue',false) }
 
-const agree = ref(false);
+const agree = ref(false)
 const pending = ref(false)
-const disabled = computed(() => !agree.value || pending.value)
+const activeJoinMode = ref('solo')
+const selectedTeamId = ref(null)
 
-function toggleAgree () { agree.value = !agree.value }
+const availableTeams = computed(() => Array.isArray(props.availableProfileTeams) ? props.availableProfileTeams : [])
+const hasTeamJoinTab = computed(() => !props.is_join && props.hackathon?.type === 'team')
+const selectedTeam = computed(() => availableTeams.value.find(team => team.id === selectedTeamId.value) ?? null)
+
+const disabled = computed(() => {
+    if (!agree.value || pending.value) return true
+
+    if (props.is_join) return false
+
+    if (hasTeamJoinTab.value && activeJoinMode.value === 'team') {
+        return !selectedTeam.value || !selectedTeam.value.can_join_hackathon
+    }
+
+    return false
+})
+
+function toggleAgree () {
+    agree.value = !agree.value
+}
+
+function selectJoinMode(mode) {
+    activeJoinMode.value = mode
+}
+
+function selectTeam(team) {
+    if (!team?.can_join_hackathon) return
+    selectedTeamId.value = team.id
+}
+
+function resetState() {
+    agree.value = false
+    pending.value = false
+    activeJoinMode.value = 'solo'
+    selectedTeamId.value = null
+}
+
+watch(() => props.modelValue, (opened) => {
+    if (opened) {
+        resetState()
+    }
+})
+
+function capitalizeFirstLetter(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function teamMembersText(count) {
+    return `${count} участник${count === 1 ? '' : count < 5 ? 'а' : 'ов'}`
+}
+
+const teamRequirementText = computed(() => {
+    if (!hasTeamJoinTab.value) return ''
+    return `Подходят команды от ${props.hackathon?.min_team_size} до ${props.hackathon?.max_team_size} участников.`
+})
+
+const teamAgreementText = computed(() => {
+    if (activeJoinMode.value === 'team') {
+        return 'Подтверждаю вступление выбранной командой и согласен с правилами участия'
+    }
+
+    return capitalizeFirstLetter(langStore.translations.agreeWithRules)
+})
+
 async function submit () {
     if (disabled.value) return
+
     pending.value = true
 
     const routeName = props.is_join ? 'hackathons.leave' : 'hackathons.join'
+    const payload = {}
+
+    if (!props.is_join && hasTeamJoinTab.value && activeJoinMode.value === 'team' && selectedTeam.value) {
+        payload.team_id = selectedTeam.value.id
+    }
 
     try {
-        await axios.post(
-            route(routeName, { hackathon: props.hackathonSlug })
+        const { data } = await axios.post(
+            route(routeName, { hackathon: props.hackathonSlug }),
+            payload
         )
-        routeName === 'hackathons.join' ? emit('joined') : emit('left')
-        agree.value = false;
+
+        if (data?.status) {
+            toast.success(data.status, {
+                position: 'top-right',
+                timeout: 5000,
+            })
+        }
+
+        if (!props.is_join && data?.joined) {
+            emit('joined')
+        }
+
+        if (props.is_join && data?.left) {
+            emit('left')
+        }
+
         close()
     } catch (e) {
-        console.error(`${props.is_join ? 'leave' : 'join'}-error`, e?.response ?? e)
+        const firstValidationError = Object.values(e?.response?.data?.errors ?? {})?.[0]
+        const message = Array.isArray(firstValidationError)
+            ? firstValidationError[0]
+            : firstValidationError || e?.response?.data?.error || 'Не удалось выполнить действие.'
+
+        toast.error(message, {
+            position: 'top-right',
+            timeout: 5000,
+        })
     } finally {
         pending.value = false
     }
@@ -46,11 +144,6 @@ async function submit () {
 onMounted(async () => {
     await langStore.fetchTranslations()
 });
-
-function capitalizeFirstLetter(str) {
-    if (!str) return str;
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
 </script>
 
 <template>
@@ -65,9 +158,26 @@ function capitalizeFirstLetter(str) {
                     />
                 </svg></div>
             </div>
-            <div class="dialog__component" style="margin-top: -10px">
-                <p v-if="!props.is_join" class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rulesAndConditions) }}</p>
-                <div v-if="props.is_join" class="dialog__checkbox" style="margin-top: unset">
+
+            <div v-if="!props.is_join && hasTeamJoinTab" class="dialog__tabs">
+                <p
+                    class="dialog__tabs_item"
+                    :class="{ active: activeJoinMode === 'solo' }"
+                    @click="selectJoinMode('solo')"
+                >
+                    Самостоятельно
+                </p>
+                <p
+                    class="dialog__tabs_item"
+                    :class="{ active: activeJoinMode === 'team' }"
+                    @click="selectJoinMode('team')"
+                >
+                    Командой
+                </p>
+            </div>
+
+            <div v-if="props.is_join" class="dialog__component" style="margin-top: -10px">
+                <div class="dialog__checkbox" style="margin-top: unset">
                     <div>
                         <div @click="toggleAgree" class="custom-checkbox" :class="agree ? 'active' : ''">
                             <IconsCheck />
@@ -75,15 +185,83 @@ function capitalizeFirstLetter(str) {
                     </div>
                     <p>{{ capitalizeFirstLetter(langStore.translations.cancelParticipationConfirmation) }}</p>
                 </div>
-                <div v-else class="dialog__checkbox">
+            </div>
+
+            <template v-else-if="activeJoinMode === 'team'">
+                <div class="take-part__intro">
+                    <p class="dialog__text">Выберите одну из своих готовых команд для вступления в хакатон.</p>
+                    <p class="take-part__caption">{{ teamRequirementText }}</p>
+                </div>
+
+                <div v-if="availableTeams.length" class="take-part__team-list">
+                    <button
+                        v-for="team in availableTeams"
+                        :key="team.id"
+                        type="button"
+                        class="take-part__team"
+                        :class="{
+                            active: selectedTeamId === team.id,
+                            disabled: !team.can_join_hackathon,
+                        }"
+                        :disabled="!team.can_join_hackathon"
+                        @click="selectTeam(team)"
+                    >
+                        <div class="take-part__team-header">
+                            <div>
+                                <p class="take-part__team-title">{{ team.title }}</p>
+                                <p class="take-part__team-meta">{{ teamMembersText(team.members_count) }}</p>
+                            </div>
+                            <span class="take-part__team-radio"></span>
+                        </div>
+
+                        <div class="take-part__team-users">
+                            <div
+                                v-for="(person, index) in team.users"
+                                :key="`${team.id}-${person.user.id}-${index}`"
+                                class="take-part__team-user"
+                            >
+                                <span>@{{ person.user.nickname }}</span>
+                                <span>{{ person.position.name }}</span>
+                            </div>
+                        </div>
+
+                        <ul v-if="team.join_errors?.length" class="take-part__team-errors">
+                            <li v-for="(error, index) in team.join_errors" :key="index">
+                                {{ error }}
+                            </li>
+                        </ul>
+                    </button>
+                </div>
+
+                <div v-else class="take-part__empty">
+                    У вас пока нет команд, которыми можно войти в хакатон.
+                </div>
+
+                <div class="dialog__component">
+                    <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rulesAndConditions) }}</p>
+                    <div class="dialog__checkbox" style="margin-top: unset">
+                        <div>
+                            <div @click="toggleAgree" class="custom-checkbox" :class="agree ? 'active' : ''">
+                                <IconsCheck />
+                            </div>
+                        </div>
+                        <p>{{ teamAgreementText }}</p>
+                    </div>
+                </div>
+            </template>
+
+            <div v-else class="dialog__component" style="margin-top: -10px">
+                <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.rulesAndConditions) }}</p>
+                <div class="dialog__checkbox">
                     <div>
                         <div @click="toggleAgree" class="custom-checkbox" :class="agree ? 'active' : ''">
                             <IconsCheck />
                         </div>
                     </div>
-                    <p>{{ capitalizeFirstLetter(langStore.translations.agreeWithRules) }}</p>
+                    <p>{{ teamAgreementText }}</p>
                 </div>
             </div>
+
             <div class="dialog__btns">
                 <button class="main__btn main__btn_white dialog__btn" @click="close">
                     {{ capitalizeFirstLetter(langStore.translations.cansel) }}
@@ -104,5 +282,136 @@ function capitalizeFirstLetter(str) {
 </template>
 
 <style scoped>
+.take-part__intro {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: -10px;
+}
 
+.take-part__caption {
+    color: #7d8695;
+    font-size: 14px;
+}
+
+.take-part__team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.take-part__team {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #fff;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    text-align: left;
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.take-part__team:hover:not(.disabled) {
+    border-color: #E80024;
+}
+
+.take-part__team.active {
+    border-color: #E80024;
+}
+
+.take-part__team.disabled {
+    background: #f8f9fb;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+.take-part__team-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.take-part__team-title {
+    font-family: 'Cera';
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.take-part__team-meta {
+    margin-top: 6px;
+    color: #7d8695;
+    font-size: 14px;
+}
+
+.take-part__team-radio {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #d1d5db;
+    flex: 0 0 22px;
+    position: relative;
+}
+
+.take-part__team.active .take-part__team-radio {
+    border-color: #E80024;
+}
+
+.take-part__team.active .take-part__team-radio::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #E80024;
+    transform: translate(-50%, -50%);
+}
+
+.take-part__team-users {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.take-part__team-user {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 15px;
+}
+
+.take-part__team-errors {
+    margin: 0;
+    padding-left: 18px;
+    color: #E80024;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.take-part__empty {
+    padding: 18px;
+    border-radius: 14px;
+    background: #f8f9fb;
+    color: #7d8695;
+}
+
+@media (max-width: 767.98px) {
+    .take-part__team {
+        padding: 16px;
+    }
+
+    .take-part__team-title {
+        font-size: 18px;
+    }
+
+    .take-part__team-user {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
 </style>

@@ -17,6 +17,10 @@ const props = defineProps({
     team: Object,
     tags: Object,
     ownTeam: Object,
+    availableProfileTeams: {
+        type: Array,
+        default: () => [],
+    },
     positions: Array,
     is_join: Boolean,
     hackathonStaff: Array,
@@ -26,11 +30,6 @@ const props = defineProps({
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
 })
-
-console.log(props.is_join)
-console.log(props.can)
-console.log(props.hackathon)
-// console.log(props.auth)
 
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
@@ -113,9 +112,6 @@ function openTab(tab) {
 
 const CurrentTab = computed(() => tabComponents[activeTab.value] ?? null)
 
-console.log(props.hackathon)
-console.log(props.tabs)
-
 const joined = ref(props.is_join)
 const isOpen = ref(true)
 const showTakePart  = ref(false)
@@ -127,8 +123,21 @@ watch(showUpdateHackathon, (v) => { if (!v) adminMode.value = false })
 
 watch(() => props.is_join, v => (joined.value = v))
 
-function onJoined () { joined.value = true; window.location.reload();  }
-function onLeft   () { joined.value = false; window.location.reload(); }
+function reloadHackathonState() {
+    router.reload({
+        only: ['hackathon', 'ownTeam', 'allProjects', 'positions', 'hackathonStaff', 'supports', 'is_join', 'availableProfileTeams', 'can', 'flash'],
+    })
+}
+
+function onJoined () {
+    joined.value = true
+    reloadHackathonState()
+}
+
+function onLeft () {
+    joined.value = false
+    reloadHackathonState()
+}
 function toggleHeader() {
     isOpen.value = !isOpen.value
 }
@@ -391,17 +400,16 @@ async function finishHackathon() {
                                     type="button"
                                     class="main__btn_main hackathon__btn"
                                     @click="showTakePart = true"
-                                    :class="{ main__btn_white: joined}"
-                                    v-if="props.can.hackathon.join"
+                                    v-if="!joined && props.can.hackathon.join"
                                 >
-                                    {{joined ? capitalizeFirstLetter(langStore.translations.cancelParticipation) : capitalizeFirstLetter(langStore.translations.participate)}}
+                                    {{ capitalizeFirstLetter(langStore.translations.participate) }}
                                 </button>
                                 <button
                                     type="button"
                                     class="main__btn_main hackathon__btn"
                                     @click="showTakePart = true"
                                     :class="{ main__btn_white: joined}"
-                                    v-if="joined && !props.hackathon.is_finished"
+                                    v-if="joined && props.can.hackathon.leave && !props.hackathon.is_finished"
                                 >
                                     {{capitalizeFirstLetter(langStore.translations.cancelParticipation)}}
                                 </button>
@@ -475,6 +483,8 @@ async function finishHackathon() {
                                 v-model="showTakePart"
                                 :is_join="joined"
                                 :hackathonSlug="props.hackathon.slug"
+                                :hackathon="props.hackathon"
+                                :availableProfileTeams="props.availableProfileTeams"
                                 @joined="onJoined"
                                 @left="onLeft"
                             />

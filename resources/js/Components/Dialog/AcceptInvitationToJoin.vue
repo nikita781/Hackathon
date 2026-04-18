@@ -38,7 +38,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div v-if="modelValue" class="dialog" style="z-index:2">
+    <div v-if="modelValue" class="dialog dialog_notification-accept" style="z-index:2">
         <div class="dialog__container dialog__container_small" @click.stop>
             <div class="dialog__header">
                 <p>{{ capitalizeFirstLetter(langStore.translations.acceptTeamInvitation) }}</p>
@@ -89,5 +89,9 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-
+.dialog_notification-accept .main__btn.blocked {
+    background-color: #E80024;
+    border-color: #E80024;
+    opacity: 0.45;
+}
 </style>

@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProfileTeamRequest;
 use App\Http\Requests\UpdateProfileTeamRequest;
 use App\Http\Resources\TeamResource;
+use App\Http\Resources\UserResource;
 use App\Models\Position;
 use App\Models\Team;
 use App\Models\TeamInvite;
+use App\Models\User;
+use App\Notifications\InviteNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +19,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class ProfileTeamController extends Controller
@@ -72,7 +76,22 @@ class ProfileTeamController extends Controller
 
     public function update(UpdateProfileTeamRequest $request, Team $team): JsonResponse
     {
-        $team->update($request->validated());
+        abort_unless($team->isProfileTeam(), 404);
+
+        $data = $request->validated();
+
+        $team->update([
+            'title' => $data['title'],
+        ]);
+
+        foreach ($data['members'] ?? [] as $member) {
+            if ($team->users()->where('users.id', $member['member_id'])->exists()) {
+                $team->users()->updateExistingPivot($member['member_id'], [
+                    'position_id' => $member['position_id'],
+                ]);
+            }
+        }
+
         $team->load($this->relations());
 
         return response()->json([
@@ -82,6 +101,7 @@ class ProfileTeamController extends Controller
 
     public function destroy(Team $team): Response
     {
+        abort_unless($team->isProfileTeam(), 404);
         Gate::authorize('deleteProfile', $team);
 
         $team->delete();
@@ -91,6 +111,7 @@ class ProfileTeamController extends Controller
 
     public function createInvite(Team $team): JsonResponse
     {
+        abort_unless($team->isProfileTeam(), 404);
         Gate::authorize('inviteProfile', $team);
 
         do {
@@ -133,9 +154,174 @@ class ProfileTeamController extends Controller
             'position_id' => $invite->position_id ?? Position::UNI_POSITION,
         ]);
 
+        $request->user()
+            ->notifications()
+            ->where('data->url', route('profile.teams.accept-invite', [$team, $invite->token]))
+            ->update(['data->is_active' => false]);
+
         $invite->delete();
 
         return $this->inviteResponse($request, 'status', __('joined_team'));
+    }
+
+    public function kick(Request $request, Team $team): Response
+    {
+        abort_unless($team->isProfileTeam(), 404);
+        Gate::authorize('updateProfile', $team);
+
+        $data = $request->validate([
+            'members' => ['required', 'array'],
+            'members.*' => ['required', 'exists:users,id'],
+        ]);
+
+        foreach ($data['members'] as $memberId) {
+            $isCaptain = $team->teamUsers()
+                ->where('user_id', $memberId)
+                ->where('position_id', Position::CAPITAN_POSITION)
+                ->exists();
+
+            if ($isCaptain) {
+                throw ValidationException::withMessages([
+                    'members' => ['Капитана команды нельзя исключить.'],
+                ]);
+            }
+
+            $team->users()->detach($memberId);
+
+            TeamInvite::where('team_id', $team->id)
+                ->where('user_id', $memberId)
+                ->delete();
+        }
+
+        return response()->noContent();
+    }
+
+    public function leave(Request $request, Team $team): Response
+    {
+        abort_unless($team->isProfileTeam(), 404);
+        Gate::authorize('leaveProfile', $team);
+
+        $team->users()->detach($request->user()->id);
+
+        return response()->noContent();
+    }
+
+    public function search(Request $request, Team $team): JsonResponse
+    {
+        abort_unless($team->isProfileTeam(), 404);
+        Gate::authorize('inviteProfile', $team);
+
+        $query = trim((string) $request->input('q'));
+
+        $user = User::query()
+            ->where('id', (int) $query)
+            ->orWhere('nickname', $query)
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'user' => null,
+                'canInvite' => false,
+                'errors' => [__('user_not_found')],
+            ]);
+        }
+
+        $canInvite = true;
+        $errors = [];
+
+        if ($team->users()->where('users.id', $user->id)->exists()) {
+            $canInvite = false;
+            $errors[] = 'Пользователь уже состоит в этой команде.';
+        }
+
+        if (TeamInvite::where('team_id', $team->id)->where('user_id', $user->id)->exists()) {
+            $canInvite = false;
+            $errors[] = __('user_already_invited', ['user_nickname' => $user->nickname]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'user' => new UserResource($user),
+            'canInvite' => $canInvite,
+            'errors' => $errors,
+        ]);
+    }
+
+    public function inviteUserById(Request $request, Team $team): Response
+    {
+        abort_unless($team->isProfileTeam(), 404);
+        Gate::authorize('inviteProfile', $team);
+
+        $data = $request->validate([
+            'users' => ['required', 'array'],
+            'users.*.user_id' => ['required'],
+            'users.*.position_id' => ['required', 'exists:positions,id'],
+        ]);
+
+        $sender = $request->user();
+        $errors = [];
+
+        foreach ($data['users'] as $index => $user) {
+            do {
+                $token = Str::random(32);
+            } while (TeamInvite::where('token', $token)->exists());
+
+            $invitedUserId = $user['user_id'];
+            $invitedPositionId = $user['position_id'];
+
+            if (is_string($invitedUserId)) {
+                if (str_contains($invitedUserId, 'ID')) {
+                    $invitedUserId = (int) str_replace('ID', '', $invitedUserId);
+                }
+
+                if ($invitedUserId === 0 || is_string($invitedUserId)) {
+                    $errors["users.$index.user_id"] = [__('user_not_found_by_id', ['user_id' => $user['user_id']])];
+                    continue;
+                }
+            }
+
+            $invitedUser = User::find($invitedUserId);
+            if (!$invitedUser) {
+                $errors["users.$index.user_id"] = [__('user_not_found_by_id', ['user_id' => $user['user_id']])];
+                continue;
+            }
+
+            if ($team->users()->where('users.id', $invitedUserId)->exists()) {
+                $errors["users.$index.user_id"] = ['Пользователь уже состоит в этой команде.'];
+                continue;
+            }
+
+            if (TeamInvite::where('team_id', $team->id)->where('user_id', $invitedUserId)->exists()) {
+                $errors["users.$index.user_id"] = [__('invitation_already_sent', ['user_nickname' => $invitedUser->nickname])];
+                continue;
+            }
+
+            $position = Position::find($invitedPositionId);
+
+            $invite = TeamInvite::create([
+                'team_id' => $team->id,
+                'user_id' => $invitedUserId,
+                'position_id' => $invitedPositionId,
+                'token' => $token,
+                'expires_at' => now()->addDay(),
+            ]);
+
+            $invitedUser->notify(new InviteNotification([
+                'title' => __('team_invitation_title'),
+                'description' => "Пользователь {$sender->nickname} пригласил Вас в команду {$team->title} на роль {$position?->title}.",
+                'url' => route('profile.teams.accept-invite', [$team, $invite->token]),
+                'send_at' => now()->toDateString(),
+                'is_active' => true,
+                'hackathon' => null,
+            ]));
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return response()->noContent();
     }
 
     private function relations(): array

@@ -18,6 +18,9 @@ class UpdateProfileTeamRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
+            'members' => ['sometimes', 'array'],
+            'members.*.member_id' => ['required_with:members', 'exists:users,id'],
+            'members.*.position_id' => ['required_with:members', 'exists:positions,id'],
         ];
     }
 

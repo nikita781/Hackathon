@@ -32,6 +32,7 @@ class TeamResource extends JsonResource
                 'update_profile' => $request->user()?->can('updateProfile', $this->resource) ?? false,
                 'delete_profile' => $request->user()?->can('deleteProfile', $this->resource) ?? false,
                 'invite_profile' => $request->user()?->can('inviteProfile', $this->resource) ?? false,
+                'leave_profile' => $request->user()?->can('leaveProfile', $this->resource) ?? false,
             ],
         ];
     }

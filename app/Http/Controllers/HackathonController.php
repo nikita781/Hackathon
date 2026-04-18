@@ -24,6 +24,7 @@ use App\Models\Role;
 use App\Models\Support;
 use App\Models\Tab;
 use App\Models\Tag;
+use App\Models\Team;
 use App\Models\TeamInvite;
 use App\Models\User;
 use App\Notifications\InviteNotification;
@@ -37,6 +38,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -92,6 +94,27 @@ class HackathonController extends Controller
     public function myHackathons(Request $request): Response
     {
         $user = auth()->user();
+        if (false) {
+        $data = $request->validate([
+            'team_id' => ['nullable', 'integer', 'exists:teams,id'],
+        ]);
+
+        $profileTeam = null;
+        if (!empty($data['team_id'])) {
+            $profileTeam = $user->teams()
+                ->where('teams.id', $data['team_id'])
+                ->whereNull('teams.hackathon_id')
+                ->wherePivot('position_id', Position::CAPITAN_POSITION)
+                ->with(['teamUsers.user.roles', 'teamUsers.position'])
+                ->first();
+
+            if (! $profileTeam) {
+                throw ValidationException::withMessages([
+                    'team_id' => ['Команда для вступления не найдена или недоступна.'],
+                ]);
+            }
+        }
+        }
         $perPage = min($request->get('per_page', 6), 10);
 
         $hackathonIds = $user->hackathons()->pluck('hackathons.id')->toArray();
@@ -270,6 +293,23 @@ class HackathonController extends Controller
         $supports = SupportResource::collection($hackathon->support()->where('type', Support::QUESTION)->orWhere('type',
             Support::SUGGESTION)->orderBy('created_at')->with('messages.user')->get());
         $tags = TagResource::collection(Tag::all());
+        $availableProfileTeams = collect();
+
+        if ($user && ! $user->onHackathonAsMember($hackathon)) {
+            $captainProfileTeams = $user->teams()
+                ->whereNull('teams.hackathon_id')
+                ->wherePivot('position_id', Position::CAPITAN_POSITION)
+                ->with(['owner', 'teamUsers.user.roles', 'teamUsers.position'])
+                ->latest('teams.created_at')
+                ->get();
+
+            $availableProfileTeams = $captainProfileTeams->map(function (Team $team) use ($request, $hackathon) {
+                return array_merge(
+                    (new TeamResource($team))->toArray($request),
+                    $this->getProfileTeamJoinAvailability($team, $hackathon)
+                );
+            })->values();
+        }
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -278,6 +318,7 @@ class HackathonController extends Controller
                 'ownTeam' => optional($ownTeamResource)->response(),
                 'allProjects' => optional($allProjects)->response(),
                 'positions' => $positionsResource->response(),
+                'availableProfileTeams' => $availableProfileTeams,
             ]);
         }
 
@@ -290,6 +331,7 @@ class HackathonController extends Controller
             'allProjects' => $allProjects,
             'supports' => $supports,
             'is_join' => $user ? $user->onHackathonAsMember($hackathon) : false,
+            'availableProfileTeams' => $availableProfileTeams,
             'tags' => $tags,
             'can' => [
                 'hackathon' => [
@@ -401,15 +443,39 @@ class HackathonController extends Controller
     {
     }
 
-    public function joinHackathon(Hackathon $hackathon): RedirectResponse
+    public function joinHackathon(Request $request, Hackathon $hackathon): JsonResponse|RedirectResponse
     {
         if (!Gate::check('join', $hackathon)) {
             abort(403);
         }
 
         $user = auth()->user();
+        $data = $request->validate([
+            'team_id' => ['nullable', 'integer', 'exists:teams,id'],
+        ]);
+
+        $profileTeam = null;
+        if (!empty($data['team_id'])) {
+            $profileTeam = $user->teams()
+                ->where('teams.id', $data['team_id'])
+                ->whereNull('teams.hackathon_id')
+                ->wherePivot('position_id', Position::CAPITAN_POSITION)
+                ->with(['teamUsers.user.roles', 'teamUsers.position'])
+                ->first();
+
+            if (! $profileTeam) {
+                throw ValidationException::withMessages([
+                    'team_id' => ['Команда для вступления не найдена или недоступна.'],
+                ]);
+            }
+        }
 
         if ($hackathon->isModeration()) {
+            if ($profileTeam) {
+                throw ValidationException::withMessages([
+                    'team_id' => ['Для хакатонов с модерацией вступление готовой командой пока недоступно.'],
+                ]);
+            }
 
             $reqExist = HackathonUserRequest::query()
                 ->where('hackathon_id', $hackathon->id)
@@ -417,7 +483,10 @@ class HackathonController extends Controller
                 ->exists();
 
             if ($reqExist) {
-                return back()->with('error', 'Вы уже отправили запрос на вступление, ожидайте'); //TODO: Вынести в перевод
+                return $this->membershipResponse($request, 'error', 'Вы уже отправили запрос на вступление, ожидайте', [
+                    'joined' => false,
+                    'requested' => true,
+                ], 422);
             }
 
             HackathonUserRequest::create([
@@ -426,7 +495,26 @@ class HackathonController extends Controller
                 'status' => HackathonUserRequest::STATUS_PENDING,
             ]);
 
-            return back()->with('status', 'Запрос на вступление отправлен на модерацию'); //TODO: Вынести в перевод
+            return $this->membershipResponse($request, 'status', 'Запрос на вступление отправлен на модерацию', [
+                'joined' => false,
+                'requested' => true,
+            ]);
+        }
+
+        if ($profileTeam) {
+            $availability = $this->getProfileTeamJoinAvailability($profileTeam, $hackathon);
+
+            if (! $availability['can_join_hackathon']) {
+                throw ValidationException::withMessages([
+                    'team_id' => $availability['join_errors'],
+                ]);
+            }
+
+            $this->registerProfileTeamOnHackathon($hackathon, $profileTeam);
+
+            return $this->membershipResponse($request, 'status', __('joined_hackathon_success'), [
+                'joined' => true,
+            ]);
         }
 
         $user->hackathons()->attach($hackathon->id, ['role_id' => Role::MEMBER]);
@@ -439,7 +527,9 @@ class HackathonController extends Controller
             $team->id => ['position_id' => Position::CAPITAN_POSITION]
         ]);
 
-        return back()->with('status', __('joined_hackathon_success'));
+        return $this->membershipResponse($request, 'status', __('joined_hackathon_success'), [
+            'joined' => true,
+        ]);
     }
 
     public function acceptUser(Hackathon $hackathon, int $userRequest): RedirectResponse
@@ -507,7 +597,7 @@ class HackathonController extends Controller
         return back()->with('status', 'Пользователю успешно отказано в приеме на хакатон'); //TODO: добавить в перевод
     }
 
-    public function leaveHackathon(Hackathon $hackathon): RedirectResponse
+    public function leaveHackathon(Request $request, Hackathon $hackathon): JsonResponse|RedirectResponse
     {
         if (!Gate::check('leave', $hackathon)) {
             abort(403);
@@ -517,7 +607,9 @@ class HackathonController extends Controller
 
         $this->detachUserFromHackathon($user, $hackathon);
 
-        return back()->with('status', 'Вы покинули хакатон'); //TODO: добавить в перевод
+        return $this->membershipResponse($request, 'status', 'Вы покинули хакатон', [
+            'left' => true,
+        ]);
     }
 
     public function kickUser(Request $request, Hackathon $hackathon): RedirectResponse
@@ -841,6 +933,104 @@ class HackathonController extends Controller
             ->toMediaCollection('certificate_seal');
 
         return back()->with('success', 'Печать загружена');
+    }
+
+    private function getProfileTeamJoinAvailability(Team $team, Hackathon $hackathon): array
+    {
+        $errors = [];
+        $membersCount = $team->teamUsers->count();
+        $minTeamSize = (int) ($hackathon->min_team_size ?? 1);
+        $maxTeamSize = (int) ($hackathon->max_team_size ?? 1);
+
+        if (! $team->isProfileTeam()) {
+            $errors[] = 'Можно выбрать только постоянную команду из профиля.';
+        }
+
+        if ($hackathon->type !== 'team') {
+            $errors[] = 'Этот хакатон не поддерживает вступление готовой командой.';
+        }
+
+        if ($hackathon->isModeration()) {
+            $errors[] = 'Для хакатонов с модерацией вступление готовой командой пока недоступно.';
+        }
+
+        if ($membersCount < $minTeamSize) {
+            $errors[] = "В команде недостаточно участников: минимум {$minTeamSize}.";
+        }
+
+        if ($membersCount > $maxTeamSize) {
+            $errors[] = "В команде слишком много участников: максимум {$maxTeamSize}.";
+        }
+
+        foreach ($team->teamUsers as $teamUser) {
+            $member = $teamUser->user;
+            if (! $member) {
+                continue;
+            }
+
+            if ($member->status === User::STATUS_BLOCKED) {
+                $errors[] = "Участник @{$member->nickname} заблокирован.";
+            }
+
+            if ($member->isHackathonStaff($hackathon)) {
+                $errors[] = "Участник @{$member->nickname} уже относится к стаффу этого хакатона.";
+            }
+
+            if ($member->isAdmin()) {
+                $errors[] = "Участник @{$member->nickname} является администратором и не может быть добавлен в команду хакатона.";
+            }
+
+            if ($member->hackathons()->where('hackathon_id', $hackathon->id)->exists()) {
+                $errors[] = "Участник @{$member->nickname} уже участвует в этом хакатоне.";
+            }
+        }
+
+        return [
+            'members_count' => $membersCount,
+            'can_join_hackathon' => empty($errors),
+            'join_errors' => array_values(array_unique($errors)),
+        ];
+    }
+
+    private function registerProfileTeamOnHackathon(Hackathon $hackathon, Team $profileTeam): void
+    {
+        DB::transaction(function () use ($hackathon, $profileTeam) {
+            $hackathonTeam = $hackathon->teams()->create([
+                'title' => $profileTeam->title,
+            ]);
+
+            $hackathonUsers = $profileTeam->teamUsers->mapWithKeys(function ($teamUser) {
+                return [
+                    $teamUser->user_id => ['role_id' => Role::MEMBER],
+                ];
+            })->all();
+
+            $hackathon->users()->syncWithoutDetaching($hackathonUsers);
+
+            $teamMembers = $profileTeam->teamUsers->mapWithKeys(function ($teamUser) {
+                return [
+                    $teamUser->user_id => ['position_id' => $teamUser->position_id],
+                ];
+            })->all();
+
+            $hackathonTeam->users()->syncWithoutDetaching($teamMembers);
+        });
+    }
+
+    private function membershipResponse(
+        Request $request,
+        string $flashKey,
+        string $message,
+        array $payload = [],
+        int $status = 200
+    ): JsonResponse|RedirectResponse {
+        if ($request->expectsJson()) {
+            return response()->json(array_merge([
+                $flashKey => $message,
+            ], $payload), $status);
+        }
+
+        return back()->with($flashKey, $message);
     }
 
     private function mediaToDataUrl(?Media $media): ?string

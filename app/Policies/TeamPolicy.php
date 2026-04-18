@@ -59,6 +59,17 @@ class TeamPolicy
         return $team->isProfileTeam() && $team->hasCaptain($user);
     }
 
+    public function leaveProfile(User $user, Team $team): bool
+    {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
+        return $team->isProfileTeam()
+            && ! $team->hasCaptain($user)
+            && $team->users()->where('users.id', $user->id)->exists();
+    }
+
     public function acceptProfileInvite(User $user, Team $team): bool
     {
         if ($user->status === User::STATUS_BLOCKED) {
