@@ -11,6 +11,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NominationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\ProfileTeamController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SupportsController;
@@ -43,6 +44,17 @@ Route::prefix('hackathons')->name('hackathons.')->group(function () {
         Route::prefix('/projects/{project}')->name('projects.')->group(function () {
             Route::get('/', [ProjectsController::class, 'show'])->name('show');
         });
+    });
+});
+
+Route::middleware('auth')->prefix('/profile/teams')->name('profile.teams.')->group(function () {
+    Route::get('/', [ProfileTeamController::class, 'index'])->name('index');
+    Route::post('/', [ProfileTeamController::class, 'store'])->name('store');
+    Route::prefix('/{team}')->group(function () {
+        Route::patch('/', [ProfileTeamController::class, 'update'])->name('update');
+        Route::delete('/', [ProfileTeamController::class, 'destroy'])->name('destroy');
+        Route::post('/invite', [ProfileTeamController::class, 'createInvite'])->name('create-invite');
+        Route::get('/invite/{token}', [ProfileTeamController::class, 'acceptInvite'])->name('accept-invite');
     });
 });
 
@@ -229,13 +241,11 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/roles', [AdminController::class, 'allRoles'])->name('roles');
 
     Route::post('/sync-user', [AdminController::class, 'syncUser'])->name('sync-user')->middleware('throttle:2,1');
-    Route::post('/hackathons/finish', [AdminController::class, 'finishHackathons'])->name('hackathons.finish')->middleware('throttle:10,1');;
+    Route::post('/hackathons/finish', [AdminController::class, 'finishHackathons'])->name('hackathons.finish')->middleware('throttle:10,1');
 });
 
 // REFBOOK ROUTES
 Route::get('/refbook/roles', [AdminController::class, 'staffRoles'])->name('roles');
-
-
 
 Route::patch('/hackathons/{hackathon}/seal', [HackathonController::class, 'uploadSeal'])
     ->name('hackathons.upload-seal');

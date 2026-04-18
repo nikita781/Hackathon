@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,12 +11,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Team extends Model
 {
     protected $fillable = [
-        'hackathon_id', 'title', 'place'
+        'hackathon_id', 'owner_id', 'title', 'place',
     ];
 
     public function hackathon(): BelongsTo
     {
         return $this->belongsTo(Hackathon::class);
+    }
+
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
     public function users(): BelongsToMany
@@ -38,6 +41,19 @@ class Team extends Model
         return $this->users()->wherePivot('position_id', Position::CAPITAN_POSITION)->first();
     }
 
+    public function isProfileTeam(): bool
+    {
+        return $this->hackathon_id === null;
+    }
+
+    public function hasCaptain(User $user): bool
+    {
+        return $this->users()
+            ->wherePivot('position_id', Position::CAPITAN_POSITION)
+            ->where('users.id', $user->id)
+            ->exists();
+    }
+
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
@@ -46,7 +62,7 @@ class Team extends Model
     public function scopeFilter(Builder $query, $request): Builder
     {
         $query->when($request->q, function ($q, $search) {
-            $q->where('title', 'ILIKE', '%' . $search . '%');
+            $q->where('title', 'ILIKE', '%'.$search.'%');
         });
 
         $query->when($request->team, function ($q, $team) {
@@ -80,5 +96,15 @@ class Team extends Model
         });
 
         return $query;
+    }
+
+    public function scopeProfile(Builder $query): Builder
+    {
+        return $query->whereNull('teams.hackathon_id');
+    }
+
+    public function scopeForHackathon(Builder $query): Builder
+    {
+        return $query->whereNotNull('teams.hackathon_id');
     }
 }

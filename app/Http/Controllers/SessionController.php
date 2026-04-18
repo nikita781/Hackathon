@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use Exception;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -53,12 +54,19 @@ class SessionController extends Controller
 
     private function syncUserFromMainSite(string $login): ?User
     {
-        $externalUser = DB::connection('main_site')
-            ->table('users')
-            ->where(function($query) use ($login) {
-                $query->whereRaw('LOWER(name) = ?', [mb_strtolower($login)])
-                    ->orWhereRaw('LOWER(email) = ?', [mb_strtolower($login)]);
-            })            ->first();
+        try {
+            $externalUser = DB::connection('main_site')
+                ->table('users')
+                ->where(function($query) use ($login) {
+                    $query->whereRaw('LOWER(name) = ?', [mb_strtolower($login)])
+                        ->orWhereRaw('LOWER(email) = ?', [mb_strtolower($login)]);
+                })
+                ->first();
+        } catch (QueryException $e) {
+            report($e);
+
+            return null;
+        }
 
         if (!$externalUser) {
             return null;

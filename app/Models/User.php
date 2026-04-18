@@ -3,10 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -29,7 +29,7 @@ class User extends Authenticatable
         'phone_number',
         'photo',
         'status',
-        'updated_at'
+        'updated_at',
     ];
 
     /**
@@ -57,27 +57,19 @@ class User extends Authenticatable
     }
 
     public const STATUS_ACTIVE = 1;
+
     public const STATUS_BLOCKED = 2;
 
-    /**
-     * @return BelongsToMany
-     */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
     }
 
-    /**
-     * @return HasMany
-     */
     public function hackathonsAsOrganizer(): HasMany
     {
         return $this->hasMany(Hackathon::class);
     }
 
-    /**
-     * @return BelongsToMany
-     */
     public function hackathons(): BelongsToMany
     {
         return $this
@@ -90,10 +82,6 @@ class User extends Authenticatable
         return $this->hasMany(HackathonUserRequest::class);
     }
 
-    /**
-     * @param  int  $role_id
-     * @return bool
-     */
     public function hasRole(int $role_id): bool
     {
         return $this->roles->contains('id', $role_id);
@@ -106,6 +94,7 @@ class User extends Authenticatable
                 return true;
             }
         }
+
         return false;
     }
 
@@ -146,18 +135,11 @@ class User extends Authenticatable
         return false;
     }
 
-    /**
-     * @param  int  $role_id
-     * @return void
-     */
     public function assignedRole(int $role_id): void
     {
         $this->roles()->syncWithoutDetaching([$role_id]);
     }
 
-    /**
-     * @return BelongsToMany
-     */
     public function teams(): BelongsToMany
     {
         return $this
@@ -166,9 +148,21 @@ class User extends Authenticatable
             ->withPivot(['position_id']);
     }
 
-    /**
-     * @return HasMany
-     */
+    public function ownedTeams(): HasMany
+    {
+        return $this->hasMany(Team::class, 'owner_id');
+    }
+
+    public function ownedProfileTeams(): HasMany
+    {
+        return $this->ownedTeams()->whereNull('hackathon_id');
+    }
+
+    public function profileTeams(): BelongsToMany
+    {
+        return $this->teams()->whereNull('teams.hackathon_id');
+    }
+
     public function teamUsers(): HasMany
     {
         return $this->hasMany(TeamUser::class);
@@ -201,9 +195,6 @@ class User extends Authenticatable
         return $this->hasMany(Evaluation::class);
     }
 
-    /**
-     * @return BelongsToMany
-     */
     public function positions(): BelongsToMany
     {
         return $this

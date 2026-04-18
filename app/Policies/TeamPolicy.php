@@ -27,9 +27,54 @@ class TeamPolicy
         return $user?->teams()->where('teams.id', $team->id)->exists() ?? false;
     }
 
+    public function createProfile(User $user): bool
+    {
+        return $user->status !== User::STATUS_BLOCKED;
+    }
+
+    public function updateProfile(User $user, Team $team): bool
+    {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
+        return $team->isProfileTeam() && $team->hasCaptain($user);
+    }
+
+    public function deleteProfile(User $user, Team $team): bool
+    {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
+        return $team->isProfileTeam() && $team->owner_id === $user->id;
+    }
+
+    public function inviteProfile(User $user, Team $team): bool
+    {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
+        return $team->isProfileTeam() && $team->hasCaptain($user);
+    }
+
+    public function acceptProfileInvite(User $user, Team $team): bool
+    {
+        if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
+        return $team->isProfileTeam();
+    }
+
     public function update(User $user, Team $team): bool
     {
         if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
+        if (! $team->hackathon) {
             return false;
         }
 
@@ -38,11 +83,11 @@ class TeamPolicy
             return false;
         }
 
-        if ($team->hackathon->type === "individual") {
+        if ($team->hackathon->type === 'individual') {
             return false;
         }
 
-        if ($team->hackathon->type === "team" && $team->hackathon->max_team_size === 1) {
+        if ($team->hackathon->type === 'team' && $team->hackathon->max_team_size === 1) {
             return false;
         }
 
@@ -55,6 +100,10 @@ class TeamPolicy
     public function kick(User $user, Team $team): bool
     {
         if ($user->status === User::STATUS_BLOCKED) {
+            return false;
+        }
+
+        if (! $team->hackathon) {
             return false;
         }
 
@@ -75,12 +124,17 @@ class TeamPolicy
             return false;
         }
 
+        if (! $team->hackathon) {
+            return false;
+        }
+
         $hackathon = $team->hackathon;
         if ($hackathon->event_start->lessThan(now())) {
             return false;
         }
 
         $teamCount = $team->users->count();
+
         return $teamCount < $hackathon->max_team_size;
     }
 
@@ -90,12 +144,17 @@ class TeamPolicy
             return false;
         }
 
+        if (! $team->hackathon) {
+            return false;
+        }
+
         $hackathon = $team->hackathon;
         if ($hackathon->event_start->lessThan(now())) {
             return false;
         }
 
         $teamCount = $team->users->count();
+
         return $teamCount < $hackathon->max_team_size;
     }
 }

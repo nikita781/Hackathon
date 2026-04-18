@@ -16,14 +16,23 @@ class TeamResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'place' => $this->place,
-            'users' => $this->whenLoaded('teamUsers', function() {
-                return $this->teamUsers->map(function($teamUser) {
+            'is_profile_team' => $this->isProfileTeam(),
+            'owner' => $this->whenLoaded('owner', function () {
+                return new UserResource($this->owner);
+            }),
+            'users' => $this->whenLoaded('teamUsers', function () {
+                return $this->teamUsers->map(function ($teamUser) {
                     return [
                         'user' => new UserResource($teamUser->user),
                         'position' => new PositionResource($teamUser->position),
                     ];
                 });
             }),
+            'can' => [
+                'update_profile' => $request->user()?->can('updateProfile', $this->resource) ?? false,
+                'delete_profile' => $request->user()?->can('deleteProfile', $this->resource) ?? false,
+                'invite_profile' => $request->user()?->can('inviteProfile', $this->resource) ?? false,
+            ],
         ];
     }
 }
