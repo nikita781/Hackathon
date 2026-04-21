@@ -53,6 +53,8 @@ class ProfileTeamController extends Controller
 
     public function store(StoreProfileTeamRequest $request): JsonResponse
     {
+        $this->abortIfTeamReadOnly();
+
         $team = DB::transaction(function () use ($request) {
             $team = Team::create([
                 'owner_id' => $request->user()->id,
@@ -76,6 +78,8 @@ class ProfileTeamController extends Controller
 
     public function update(UpdateProfileTeamRequest $request, Team $team): JsonResponse
     {
+        $this->abortIfTeamReadOnly();
+
         abort_unless($team->isProfileTeam(), 404);
 
         $data = $request->validated();
@@ -101,6 +105,8 @@ class ProfileTeamController extends Controller
 
     public function destroy(Team $team): Response
     {
+        $this->abortIfTeamReadOnly();
+
         abort_unless($team->isProfileTeam(), 404);
         Gate::authorize('deleteProfile', $team);
 
@@ -111,6 +117,8 @@ class ProfileTeamController extends Controller
 
     public function createInvite(Team $team): JsonResponse
     {
+        $this->abortIfTeamReadOnly();
+
         abort_unless($team->isProfileTeam(), 404);
         Gate::authorize('inviteProfile', $team);
 
@@ -135,6 +143,8 @@ class ProfileTeamController extends Controller
 
     public function acceptInvite(Request $request, Team $team, string $token): JsonResponse|RedirectResponse
     {
+        $this->abortIfTeamReadOnly();
+
         abort_unless($team->isProfileTeam(), 404);
         Gate::authorize('acceptProfileInvite', $team);
 
@@ -166,6 +176,8 @@ class ProfileTeamController extends Controller
 
     public function kick(Request $request, Team $team): Response
     {
+        $this->abortIfTeamReadOnly();
+
         abort_unless($team->isProfileTeam(), 404);
         Gate::authorize('updateProfile', $team);
 
@@ -198,6 +210,8 @@ class ProfileTeamController extends Controller
 
     public function leave(Request $request, Team $team): Response
     {
+        $this->abortIfTeamReadOnly();
+
         abort_unless($team->isProfileTeam(), 404);
         Gate::authorize('leaveProfile', $team);
 
@@ -208,6 +222,8 @@ class ProfileTeamController extends Controller
 
     public function search(Request $request, Team $team): JsonResponse
     {
+        $this->abortIfTeamReadOnly();
+
         abort_unless($team->isProfileTeam(), 404);
         Gate::authorize('inviteProfile', $team);
 
@@ -250,6 +266,8 @@ class ProfileTeamController extends Controller
 
     public function inviteUserById(Request $request, Team $team): Response
     {
+        $this->abortIfTeamReadOnly();
+
         abort_unless($team->isProfileTeam(), 404);
         Gate::authorize('inviteProfile', $team);
 
@@ -344,5 +362,12 @@ class ProfileTeamController extends Controller
         return redirect()
             ->route('profile.my')
             ->with($flashKey, $message);
+    }
+
+    private function abortIfTeamReadOnly(): void
+    {
+        if (Team::isReadOnlyMode()) {
+            abort(HttpResponse::HTTP_FORBIDDEN, 'Управление командами доступно только на Foncode.');
+        }
     }
 }

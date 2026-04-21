@@ -245,6 +245,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/roles', [AdminController::class, 'allRoles'])->name('roles');
 
     Route::post('/sync-user', [AdminController::class, 'syncUser'])->name('sync-user')->middleware('throttle:2,1');
+    Route::post('/sync-team', [AdminController::class, 'syncTeam'])->name('sync-team')->middleware('throttle:2,1');
     Route::post('/hackathons/finish', [AdminController::class, 'finishHackathons'])->name('hackathons.finish')->middleware('throttle:10,1');
 });
 

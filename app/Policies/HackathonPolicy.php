@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Hackathon;
 use App\Models\Role;
+use App\Models\Team;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -108,6 +109,10 @@ class HackathonPolicy
 
     public function join(?User $user, Hackathon $hackathon): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if (!$user) {
             return false;
         }
@@ -145,6 +150,10 @@ class HackathonPolicy
 
     public function acceptInvite(?User $user, Hackathon $hackathon): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if (!$user) {
             return false;
         }
@@ -166,6 +175,10 @@ class HackathonPolicy
 
     public function leave(User $user, Hackathon $hackathon): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->isHackathonStaff($hackathon)) {
             return false;
         }

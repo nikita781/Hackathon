@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('hackathons:finish')->everyMinute();
         $schedule->command('users:sync')->everyFifteenMinutes();
+        $schedule->command('teams:sync')->everyFifteenMinutes();
         $schedule->command('editor:cleanup')->weeklyOn(6, '04:00');
     }
 

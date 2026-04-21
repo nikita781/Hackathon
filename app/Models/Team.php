@@ -10,8 +10,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Team extends Model
 {
+    public const SYNC_SOURCE_MAIN_SITE = 'main_site';
+
     protected $fillable = [
-        'hackathon_id', 'owner_id', 'title', 'place',
+        'hackathon_id', 'owner_id', 'main_site_team_id', 'sync_source', 'synced_at', 'title', 'place',
+    ];
+
+    protected $casts = [
+        'synced_at' => 'datetime',
     ];
 
     public function hackathon(): BelongsTo
@@ -44,6 +50,16 @@ class Team extends Model
     public function isProfileTeam(): bool
     {
         return $this->hackathon_id === null;
+    }
+
+    public function isSyncedFromMainSite(): bool
+    {
+        return $this->sync_source === self::SYNC_SOURCE_MAIN_SITE && $this->main_site_team_id !== null;
+    }
+
+    public static function isReadOnlyMode(): bool
+    {
+        return (bool) config('team_sync.readonly', false);
     }
 
     public function hasCaptain(User $user): bool

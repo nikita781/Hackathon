@@ -29,11 +29,19 @@ class TeamPolicy
 
     public function createProfile(User $user): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         return $user->status !== User::STATUS_BLOCKED;
     }
 
     public function updateProfile(User $user, Team $team): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
@@ -43,6 +51,10 @@ class TeamPolicy
 
     public function deleteProfile(User $user, Team $team): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
@@ -52,6 +64,10 @@ class TeamPolicy
 
     public function inviteProfile(User $user, Team $team): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
@@ -61,6 +77,10 @@ class TeamPolicy
 
     public function leaveProfile(User $user, Team $team): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
@@ -72,6 +92,10 @@ class TeamPolicy
 
     public function acceptProfileInvite(User $user, Team $team): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
@@ -81,6 +105,10 @@ class TeamPolicy
 
     public function update(User $user, Team $team): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
@@ -110,6 +138,10 @@ class TeamPolicy
 
     public function kick(User $user, Team $team): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
@@ -131,6 +163,10 @@ class TeamPolicy
 
     public function invite(User $user, Team $team): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }
@@ -151,6 +187,10 @@ class TeamPolicy
 
     public function joinTeam(User $user, Team $team): bool
     {
+        if (Team::isReadOnlyMode()) {
+            return false;
+        }
+
         if ($user->status === User::STATUS_BLOCKED) {
             return false;
         }

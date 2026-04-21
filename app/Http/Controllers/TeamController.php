@@ -44,6 +44,8 @@ class TeamController extends Controller
 
     public function update(UpdateTeamRequest $request, Hackathon $hackathon, Team $team): RedirectResponse
     {
+        $this->abortIfTeamReadOnly();
+
         if (!Gate::check('update', $team)) {
             abort(403);
         }
@@ -64,6 +66,8 @@ class TeamController extends Controller
 
     public function kick(KickTeamRequest $request, Hackathon $hackathon, Team $team): RedirectResponse
     {
+        $this->abortIfTeamReadOnly();
+
         if (!Gate::check('kick', $team)) {
             abort(403);
         }
@@ -101,6 +105,8 @@ class TeamController extends Controller
 
     public function createInvite(Hackathon $hackathon, Team $team): JsonResponse
     {
+        $this->abortIfTeamReadOnly();
+
         do {
             $token = Str::random(32);
         } while (TeamInvite::where('token', $token)->exists());
@@ -122,6 +128,8 @@ class TeamController extends Controller
 
     public function acceptInvite(Request $request, Hackathon $hackathon, Team $team, $token): RedirectResponse
     {
+        $this->abortIfTeamReadOnly();
+
         Gate::authorize('acceptInvite', $hackathon);
 
         $invite = TeamInvite::where('token', $token)->firstOrFail();
@@ -200,6 +208,8 @@ class TeamController extends Controller
 
     public function inviteUserById(Request $request, Hackathon $hackathon, Team $team): Response
     {
+        $this->abortIfTeamReadOnly();
+
         $data = $request->validate([
             'users' => 'array',
             'users.*.user_id' => 'required',
@@ -296,6 +306,8 @@ class TeamController extends Controller
 
     public function search(Request $request, Hackathon $hackathon, Team $team): JsonResponse
     {
+        $this->abortIfTeamReadOnly();
+
         Gate::authorize('update', $team);
 
         $user = User::query()
@@ -352,5 +364,12 @@ class TeamController extends Controller
             'canInvite' => $canInvite,
             'errors' => $errors,
         ]);
+    }
+
+    private function abortIfTeamReadOnly(): void
+    {
+        if (Team::isReadOnlyMode()) {
+            abort(403, 'Управление командами доступно только на Foncode.');
+        }
     }
 }
