@@ -31,6 +31,9 @@ const props = defineProps({
     notifications : { type:Object, required:true },
 })
 
+console.log(props.can)
+
+
 const tabComponents = {
     overview : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/Overview.vue')),
     oneProject : defineAsyncComponent(() => import('@/Components/Hackathon/Tabs/OneProject.vue')),
@@ -118,6 +121,7 @@ const showTakePart  = ref(false)
 const showUpdateHackathon  = ref(false)
 const adminMode = ref(false)
 const showRejectHackathon = ref(false)
+const localTeamManagementEnabled = false
 
 watch(showUpdateHackathon, (v) => { if (!v) adminMode.value = false })
 
@@ -409,7 +413,7 @@ async function finishHackathon() {
                                     class="main__btn_main hackathon__btn"
                                     @click="showTakePart = true"
                                     :class="{ main__btn_white: joined}"
-                                    v-if="joined && props.can.hackathon.leave && !props.hackathon.is_finished"
+                                    v-if="localTeamManagementEnabled && joined && props.can.hackathon.leave && !props.hackathon.is_finished"
                                 >
                                     {{capitalizeFirstLetter(langStore.translations.cancelParticipation)}}
                                 </button>

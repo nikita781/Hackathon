@@ -86,6 +86,7 @@ const sliderStyle = computed(() => {
 });
 
 const isOwnProfile = computed(() => props.auth?.user?.id === props.user?.id)
+const localTeamManagementEnabled = false
 
 const allTeams = computed(() => ([
     ...createdTeamsState.value.map(team => ({ team, profileRole: 'captain' })),
@@ -323,7 +324,7 @@ const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
                         <p class="profile__teams_subtitle">Все команды, где пользователь состоит или является капитаном.</p>
                     </div>
                     <button
-                        v-if="isOwnProfile"
+                        v-if="localTeamManagementEnabled && isOwnProfile"
                         type="button"
                         class="main__btn_main hackathon__btn"
                         style="max-width: unset"
@@ -352,7 +353,7 @@ const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
                                 </div>
                             </div>
                             <div
-                                v-if="isOwnProfile && (entry.team.can?.update_profile || entry.team.can?.invite_profile || entry.team.can?.delete_profile || entry.team.can?.leave_profile)"
+                                v-if="localTeamManagementEnabled && isOwnProfile && (entry.team.can?.update_profile || entry.team.can?.invite_profile || entry.team.can?.delete_profile || entry.team.can?.leave_profile)"
                                 class="profile__teams_actions"
                             >
                                 <button
@@ -417,28 +418,31 @@ const dateOnly = (s) => (s ? String(s).slice(0, 10) : '')
         </div>
 
         <CreateProfileTeam
+            v-if="localTeamManagementEnabled"
             v-model="showCreateTeam"
             @created="handleTeamCreated"
         />
         <EditTeam
-            v-if="selectedTeam"
+            v-if="localTeamManagementEnabled && selectedTeam"
             v-model="showEditTeam"
             :team="selectedTeam"
             :positions="normalizeCollection(props.positions)"
         />
         <InvitationToTheTeam
-            v-if="selectedTeam"
+            v-if="localTeamManagementEnabled && selectedTeam"
             v-model="showInvitation"
             :positions="normalizeCollection(props.positions)"
             :ownTeam="selectedTeam"
         />
         <ConfirmDialog
+            v-if="localTeamManagementEnabled"
             v-model="showDeleteTeam"
             :text="deleteTeamText"
             @confirm="deleteTeam"
             @cancel="teamToDelete = null"
         />
         <ConfirmDialog
+            v-if="localTeamManagementEnabled"
             v-model="showLeaveTeam"
             :text="leaveTeamText"
             @confirm="leaveTeam"

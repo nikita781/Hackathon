@@ -41,9 +41,10 @@ const meta = ref({ current_page: 1, last_page: 1, total: 0 })
 const slug = computed(() => props.hackathon?.slug ?? props.hackathonSlug)
 
 const showInviteCaptain = ref(false);
+const localTeamManagementEnabled = false
 
 const canInviteCaptain = computed(() => {
-    return !!props?.can?.hackathon?.approve
+    return localTeamManagementEnabled && !!props?.can?.hackathon?.approve
 })
 
 const isModeratedAccess = computed(() => Number(props.hackathon?.accessibility) === 2)
@@ -426,7 +427,7 @@ const sortOptions = computed(() => [
 ])
 
 const canKickUsers = computed(() => {
-    return !!props?.can?.hackathon?.update || !!props?.can?.hackathon?.approve
+    return localTeamManagementEnabled && (!!props?.can?.hackathon?.update || !!props?.can?.hackathon?.approve)
 })
 
 const kickingId = ref(null)
@@ -503,6 +504,7 @@ async function confirmKick() {
             <div class="hackathon__gallery">
                 <div class="hackathon__header_admin-btns">
                     <button
+                        v-if="localTeamManagementEnabled"
                         type="button"
                         class="main__btn_main"
                         style="width: fit-content; max-width: unset"
@@ -611,6 +613,7 @@ async function confirmKick() {
                                             <p class="hackathon__my-project__list_text">{{ captainOf(team).position?.name ?? 'Капитан' }}</p>
                                             <div title="Исключить участника">
                                                 <IconsCancel
+                                                    v-if="canKickUsers"
                                                     class="clickable"
                                                     style="cursor: pointer"
                                                     @click.stop="openKickConfirm(captainOf(team).user?.id, captainOf(team).user?.nickname)"
@@ -637,6 +640,7 @@ async function confirmKick() {
                                             <p class="hackathon__my-project__list_text">{{ m.position?.name }}</p>
                                             <div title="Исключить участника">
                                                 <IconsCancel
+                                                    v-if="canKickUsers"
                                                     class="clickable"
                                                     style="cursor: pointer"
                                                     @click.stop="openKickConfirm(m.user?.id, m.user?.nickname)"
@@ -689,7 +693,7 @@ async function confirmKick() {
                                 class="main__btn_main"
                                 @click="acceptRequest(r.id)"
                                 :disabled="acceptingId === r.id"
-                                v-if="r.status === 1 && props.can.hackathon.approve"
+                                v-if="localTeamManagementEnabled && r.status === 1 && props.can.hackathon.approve"
                             >
                                 {{ acceptingId === r.id ? '...' : 'Принять' }}
                             </button>

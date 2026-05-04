@@ -109,10 +109,6 @@ class HackathonPolicy
 
     public function join(?User $user, Hackathon $hackathon): bool
     {
-        if (Team::isReadOnlyMode()) {
-            return false;
-        }
-
         if (!$user) {
             return false;
         }

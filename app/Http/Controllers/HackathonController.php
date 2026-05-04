@@ -445,8 +445,6 @@ class HackathonController extends Controller
 
     public function joinHackathon(Request $request, Hackathon $hackathon): JsonResponse|RedirectResponse
     {
-        $this->abortIfTeamReadOnly();
-
         if (!Gate::check('join', $hackathon)) {
             abort(403);
         }
@@ -470,6 +468,12 @@ class HackathonController extends Controller
                     'team_id' => ['Команда для вступления не найдена или недоступна.'],
                 ]);
             }
+        }
+
+        if (Team::isReadOnlyMode() && $hackathon->type === 'team' && ! $profileTeam) {
+            throw ValidationException::withMessages([
+                'team_id' => ['Выберите команду из профиля Foncode для участия в командном хакатоне.'],
+            ]);
         }
 
         if ($hackathon->isModeration()) {

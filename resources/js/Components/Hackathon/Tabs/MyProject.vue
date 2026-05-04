@@ -19,6 +19,7 @@ const props = defineProps({
 
 const showEditTeam = ref(false)
 const showInvitation = ref(false);
+const localTeamManagementEnabled = false
 const projects = ref({})
 
 async function fetchProjects() {
@@ -352,12 +353,13 @@ onMounted(async () => {
                     type="button"
                     class="main__btn_main hackathon__my-project__team_svg"
                     @click="showEditTeam = true"
-                    v-if="props.can.team.update"
+                    v-if="localTeamManagementEnabled && props.can.team.update"
                 >
                     <IconsPencilMyProject
                     />
                 </button>
                 <EditTeam
+                    v-if="localTeamManagementEnabled"
                     v-model="showEditTeam"
                     :team="props.ownTeam"
                     :positions="props.positions"
@@ -378,11 +380,12 @@ onMounted(async () => {
                 type="button"
                 class="main__btn_main hackathon__btn"
                 @click="showInvitation = true"
-                v-if="props.can.team.invite"
+                v-if="localTeamManagementEnabled && props.can.team.invite"
             >
                 {{ capitalizeFirstLetter(langStore.translations.invite_to_team) }}
             </button>
             <InvitationToTheTeam
+                v-if="localTeamManagementEnabled"
                 v-model="showInvitation"
                 :positions="props.positions"
                 :ownTeam="props.ownTeam"

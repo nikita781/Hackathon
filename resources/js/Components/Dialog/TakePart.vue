@@ -30,6 +30,7 @@ const selectedTeamId = ref(null)
 
 const availableTeams = computed(() => Array.isArray(props.availableProfileTeams) ? props.availableProfileTeams : [])
 const hasTeamJoinTab = computed(() => !props.is_join && props.hackathon?.type === 'team')
+const showJoinModeTabs = false
 const selectedTeam = computed(() => availableTeams.value.find(team => team.id === selectedTeamId.value) ?? null)
 
 const disabled = computed(() => {
@@ -60,7 +61,7 @@ function selectTeam(team) {
 function resetState() {
     agree.value = false
     pending.value = false
-    activeJoinMode.value = 'solo'
+    activeJoinMode.value = hasTeamJoinTab.value ? 'team' : 'solo'
     selectedTeamId.value = null
 }
 
@@ -159,7 +160,7 @@ onMounted(async () => {
                 </svg></div>
             </div>
 
-            <div v-if="!props.is_join && hasTeamJoinTab" class="dialog__tabs">
+            <div v-if="showJoinModeTabs && !props.is_join && hasTeamJoinTab" class="dialog__tabs">
                 <p
                     class="dialog__tabs_item"
                     :class="{ active: activeJoinMode === 'solo' }"
