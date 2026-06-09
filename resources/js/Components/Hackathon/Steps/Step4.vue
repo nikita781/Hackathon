@@ -165,7 +165,6 @@ onMounted(async () => {
                 </div>
             </div>
         </div>
-<!--        <pre>>{{props.oneProject}}</pre>-->
         <div class="dialog__component">
             <p class="dialog__title large">{{ capitalizeFirstLetter(langStore.translations.rulesAndConditions) }}</p>
             <div class="dialog__checkbox" style="margin-top: 10px">

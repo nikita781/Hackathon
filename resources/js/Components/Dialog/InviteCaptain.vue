@@ -55,10 +55,8 @@ function makeRow() {
     };
 }
 
-// строки приглашений
 const users = ref([makeRow()]);
 
-// дебаунс таймеры по индексам
 const timers = new Map();
 
 function clearTimer(i) {
@@ -138,10 +136,8 @@ function removeUserField(i) {
 }
 
 function resolveUserId(row) {
-    // если нашли пользователя — берём точный id
     if (row.lookup?.found && row.lookup?.user?.id != null) return Number(row.lookup.user.id);
 
-    // иначе отправим как ввёл (число или строка/ник) — бэк сам обработает/вернёт 422
     const raw = row.q.toString().trim();
     if (!raw) return null;
     return /^\d+$/.test(raw) ? Number(raw) : raw;
@@ -159,7 +155,6 @@ const inviteDisabled = computed(() => pending.value || !filledRows.value.length 
 async function inviteCaptain() {
     if (!filledRows.value.length) return;
 
-    // очистим ошибки
     users.value.forEach(r => (r.rowError = ""));
 
     const payload = {
@@ -180,7 +175,6 @@ async function inviteCaptain() {
     } catch (error) {
         if (error?.response?.status === 422) {
             const errs = error.response.data?.errors ?? {};
-            // пример ключа: users.0.user_id
             Object.entries(errs).forEach(([key, messages]) => {
                 const m = key.match(/^users\.(\d+)\.user_id$/);
                 if (!m) return;
@@ -189,7 +183,6 @@ async function inviteCaptain() {
                 users.value[idx].rowError = Array.isArray(messages) ? (messages[0] ?? "Ошибка") : String(messages);
             });
 
-            // если прилетела общая ошибка — покажем toast
             if (!Object.keys(errs).length) {
                 toast.error("Ошибка валидации", { position: "top-right", timeout: 5000 });
             }

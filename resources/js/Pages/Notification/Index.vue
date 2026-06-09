@@ -64,7 +64,6 @@ async function markNotificationsAsRead() {
             { headers: { 'Content-Type': 'multipart/form-data' } }
         );
 
-        // console.log('Notifications marked as read successfully');
     } catch (err) {
         console.error('Error marking notifications as read:', err?.response ?? err);
     }
@@ -121,7 +120,7 @@ function getPreviewProject(project) {
                 hackathon: hackSlug,
                 project: slug,
             });
-        } catch (_) { /* no-op */ }
+        } catch (_) {}
     }
     return "/project.jpg";
 }
@@ -136,19 +135,15 @@ function getPreviewProject(project) {
         :auth="props.auth"
     >
         <div class="notification">
-<!--            <pre>{{props.notifications}}</pre>-->
             <h2 class="notification__title">{{ capitalizeFirstLetter(langStore.translations.notifications) }}</h2>
             <div class="notification__container">
-<!--                <pre>{{props.notifications.data}}</pre>-->
                 <div v-for="n in props.notifications.data" :key="n.id"
                      class="notification__item"
                      >
-<!--                    <pre>{{n}}</pre>-->
                     <div class="notification__image">
                         <img :src="getNotificationImage(n)" alt="">
                     </div>
 
-<!--                    <pre>{{n?.hackathon?.image_path}}</pre>-->
 
                     <div class="notification__content">
                         <div class="notification__main">

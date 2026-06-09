@@ -1,4 +1,3 @@
-// VkVideoTool.js
 export default class VkVideoTool {
     static get toolbox() {
         return {
@@ -11,18 +10,11 @@ export default class VkVideoTool {
         this.data = { code: data?.code || '' };
     }
 
-    // Преобразуем разные форматы ссылок VK в iframe-embed
     buildEmbedUrl(url = '') {
         if (!url) return null;
 
-        // уже embed-ссылки — пропускаем
         if (url.includes('video_ext.php')) return url;
 
-        // поддержка форматов:
-        // https://vk.com/video-123_456
-        // https://vk.com/video/club123?z=video-123_456
-        // https://m.vk.com/video-123_456
-        // ... и т.п.
         const m =
             url.match(/video[-\/]?([-\d]+)_([\d]+)/) ||
             url.match(/z=video([-\d]+)_([\d]+)/);
@@ -30,7 +22,6 @@ export default class VkVideoTool {
         if (!m) return null;
 
         let [, oid, id] = m;
-        // нормализуем oid: нужен всегда со знаком «-»
         const n = parseInt(String(oid), 10);
         const normOid = (isNaN(n) ? oid : (n < 0 ? n : -n));
 

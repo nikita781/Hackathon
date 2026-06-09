@@ -70,7 +70,6 @@ onMounted(async () => {
 
 <template>
     <div class="project__title">{{ project ? project.title : capitalizeFirstLetter(langStore.translations.projectTitle) }}</div>
-<!--    <pre>{{oneProject}}</pre>-->
     <div class="project__container">
         <div class="project__menu_phone">
             <div class="project__menu_item" @click="goToStep(1)">
@@ -150,7 +149,6 @@ onMounted(async () => {
         </div>
 
         <div class="project__content">
-<!--            <pre>{{project}}</pre>-->
             <keep-alive>
                 <component
                     :is="tabs[step - 1]"

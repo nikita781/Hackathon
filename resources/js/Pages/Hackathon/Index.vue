@@ -308,15 +308,12 @@ const sortOptions = computed(() => [
 </script>
 
 <template>
-<!--    <Head title="Dashboard" />-->
 
     <AuthenticatedLayout
         :auth="props.auth"
         :notifications="props.notifications"
     >
-<!--        <pre>{{langStore.translations}}</pre>-->
         <div>
-<!--            <pre>{{props.banners}}</pre>-->
         <div class="head">
             <Swiper
                 v-if="sortedBanners.length"
@@ -345,9 +342,6 @@ const sortOptions = computed(() => [
             </Swiper>
         </div>
 
-<!--        <pre>-->
-<!--            {{props.tags}}-->
-<!--        </pre>-->
 
         <div class="main__search">
             <div class="main__search_container">

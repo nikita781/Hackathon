@@ -214,11 +214,9 @@ async function save(){
     })
     if (form.image_path instanceof File) {
         fd.append('image_path', form.image_path)
-        // console.log(form.image_path)
     }
     fd.append('_method','PATCH')
 
-    // console.log('FD →', [...fd.entries()].map(([k, v]) => [k, v instanceof File ? v.name : v]));
 
     try{
         await axios.post(
@@ -472,7 +470,6 @@ const sortOptions4 = computed(() => [
             </div>
         </div>
     </div>
-<!--    <pre>{{form.errors}}</pre>-->
     <div class="dialog__component">
         <div class="dialog__title_container">
             <p class="dialog__title">{{ capitalizeFirstLetter(langStore.translations.registration_deadline) }} *</p>

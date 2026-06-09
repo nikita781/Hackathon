@@ -87,8 +87,6 @@ async function acceptRequest(reqId) {
 
     acceptingId.value = reqId
     try {
-        // ВАЖНО: если Ziggy у тебя ждёт другой параметр (hackathonUserRequest),
-        // просто замени userRequest на hackathonUserRequest
         await router.post(
             route('hackathons.accept-user', { hackathon: slug.value, hackathonUserRequest: reqId }),
             {},
@@ -97,10 +95,8 @@ async function acceptRequest(reqId) {
 
         toast.success('Пользователь принят', { position: 'top-right', timeout: 4000 })
 
-        // обновим участников (чтобы новый участник появился)
         await fetchTeams(meta.value?.current_page || 1)
 
-        // и обновим hackathon.show (чтобы заявки перерисовались)
         await router.reload({ only: ['hackathon'], preserveScroll: true })
     } catch (e) {
         console.error('accept-user', e?.response ?? e)
@@ -234,8 +230,6 @@ async function fetchTeams(page = 1) {
             { params: buildParams(page), headers: { Accept: 'application/json' } }
         )
 
-        // 1) { teams: Array, count }
-        // 2) { teams: { data, meta:{...}, links:[...] }, count }
         console.log(data)
         const payload = data?.teams
         if (Array.isArray(payload)) {

@@ -126,7 +126,6 @@ function rejectP() { emit('reject',  props.project); close() }
                 </div>
             </div>
 
-            <!-- Табы -->
             <div class="dialog__tabs">
                 <div
                     v-for="(t,i) in tabs"
@@ -137,8 +136,6 @@ function rejectP() { emit('reject',  props.project); close() }
                     <p>{{ t }}</p>
                 </div>
             </div>
-<!--            <pre>{{props.project}}</pre>-->
-            <!-- Контент -->
             <div class="dialog__content is-readonly">
                 <div v-if="active === 0" class="view-block">
                     <div class="dialog__component">
@@ -169,7 +166,6 @@ function rejectP() { emit('reject',  props.project); close() }
                     </div>
                 </div>
 
-                <!-- Описание -->
                 <div v-else-if="active === 1" class="view-block">
                     <div class="dialog__component">
                         <p class="dialog__title">О проекте</p>
@@ -195,7 +191,6 @@ function rejectP() { emit('reject',  props.project); close() }
                     </div>
                 </div>
 
-                <!-- Материалы -->
                 <div v-else class="view-block">
                     <div class="dialog__component">
                         <p class="dialog__title">Презентация</p>
@@ -228,7 +223,6 @@ function rejectP() { emit('reject',  props.project); close() }
                 </div>
             </div>
 
-            <!-- Кнопки решения -->
             <div class="dialog__footer" style="display:flex; gap:12px; justify-content:flex-end;">
                 <button class="main__btn main__btn_white" @click="rejectP">Отклонить</button>
                 <button class="main__btn_main" @click="approve">Принять</button>

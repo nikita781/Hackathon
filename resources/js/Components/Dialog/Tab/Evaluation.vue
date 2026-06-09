@@ -131,7 +131,6 @@ onMounted(async () => { await langStore.fetchTranslations() })
             </div>
         </div>
 
-<!--        <pre>{{groups}}</pre>-->
 
         <div class="dialog__prize" v-for="grp in groups" :key="grp.id">
             <div class="dialog__eva_container">

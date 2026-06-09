@@ -30,10 +30,7 @@ async function fetchResources() {
             route('hackathons.show', { hackathon: props.hackathonSlug }),
             { headers: { Accept: 'application/json' } }
         );
-        // resourcesFiles.value = data.files || [];
 
-        // form.sections[0].content = description.value;
-        // form.files = resourcesFiles.value;
 
         if (props.isEdit) {
             const hackathon = data.tabs.original[1];

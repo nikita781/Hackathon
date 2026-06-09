@@ -13,36 +13,30 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-// axios: куки/CSRF как у Inertia
 axios.defaults.withCredentials = true
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 const csrf = document.head?.querySelector('meta[name="csrf-token"]')?.content
 if (csrf) axios.defaults.headers.common['X-CSRF-TOKEN'] = csrf
 
-// Нормализуем ответ от бэка к формату EditorJS
 function toEditorImageResponse(d) {
-    // d может быть {id,url} или {file:{url,id}} или {data:{url,id}}
     const url = d?.file?.url ?? d?.url ?? d?.data?.url
     const id  = d?.file?.id  ?? d?.id  ?? d?.data?.id
     if (!url) throw new Error('Invalid upload response: no url')
     return { success: 1, file: id ? { url, id } : { url } }
 }
 
-// 1) из ответа достаём id и url и кладём их в карту
 function rememberImageIdFromResponse(d) {
     const url = d?.file?.url ?? d?.url ?? d?.data?.url
     const id  = d?.file?.id  ?? d?.id  ?? d?.data?.id
     if (url && id) imageIdByUrl.set(url, id)
 }
 
-// 2) для самого Image-плагина возвращаем МИНИМАЛЬНЫЙ формат
 function toEditorImageResponseForPlugin(d) {
     const url = d?.file?.url ?? d?.url ?? d?.data?.url
     if (!url) throw new Error('Invalid upload response: no url')
-    return { success: 1, file: { url } }   // без id !
+    return { success: 1, file: { url } }
 }
 
-/** Кладём id рядом с url в JSON, даже если плагин его «забыл» */
 const imageIdByUrl = new Map()
 function rememberImageId(file) {
     if (file?.url && file?.id) imageIdByUrl.set(file.url, file.id)
@@ -54,7 +48,6 @@ function injectImageIds(editorData) {
         const url = b.data?.file?.url ?? b.data?.url
         const knownId = imageIdByUrl.get(url) ?? b.data?.file?.id ?? b.data?.id
         if (url && knownId) {
-            // гарантируем структуру file:{ url, id }
             b.data.file = { url, id: knownId }
             delete b.data.url
             delete b.data.id
@@ -63,7 +56,6 @@ function injectImageIds(editorData) {
     return data
 }
 
-/* --- refs -------------------------------------------------------------- */
 const holder = ref(null)
 let editor = null
 
@@ -95,7 +87,6 @@ onMounted(async () => {
                 class: (await import('@editorjs/image')).default,
                 config: {
                     captionPlaceholder: 'Подпись',
-                    // ВАЖНО: без endpoints — используем только кастомный uploader на axios
                     uploader: {
                         async uploadByFile(file) {
                             const form = new FormData()
@@ -104,8 +95,8 @@ onMounted(async () => {
                                 headers: { 'Content-Type': 'multipart/form-data' }
                             })
                             rememberImageIdFromResponse(res.data)
-                            console.log(toEditorImageResponseForPlugin(res.data)  )// <-- сохраняем id
-                            return toEditorImageResponseForPlugin(res.data)       // <-- отдаём только url
+                            console.log(toEditorImageResponseForPlugin(res.data)  )
+                            return toEditorImageResponseForPlugin(res.data)
                         },
 
                         async uploadByUrl(url) {

@@ -1,4 +1,3 @@
-<!-- DropImage.vue -->
 <script setup>
 import {ref, onBeforeUnmount, watch, onMounted} from 'vue'
 import {useLangStore} from "@/store/lang.js";
@@ -11,8 +10,8 @@ const emit = defineEmits(['update:file'])
 
 const langStore = useLangStore()
 
-const previewSrc = ref('')          // objectURL для <img>
-const dragging   = ref(false)       // подсветка рамки при DnD
+const previewSrc = ref('')
+const dragging   = ref(false)
 let   blobURL    = ''
 
 function revoke () {
@@ -104,7 +103,6 @@ onMounted(async () => {
     transition: border-color .15s;
 }
 
-/* подсветка, когда тащат файл */
 .dropzone.dragging { border-color: #E80024; }
 
 .hint {
@@ -115,8 +113,8 @@ onMounted(async () => {
 }
 
 .preview {
-    max-height: 150px;          /* главное ограничение по ТЗ */
+    max-height: 150px;
     max-width : 100%;
-    object-fit: contain;        /* серые поля по бокам / сверху */
+    object-fit: contain;
 }
 </style>

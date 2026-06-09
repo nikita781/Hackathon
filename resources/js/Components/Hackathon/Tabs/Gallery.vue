@@ -101,7 +101,6 @@ async function fetchOneProject (slug) {
         if (data?.groupCriteries) {
             groupCriteries.value = data?.groupCriteries
         }
-        // console.log(data)
     } catch (e) {
         if (e?.name !== 'CanceledError') console.error('project-show', e?.response ?? e)
     }
@@ -431,7 +430,6 @@ const sortOptions = computed(() => [
             </div>
 
             <div class="hackathon__gallery_container">
-<!--                <pre>{{items}}</pre>-->
                 <template v-if="loading">
                     <div v-for="i in 6" :key="'s'+i" class="hackathon__my-project__item">
                         <div class="skeleton-loader" style="height: 180px; border-radius: 12px;"></div>

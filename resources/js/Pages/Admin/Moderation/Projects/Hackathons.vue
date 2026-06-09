@@ -22,7 +22,6 @@ const props = defineProps({
     notifications : { type:Object, required:true },
 })
 
-/** --- Табы: здесь активен 1 (Проекты). Клик по «Хакатоны» — назад на страницу хакатонов */
 const activeTab = ref(1)
 function goTab(i) {
     const params = buildQuery()
@@ -41,7 +40,6 @@ const sliderStyle = computed(() => {
     return { left: `${el.offsetLeft}px`, width: `${el.offsetWidth}px` }
 })
 
-/** --- Фильтры/поиск (та же логика, но запрос уходит на /admin/moderation/projects) */
 const search  = ref(props.filters.q ?? '')
 const order   = ref(props.filters.order ?? 'dateD')
 const selected = ref({
@@ -61,7 +59,6 @@ function runSearch() {
 }
 watch(search, debounce(runSearch, 400))
 
-/** --- Список и пагинация */
 const rows = computed(() => props.hackathons?.data ?? props.hackathons?.data?.data ?? props.hackathons ?? [])
 const withQ = (url) => {
     if (!url) return null
@@ -76,7 +73,6 @@ const pageLinks = computed(() => {
     return links.map(l => ({ ...l, url: withQ(l.url) }))
 })
 
-/** --- Утилиты */
 function pluralizeRu(n, forms){
     const abs = Math.abs(n); const n10 = abs % 10; const n100 = abs % 100;
     if (n10 === 1 && n100 !== 11) return forms[0];
@@ -140,7 +136,6 @@ onMounted(async () => {
                 <div class="slider" :style="sliderStyle"></div>
             </div>
 
-            <!-- Поиск/фильтры -->
             <div class="hackathon__gallery_filter" style="margin-top: 40px">
                 <div class="main__search my-hackathon__search">
                     <div class="main__search_container">
@@ -157,7 +152,6 @@ onMounted(async () => {
                 </button>
             </div>
 
-            <!-- Карточки: КОНТЕНТ ВТОРОГО таба (как у тебя при activeTab===1) -->
             <div class="main__cards" style="margin-top: 40px">
                 <a v-for="hackathon in rows" :key="hackathon.id" class="main__card" :href="`/hackathons/${hackathon.slug}`">
                     <div class="main__card_photo">
@@ -185,7 +179,6 @@ onMounted(async () => {
                     </div>
                 </a>
             </div>
-<!--            <pre>{{rows}}</pre>-->
 
             <Pagination style="margin-top: 30px" :links="pageLinks" />
 

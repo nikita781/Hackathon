@@ -3,10 +3,8 @@ import { ref, watch, onBeforeUnmount, onMounted } from 'vue'
 import { useLangStore } from '@/store/lang.js'
 
 const props = defineProps({
-    // существующие медиа: [{ id:number, url:string }, ...]
     files: {type: Array, default: () => []},
-    // ограничения (опционально)
-    maxCount: {type: Number, default: 0}, // 0 = без лимита
+    maxCount: {type: Number, default: 0},
     maxSizeMB: {type: Number, default: 10},
 })
 const emit = defineEmits(['update:files', 'deleting-ids', 'error'])
@@ -19,8 +17,6 @@ const inputEl = ref(null)
 const uid = () => Math.random().toString(36).slice(2)
 const objectURLs = new Set()
 
-// Унифицированные элементы:
-// { id?:number, file?:File, url:string, isNew:boolean, _key:string }
 const items = ref([])
 const deletedIds = ref([])
 
@@ -39,9 +35,7 @@ function toItem(x) {
     return null
 }
 
-// синхронизация входящих файлов (существующие с сервера)
 watch(() => props.files, (arr) => {
-    // сохраняем уже добавленные новые, чтобы не терять их при внешнем обновлении
     const keepNew = items.value.filter(i => i.isNew)
     items.value = []
     if (Array.isArray(arr)) {

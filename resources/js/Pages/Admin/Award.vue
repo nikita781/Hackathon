@@ -8,7 +8,7 @@ import { computed, nextTick, onMounted, ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import { useLangStore } from "@/store/lang.js";
 import { useToast } from "vue-toastification";
-import EditAward from "@/Components/Dialog/EditAward.vue"; // модалка, как у баннеров
+import EditAward from "@/Components/Dialog/EditAward.vue";
 
 const toast = useToast();
 const langStore = useLangStore();
@@ -19,7 +19,6 @@ const props = defineProps({
     notifications : { type:Object, required:true },
 });
 
-// нормализуем входящие награды
 const rows = ref(Array.isArray(props.awards) ? [...props.awards] : Array.isArray(props.awards?.data) ? [...props.awards.data] : []);
 
 const activeTab = ref(2);
@@ -48,12 +47,10 @@ onMounted(async () => {
     });
 });
 
-// превью через роут (как с баннерами)
 function awardSrc(row) {
     return row.image ?? route("awards.image", { award: row.id });
 }
 
-// модалка
 const showAward = ref(false);
 const editingAward = ref(null);
 
@@ -141,7 +138,6 @@ function onSaved() {
                 </tbody>
             </table>
 
-<!--            <pre>{{props.awards}}</pre>-->
 
             <EditAward
                 v-model="showAward"

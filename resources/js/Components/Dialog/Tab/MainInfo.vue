@@ -142,7 +142,6 @@ async function save () {
         emit('saved', { slug: res.hackathon.slug })
     } catch (e) {
         if (e.response?.status === 422) {
-            // form.clearErrors()
 
             const errors = e.response.data.errors
             Object.entries(errors).forEach(([field, messages]) => {

@@ -33,7 +33,6 @@ const props = defineProps({
                     <slot/>
                 </main>
 
-<!--                <Footer style="z-index: 2"/>-->
                 <Footer style="z-index: 2"/>
             </div>
         </div>
@@ -41,15 +40,13 @@ const props = defineProps({
 </template>
 
 <style lang="scss">
-/* 1) колонка во всю высоту окна */
 .layout {
-    min-height: 100vh;          /* 100 % высоты вьюпорта */
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
-/* 2) «растяжка» центральной области */
 .layout__main {
-    flex: 1 0 auto;             /* grow = 1 → заполняем остаток */
+    flex: 1 0 auto;
 }
 </style>

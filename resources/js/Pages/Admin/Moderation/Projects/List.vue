@@ -22,7 +22,6 @@ const props = defineProps({
     projects: { type: Object, default: () => ({}) },
     hackathons: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
-    // если на странице есть сам хакатон — он нужен для fallback превью
     hackathon: { type: Object, default: () => null },
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
@@ -49,7 +48,6 @@ onMounted(async () => {
     await langStore.fetchTranslations();
 });
 
-/** Собираем параметры для бэка (как в хакатонах: q, status, order) */
 function buildParams () {
     const params = {};
     const q = (search.value || "").trim();
@@ -61,17 +59,14 @@ function buildParams () {
     if (order.value && order.value !== "dateD") {
         params.order = order.value;
     } else {
-        // по умолчанию (как у тебя в контроллере) — dateD
         params.order = "dateD";
     }
     return params;
 }
 
-/** Ходим на эту же страницу, но с query (withQueryString на бэке сохранит пагинацию/фильтры) */
 function runSearch (pageUrl = null) {
     const url =
         pageUrl ||
-        // замени на твой именованный роут, если он есть. Если страница уже эта — можно просто router.get(route().current(), …).
         route(route().current(), route().params);
 
     router.get(url, buildParams(), {
@@ -83,9 +78,7 @@ function runSearch (pageUrl = null) {
 
 const toast = useToast();
 
-/** Пагинация — в Pagination компонент прилетает готовый URL, в нём уже есть ?page, а бэк делает withQueryString */
 function go (pageUrl) {
-    // передадим и текущие фильтры, чтобы не потерять их при переходе
     runSearch(pageUrl);
 }
 
@@ -121,7 +114,6 @@ watch(showView, (isOpen, wasOpen) => {
     }
 })
 
-/** Дебаунс поиска */
 const debouncedSearch = debounce(() => runSearch(), 400);
 watch(search, debouncedSearch);
 watch(order, () => runSearch());
@@ -142,7 +134,7 @@ function previewSrc(project) {
                 hackathon: hackSlug,
                 project: slug,
             });
-        } catch (_) { /* no-op */ }
+        } catch (_) {}
     }
     return "/project.jpg";
 }
@@ -226,7 +218,6 @@ function imgFallback(e) {
                     <IconsFilters class="admin__btn_filters" />
                 </button>
             </div>
-<!--            <pre>{{props.projects.data}}</pre>-->
             <div class="project-container">
                 <div
                     v-for="project in props.projects.data"

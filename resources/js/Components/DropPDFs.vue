@@ -2,15 +2,6 @@
 import {reactive, ref, watch, onBeforeUnmount, onMounted, nextTick} from 'vue'
 import {useLangStore} from '@/store/lang.js'
 
-/**
- * files — СМЕШАННЫЙ массив для отображения:
- *  - новые: File
- *  - существующие: { id, name, url }
- *
- * Эмитим:
- *  - update:files — обратно СМЕШАННЫЙ массив (для отображения)
- *  - deleting-ids — массив id существующих файлов, помеченных на удаление
- */
 const props = defineProps({
     files: {type: Array, default: () => []},
     maxSizeMb: {type: Number, default: 5},
@@ -22,8 +13,7 @@ const inputEl = ref(null)
 const dragging = ref(false)
 const deletedIds = ref([])
 
-/* Внутренние карточки: и новые, и существующие */
-const items = reactive([]) // { kind:'existing'|'new', key, id?, name, url, file? }
+const items = reactive([])
 const seenKeys = reactive(new Set())
 
 function keyOfExisting(x) {
@@ -33,7 +23,6 @@ function keyOfFile(f) {
     return `n:${f?.name ?? ''}#${f?.size ?? 0}#${f?.lastModified ?? 0}`
 }
 
-/* ----- helpers ------------------------------------------------------- */
 function revokeNewURLs() {
     items.forEach(i => {
         if (i.kind === 'new' && i.url) URL.revokeObjectURL(i.url)
@@ -41,7 +30,6 @@ function revokeNewURLs() {
 }
 
 function rebuildFromProp(list) {
-    // очищаем и пересобираем (revoking для новых)
     revokeNewURLs()
     items.splice(0, items.length)
     seenKeys.clear()
@@ -71,7 +59,6 @@ function rebuildFromProp(list) {
 watch(() => props.files, rebuildFromProp, {immediate: true, deep: true})
 
 function emitFiles() {
-    // наружу отдаём СМЕШАННЫЙ массив (как и партнёры)
     const mixed = items.map(i => (i.kind === 'new' ? i.file : {id: i.id, name: i.name, url: i.url}))
     emit('update:files', mixed)
 }
@@ -80,7 +67,6 @@ function emitDeletes() {
     emit('deleting-ids', [...deletedIds.value])
 }
 
-/* ----- add / remove -------------------------------------------------- */
 function addFiles(fileList) {
     ;[...fileList].forEach(f => {
         if (f.type !== 'application/pdf') return
@@ -114,7 +100,6 @@ function remove(idx) {
     emitFiles()
 }
 
-/* ----- DnD ----------------------------------------------------------- */
 function onDrop(e) {
     e.preventDefault();
     dragging.value = false;
@@ -125,7 +110,6 @@ function onDrag(e) {
     e.preventDefault();
     dragging.value = e.type === 'dragenter' || e.type === 'dragover'
 }
-/* очистка */
 onBeforeUnmount(revokeNewURLs)
 
 function capitalizeFirstLetter(str) {

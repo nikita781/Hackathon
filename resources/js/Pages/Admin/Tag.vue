@@ -15,7 +15,7 @@ const toast = useToast();
 const langStore = useLangStore();
 
 const props = defineProps({
-    tags: { type: Object, required: true }, // массив или пагинация {data:[]}
+    tags: { type: Object, required: true },
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
 });
@@ -39,12 +39,10 @@ const sliderStyle = computed(() => {
     return { left: `${el.offsetLeft}px`, width: `${el.offsetWidth}px` };
 });
 
-/* ---- Таблица + DnD ---- */
 const tbodyRef = ref(null);
 const sortableRef = ref(null);
 const isSaving = ref(false);
 
-// локальный список строк
 const rows = ref(Array.isArray(props.tags) ? [...props.tags] : Array.isArray(props.tags?.data) ? [...props.tags.data] : []);
 watch(
     () => props.tags,
@@ -60,7 +58,7 @@ function saveOrder() {
     const payload = {
         tags: rows.value.map((r, idx) => ({
             id: r.id,
-            slug: r.slug,     // ← добавили
+            slug: r.slug,
             order: idx + 1,
         })),
     };
@@ -118,7 +116,6 @@ function initSortable() {
     });
 }
 
-/* ---- Диалог создания/редактирования ---- */
 const showTag = ref(false)
 const editingTag = ref(null)
 
@@ -133,7 +130,6 @@ function openEdit(row, e) {
 }
 function onSaved() {}
 
-/* ---- Удаление ---- */
 const deletingId = ref(null)
 function deleteTag(row) {
     if (deletingId.value) return
@@ -298,7 +294,6 @@ onBeforeUnmount(() => { sortableRef.value?.destroy(); });
     cursor: pointer;
 }
 
-/* строка кликабельна для редактирования */
 .admin__table--draggable tbody tr.draggable-row {
     transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
     cursor: pointer;
@@ -308,7 +303,6 @@ onBeforeUnmount(() => { sortableRef.value?.destroy(); });
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
-/* ручка перетаскивания */
 .admin__table--draggable .drag-handle {
     color: #999;
     cursor: grab;
@@ -318,11 +312,9 @@ onBeforeUnmount(() => { sortableRef.value?.destroy(); });
 .admin__table--draggable .drag-handle:hover { background: #f3f3f3; color: #666; }
 .admin__table--draggable .drag-handle:active { cursor: grabbing; transform: scale(0.98); }
 
-/* классы SortableJS */
 .admin__table--draggable tbody tr.row-chosen { background: #fff7f9; }
 .admin__table--draggable tbody tr.row-drag { box-shadow: 0 8px 24px rgba(0,0,0,.12); transform: scale(1.01); }
 .admin__table--draggable tbody tr.row-ghost { opacity: .6; }
 
-/* заголовки */
 .admin__table thead th { user-select: none; }
 </style>

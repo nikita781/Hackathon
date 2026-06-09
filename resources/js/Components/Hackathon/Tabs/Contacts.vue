@@ -43,7 +43,6 @@ onMounted(async () => {
                     <div class="hackathon__contact" v-for="(item, index) in props.tabs.data[3].sections" :key="index">
                         <p class="hackathon__contact_title" style="margin-top: 30px" v-if="item.items.length">{{ item.title }}:</p>
                         <div class="hackathon__contact_links">
-<!--                            <pre>{{item.items}}</pre>-->
                             <a v-for="(link, inx) in item.items"
                                :key="inx"
                                :href="makeHref(link.content)"

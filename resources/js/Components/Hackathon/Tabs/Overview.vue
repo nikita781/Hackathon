@@ -112,8 +112,6 @@ function capitalizeFirstLetter(str) {
                     </div>
                 </div>
             </div>
-<!--            <pre>{{ partners.partners }}</pre>-->
-<!--            <pre>{{ props.tabs.data[0].sections[0].content }}</pre>-->
         </div>
     </div>
 </template>

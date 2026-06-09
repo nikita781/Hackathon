@@ -12,7 +12,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue", "saved"]);
 
-const image = ref(null);     // File | string (url)
+const image = ref(null);
 const pending = ref(false);
 const errors = ref({});
 

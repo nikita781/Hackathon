@@ -116,8 +116,6 @@ async function submit () {
         })
         const projectData = ref([])
         if (isEdit.value) {
-            // console.log(data.projects.original)
-            // console.log(data)
 
             const projects = ref({});
 
@@ -139,8 +137,6 @@ async function submit () {
             }
 
             const updatedProject = projects.value.find(project => project.slug === slug);
-            //
-            // console.log(updatedProject)
 
             if (updatedProject) {
                 if (preview.value !== null) {
@@ -154,7 +150,6 @@ async function submit () {
                     updated_at: updatedProject.updated_at,
                 };
 
-                // console.log(projectData.value);
             } else {
                 console.error('Проект не найден');
             }

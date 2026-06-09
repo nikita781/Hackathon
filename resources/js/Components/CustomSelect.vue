@@ -81,38 +81,29 @@ function updateMenuPosition() {
 
     const rect = trigger.getBoundingClientRect()
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0
-    const margin = 8                      // отступ от краёв экрана
-    const idealMaxHeight = 260            // желаемая высота выпадашки
+    const margin = 8
+    const idealMaxHeight = 260
 
-    // сколько места есть СНИЗУ от селекта до низа экрана
     const spaceBelow = viewportHeight - rect.bottom - margin
-    // сколько места есть СВЕРХУ от селекта до верха экрана
     const spaceAbove = rect.top - margin
 
     let openUp = false
     let maxHeight
 
-    // По умолчанию открываем вниз.
-    // Если места снизу мало, но сверху больше — открываем вверх.
     if (spaceBelow < 120 && spaceAbove > spaceBelow) {
-        // openUp = true
-        // maxHeight = Math.min(idealMaxHeight, spaceAbove)
         maxHeight = Math.min(idealMaxHeight, spaceBelow)
     } else {
         maxHeight = Math.min(idealMaxHeight, spaceBelow)
     }
 
-    // На всякий случай не даём maxHeight быть совсем крошечным
     if (!maxHeight || maxHeight < 80) {
         maxHeight = 80
     }
 
     let top
     if (openUp) {
-        // открываем вверх: верх списка = top селекта - высота меню
         top = rect.top + window.scrollY - maxHeight
     } else {
-        // открываем вниз: верх списка = низ селекта
         top = rect.bottom + window.scrollY
     }
 

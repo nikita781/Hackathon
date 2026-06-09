@@ -64,8 +64,8 @@ const editingIndex = ref(null)
 const description     = ref(null)
 const plan            = ref(null)
 const partnerLogos    = ref([])
-const newPartnerFiles = ref([])   // File[]
-const deletedMediaIds = ref([])   // number[]
+const newPartnerFiles = ref([])
+const deletedMediaIds = ref([])
 
 const nominations = ref(null)
 const overviewTabId = ref(null)
@@ -116,16 +116,6 @@ async function fetchHackathon ({
             }
         }
 
-        // console.log(data)
-        //
-        // if (refreshNominations) {
-        //     const raw = data.hackathon.original.nominations || data.hackathon.nominations || []
-        //     nominations.value = raw.map(n => ({
-        //         ...n,
-        //             distribution: Array.isArray(n.distribution) ? n.distribution : (n.distribution && typeof n.distribution === 'object' ? Object.values(n.distribution).sort((a,b)=>(a.place??0)-(b.place??0))
-        //                     : [])
-        //         }))
-        // }
 
         const hackathonPayload = data.hackathon?.original ?? data.hackathon ?? {}
 

@@ -32,9 +32,6 @@ async function fetchHackathon () {
 
         const rawAwards = hackathonPayload.awards ?? []
         awards.value = Array.isArray(rawAwards) ? rawAwards : []
-        // console.log(awards.value)
-        // await nextTick()
-        // loaded.value = true
     } catch (err) {
         console.error('fetch-hackathon-error', err?.response ?? err)
     }

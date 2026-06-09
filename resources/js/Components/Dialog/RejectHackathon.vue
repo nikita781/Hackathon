@@ -30,7 +30,6 @@ const rejectUrl = computed(() => {
 async function submitReject() {
     if (pending.value) return
     const t = (textComment.value ?? '').trim()
-    // if (t.length < 3) { errorMsg.value = true; return }
     pending.value = true
     try {
         const payload = {}

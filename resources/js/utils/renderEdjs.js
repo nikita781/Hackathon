@@ -9,19 +9,16 @@ const escapeHtml = (s = '') =>
 
 function renderList(items = [], style = 'unordered', start = 1) {
     const tag = style === 'ordered' ? 'ol' : 'ul'
-    const startAttr = style === 'ordered' && start ? ` start="${start}"` : '' // Добавляем атрибут start для ordered
+    const startAttr = style === 'ordered' && start ? ` start="${start}"` : ''
 
     const renderItem = (item) => {
-        // Старый формат: просто строка
         if (typeof item === 'string') {
             return `<li>${item}</li>`
         }
-        // Новый/вложенный формат: объект { content, items }
         if (item && typeof item === 'object') {
             const inner = item.items?.length ? renderList(item.items, style, start) : ''
             return `<li>${item.content ?? ''}${inner}</li>`
         }
-        // На всякий случай
         return `<li>${String(item ?? '')}</li>`
     }
 
@@ -42,7 +39,6 @@ const parser = edjsHTML({
     },
     code      : ({ data }) => `<pre><code>${escapeHtml(data.code ?? '')}</code></pre>`,
     raw       : ({ data }) => data?.html ?? '',
-    // НОВОЕ:
     vkvideo   : ({ data }) => {
         const tool = new VkVideoTool({ data });
         const embed = tool.buildEmbedUrl(data?.code || '');
@@ -58,35 +54,27 @@ const isEditorJsData = (v) =>
 const isEditorJsEmpty = (v) =>
     isEditorJsData(v) && v.blocks.length === 0
 
-/**
- * @param {string|object|null} raw — поле `content` из БД/бэка
- * @returns {string} HTML
- */
 export function renderEdjs (raw) {
-    // Если пришла строка — пробуем распарсить JSON
     let data = raw
     if (typeof raw === 'string') {
         try {
-            data = JSON.parse(raw)  // Преобразуем строку JSON в объект
+            data = JSON.parse(raw)
         } catch (e) {
             console.error('Invalid JSON:', e)
             return `<p style="color:#999">Некорректные данные</p>`
         }
     }
 
-    // Editor.js: пустой → ничего не выводим
     if (isEditorJsEmpty(data)) {
-        return '' // вообще ничего
+        return ''
     }
 
-    // Editor.js: непустой → рендерим
     if (isEditorJsData(data) && data.blocks.length > 0) {
-        const htmlParts = parser.parse(data)            // массив строк
+        const htmlParts = parser.parse(data)
         const html = Array.isArray(htmlParts) ? htmlParts.join('') : String(htmlParts ?? '')
         return html
     }
 
-    // Спец-случай: объект с датами
     if (data?.start && data?.end) {
         const fmt = d => new Date(d).toLocaleString('ru-RU', {
             day:'2-digit', month:'2-digit', year:'numeric',
@@ -95,9 +83,7 @@ export function renderEdjs (raw) {
         return `<p>${fmt(data.start)} — ${fmt(data.end)}</p>`
     }
 
-    // Пусто
     if (!raw) return '<p style="color:#999">Нет описания</p>'
 
-    // Фолбэк: показать как JSON (экранируем)
     return `<pre>${escapeHtml(JSON.stringify(data ?? raw, null, 2))}</pre>`
 }

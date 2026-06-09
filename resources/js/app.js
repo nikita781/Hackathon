@@ -10,7 +10,6 @@ import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 import { useLangStore } from '@/store/lang'
 
-// const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: title => `${title}`,

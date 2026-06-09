@@ -39,16 +39,14 @@ async function openAnswer(message) {
     await markAsReadIfNeeded(message)
 }
 
-// серверные пропсы
 const props = defineProps({
-    support: {type: Object, required: true}, // пагинатор
-    filters: {type: Object, default: () => ({})}, // если вдруг добавишь на бэке
+    support: {type: Object, required: true},
+    filters: {type: Object, default: () => ({})},
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
 });
 
-// ------- Табы (локальные, без навигации)
-const activeTab = ref(0)                   // 0 — активные, 1 — закрытые
+const activeTab = ref(0)
 function setActiveTab(i) {
     activeTab.value = i
 }
@@ -63,18 +61,16 @@ const sliderStyle = computed(() => {
     return {left: `${el.offsetLeft}px`, width: `${el.offsetWidth}px`}
 })
 
-// чтобы слайдер не «уезжал» при ресайзе
 const winW = ref(window.innerWidth)
 
 function onResize() {
     winW.value = window.innerWidth
 }
 
-// ------- Поиск + Фильтры
 const search = ref(props.filters.q ?? "")
 const order = ref(props.filters.order ?? "dateD")
 const selected = ref({
-    types: props.filters.types ? String(props.filters.types).split(",") : [], // ['question','suggestion','bug']
+    types: props.filters.types ? String(props.filters.types).split(",") : [],
 })
 
 function buildQuery() {
@@ -82,7 +78,7 @@ function buildQuery() {
         q: search.value || undefined,
         order: order.value || undefined,
         type: selected.value.types.length ? selected.value.types.join(",") : undefined,
-        is_completed: activeTab.value === 1 ? 1 : 0,   // активные/закрытые
+        is_completed: activeTab.value === 1 ? 1 : 0,
     }
 }
 
@@ -94,7 +90,6 @@ function runQuery() {
 watch(search, debounce(runQuery, 400))
 watch(activeTab, runQuery)
 
-// ------- Список/пагинация
 const rows = computed(() => props.support?.data ?? [])
 
 const withQ = (url) => {
@@ -255,7 +250,6 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
                 </table>
             </div>
 
-<!--            <pre>{{props.support}}</pre>-->
 
             <Pagination style="margin-top: 30px" :links="pageLinks"/>
         </div>
@@ -291,7 +285,6 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
     transition: left .25s ease, width .25s ease;
 }
 
-/* кликабельность и hover ТОЛЬКО для этой таблицы */
 .admin__table_clickable tbody tr {
     cursor: pointer;
 }
@@ -301,7 +294,7 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
 }
 
 .admin__table_clickable tbody tr.unread td {
-    background: rgba(232, 0, 36, .06); /* нежно-красная подложка */
+    background: rgba(232, 0, 36, .06);
     font-weight: 600;
     transition: background .2s ease;
 }
@@ -318,7 +311,7 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
     top: 8px;
     bottom: 8px;
     width: 4px;
-    background: #E80024;        /* фирменный красный */
+    background: #E80024;
     border-radius: 4px;
 }
 </style>

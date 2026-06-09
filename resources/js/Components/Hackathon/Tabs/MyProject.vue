@@ -309,7 +309,6 @@ onMounted(async () => {
                     {{ capitalizeFirstLetter(langStore.translations.create) }}
                 </button>
             </div>
-<!--            <pre>{{projects}}</pre>-->
             <div class="hackathon__my-project__project">
                 <div
                     class="hackathon__my-project__item"
@@ -366,7 +365,6 @@ onMounted(async () => {
                     :hackathon="props.hackathon"
                 />
             </div>
-<!--            <pre>{{props.ownTeam}}</pre>-->
             <div class="hackathon__my-project__list">
                 <div class="hackathon__my-project__list_item" v-for="(person,idx) in props.ownTeam.users" :key="idx">
                     <div class="hackathon__my-project__list_container">

@@ -5,7 +5,7 @@ import CustomSelect from "@/Components/CustomSelect.vue";
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
     order: { type: String, default: "dateD" },
-    selected: { type: Object, default: () => ({ types: [] }) }, // ['question','suggestion','bug']
+    selected: { type: Object, default: () => ({ types: [] }) },
 })
 const emit = defineEmits(["update:modelValue","apply","reset"])
 
@@ -68,41 +68,6 @@ const sortOptions = computed(() => [
                     close-by-scroll
                 />
             </div>
-
-<!--            <div class="dialog__component">-->
-<!--                <div class="main__filter">-->
-<!--                    <div class="main__filter_item">-->
-<!--                        <p class="main__filter_title">Тип обращения</p>-->
-
-<!--                        <div-->
-<!--                            class="main__filter_input"-->
-<!--                            :class="{ active: state.types.includes('question') }"-->
-<!--                            @click="toggleType('question')"-->
-<!--                        >-->
-<!--                            <div class="custom-checkbox"></div>-->
-<!--                            <p>Вопрос</p>-->
-<!--                        </div>-->
-
-<!--                        <div-->
-<!--                            class="main__filter_input"-->
-<!--                            :class="{ active: state.types.includes('suggestion') }"-->
-<!--                            @click="toggleType('suggestion')"-->
-<!--                        >-->
-<!--                            <div class="custom-checkbox"></div>-->
-<!--                            <p>Предложение</p>-->
-<!--                        </div>-->
-
-<!--                        <div-->
-<!--                            class="main__filter_input"-->
-<!--                            :class="{ active: state.types.includes('bug') }"-->
-<!--                            @click="toggleType('bug')"-->
-<!--                        >-->
-<!--                            <div class="custom-checkbox"></div>-->
-<!--                            <p>Сообщение об ошибке</p>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </div>-->
 
             <div class="dialog__btns">
                 <button class="main__btn main__btn_white dialog__btn" @click="reset">Сбросить</button>

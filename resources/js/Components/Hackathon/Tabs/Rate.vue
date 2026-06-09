@@ -535,7 +535,6 @@ const sortOptions = computed(() => [
                         </div>
                     </template>
                     <template v-else>
-<!--                        <pre>{{items}}</pre>-->
                         <div
                             v-for="project in items"
                             :key="getKey(project)"
@@ -570,7 +569,6 @@ const sortOptions = computed(() => [
                         </div>
                     </template>
 
-<!--                    <pre>{{items}}</pre>-->
                 </div>
                 <div ref="pagerWrap" @click.capture="onPagerClick" style="margin-top:24px">
                     <Pagination :links="pageLinks" @navigate="go" />
@@ -599,7 +597,6 @@ const sortOptions = computed(() => [
                 <p class="">{{ oneShortDesc }}</p>
             </div>
 
-<!--            <pre>{{oneProject}}</pre>-->
 
             <div class="hackathon__tab_container" v-if="oneDesc">
                 <p class="hackathon__my-project__title">{{ capitalizeFirstLetter(langStore.translations.description) }}</p>

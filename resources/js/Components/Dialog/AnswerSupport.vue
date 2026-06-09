@@ -94,7 +94,6 @@ onMounted(async () => {
                     />
                 </svg></div>
             </div>
-<!--            <pre>{{message}}</pre>-->
             <div class="dialog__component">
                 <p class="message-type" v-if="message.type === 'bug'">{{ capitalizeFirstLetter(langStore.translations.error_message) }}</p>
                 <p class="message-type" v-if="message.type === 'suggestion'">{{ capitalizeFirstLetter(langStore.translations.suggestion) }}</p>
@@ -130,7 +129,6 @@ onMounted(async () => {
                 />
                 <p v-if="errorMsg" style="color:#e74c3c; margin-top:8px;">{{ errorMsg }}</p>
             </div>
-<!--            {{props.can}}-->
             <div class="dialog__btns" v-if="props.can && isAdmin">
                 <button class="main__btn main__btn_white dialog__btn" @click="close" :disabled="pending">
                     {{ capitalizeFirstLetter(langStore.translations.cansel) }}

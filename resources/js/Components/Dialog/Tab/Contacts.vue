@@ -43,8 +43,8 @@ const langStore = useLangStore()
 const loaded = ref(false)
 const dirty  = ref(false)
 
-const contacts = ref([])  // [{ title, value }]
-const socials  = ref([])  // [{ title, value }]
+const contacts = ref([])
+const socials  = ref([])
 
 const dlgShown    = ref(false)
 const dlgListName = ref('contacts')

@@ -1,4 +1,3 @@
-<!-- resources/js/Pages/Admin/Contents/Banners.vue (страница со списком) -->
 <script setup>
 import GridMenu from "@/Components/Icons/GridMenu.vue";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
@@ -16,7 +15,7 @@ const toast = useToast();
 const langStore = useLangStore();
 
 const props = defineProps({
-    banners: { type: Object, required: true }, // массив или пагинация {data:[]}
+    banners: { type: Object, required: true },
     auth : { type:Object, required:true },
     notifications : { type:Object, required:true },
 });
@@ -40,12 +39,10 @@ const sliderStyle = computed(() => {
     return { left: `${el.offsetLeft}px`, width: `${el.offsetWidth}px` };
 });
 
-/* ---- Таблица + DnD ---- */
 const tbodyRef = ref(null);
 const sortableRef = ref(null);
 const isSaving = ref(false);
 
-// нормализуем входные баннеры в локальный массив
 const rows = ref(Array.isArray(props.banners) ? [...props.banners] : Array.isArray(props.banners?.data) ? [...props.banners.data] : []);
 watch(
     () => props.banners,
@@ -112,7 +109,6 @@ function initSortable() {
     });
 }
 
-/* ---- Диалог создания/редактирования ---- */
 const showBanner = ref(false);
 const editingBanner = ref(null);
 
@@ -121,16 +117,13 @@ function openCreate() {
     showBanner.value = true;
 }
 function openEdit(row, e) {
-    // игнорируем клики по ручке dnd и по кнопке удаления
     if (e?.target?.closest(".drag-handle") || e?.target?.closest(".btn-delete")) return;
     editingBanner.value = row;
     showBanner.value = true;
 }
 function onSaved() {
-    // После успеха страница перерисуется через Inertia (redirect back)
 }
 
-/* ---- Удаление ---- */
 const deletingId = ref(null);
 function deleteBanner(row) {
     if (deletingId.value) return;
@@ -275,7 +268,6 @@ function bannerSrc(row) {
                 </tbody>
             </table>
 
-<!--            <pre>{{props.banners}}</pre>-->
 
             <CreateBanners
                 v-model="showBanner"
@@ -310,7 +302,6 @@ function bannerSrc(row) {
     border-radius: 10px;
 }
 
-/* строка кликабельна для редактирования */
 .admin__table--draggable tbody tr.draggable-row {
     transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
     cursor: pointer;
@@ -320,7 +311,6 @@ function bannerSrc(row) {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
-/* ручка перетаскивания */
 .admin__table--draggable .drag-handle {
     color: #999;
     cursor: grab;
@@ -330,11 +320,9 @@ function bannerSrc(row) {
 .admin__table--draggable .drag-handle:hover { background: #f3f3f3; color: #666; }
 .admin__table--draggable .drag-handle:active { cursor: grabbing; transform: scale(0.98); }
 
-/* классы SortableJS */
 .admin__table--draggable tbody tr.row-chosen { background: #fff7f9; }
 .admin__table--draggable tbody tr.row-drag { box-shadow: 0 8px 24px rgba(0,0,0,.12); transform: scale(1.01); }
 .admin__table--draggable tbody tr.row-ghost { opacity: .6; }
 
-/* заголовки */
 .admin__table thead th { user-select: none; }
 </style>

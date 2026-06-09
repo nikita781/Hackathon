@@ -251,7 +251,6 @@ const sortOptions = computed(() => [
         :auth="props.auth"
         :notifications="props.notifications"
     >
-<!--        {{ notifications }}-->
         <div class="my-hackathon">
             <div class="my-hackathon__header">
                 <div class="main__search my-hackathon__search">
@@ -263,7 +262,6 @@ const sortOptions = computed(() => [
                     </div>
                     <button type="button" class="main__btn_main" @click="fetchHackathons">{{ langStore.translations.search }}</button>
                 </div>
-<!--                <div class="my-hackathon__btn main__btn_main" v-if="props.can.create">-->
                 <div class="my-hackathon__btn main__btn_main" v-if="props.can.create" @click="showDialog = true">
                     {{langStore.translations.createHackathon}}
                     <div>
@@ -297,7 +295,6 @@ const sortOptions = computed(() => [
                     :style="sliderStyle"
                 ></div>
             </div>
-<!--            <pre>{{hackathons}}</pre>-->
             <div class="main__cards" style="margin-top: 40px">
                 <a v-for="hackathon in hackathons?.data" :key="hackathon.id" class="main__card" :href="`/hackathons/${hackathon.slug}`">
                     <div class="main__card_photo">
@@ -393,7 +390,6 @@ const sortOptions = computed(() => [
                     </div>
                 </a>
             </div>
-<!--            <Pagination :links="hackathons?.meta.links" @navigate="go" style="margin-top: 30px" />-->
             <DialogCreateHackathon v-model="showDialog" :tags="props.tags ?? []"/>
             <ResendHackathon v-model="showResend" :hackathon-slug="resendSlug" :comment-text="commentText" />
         </div>

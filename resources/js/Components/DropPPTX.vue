@@ -1,4 +1,3 @@
-<!-- DropFile.vue -->
 <script setup>
 import { ref, onBeforeUnmount, watch, onMounted } from 'vue'
 import { useLangStore } from "@/store/lang.js"
@@ -41,7 +40,6 @@ watch(
 function handleFiles(files) {
     if (!files?.length) return
     const file = files[0]
-    // Проверка на допустимые типы файлов для презентаций
     const allowedTypes = ['application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/pdf', 'application/vnd.oasis.opendocument.presentation']
     if (!allowedTypes.includes(file.type)) return
 

@@ -162,13 +162,6 @@ onMounted(async () => { await langStore.fetchTranslations() })
                 <p class="dialog__title">
                     {{ capitalizeFirstLetter(langStore.translations.certificates || 'Сертификаты') }}
                 </p>
-<!--                <div class="help-tt" aria-label="help" >-->
-<!--                    <svg class="help-tt__icon" width="16" height="16" viewBox="0 0 24 24" fill="none">-->
-<!--                        <circle cx="12" cy="12" r="10" stroke="#000" />-->
-<!--                        <path d="M12 17v-5" stroke="#000" stroke-linecap="round"/>-->
-<!--                        <circle cx="12" cy="8" r="1" fill="#000"/>-->
-<!--                    </svg>-->
-<!--                </div>-->
                 <InfoCertificates v-model="showInfo" />
             </div>
 
